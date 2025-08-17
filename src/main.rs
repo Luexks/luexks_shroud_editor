@@ -6,7 +6,6 @@
 use eframe::egui;
 mod shroud_editor;
 use shroud_editor::*;
-mod background_grid;
 mod fonts;
 mod gui;
 mod key_tracker;

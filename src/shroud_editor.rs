@@ -16,6 +16,7 @@ use egui::Key;
 use egui::Pos2;
 use egui::Rect;
 use egui::Stroke;
+use egui::Ui;
 use egui::Vec2;
 use egui::pos2;
 use luexks_reassembly::blocks::{shroud::Shroud, shroud_layer::ShroudLayer};
@@ -24,8 +25,6 @@ use luexks_reassembly::utility::display_oriented_math::DisplayOriented3D;
 use luexks_reassembly::utility::display_oriented_math::do3d_float_from;
 use luexks_reassembly::utility::display_oriented_math::don_float_from;
 use parse_vanilla_shapes::get_vanilla_shapes;
-
-const GRID_SIZE: f32 = 2.5; // Temporary
 
 pub enum ShroudLayerInteraction {
     Inaction {
@@ -179,6 +178,61 @@ impl ShroudEditor {
         self.pan.x += after_x - before_x;
         self.pan.y += after_y - before_y;
     }
+
+    fn draw_grid(&self, ui: &mut Ui, rect: Rect) {
+        let stroke = Stroke::new(1.0, Color32::from_rgb(0, 0, 150));
+        let axis_stroke = Stroke::new(1.0, Color32::from_rgb(255, 0, 255));
+
+        let grid_size = self.grid_size * 2.0_f32.powi((10.0 / (self.zoom + 2.0)).round() as i32);
+
+        let world_min = self.screen_pos_to_world_pos(rect.min, rect);
+        let world_max = self.screen_pos_to_world_pos(rect.max, rect);
+        let first_vertical_line_x = (world_min.x / grid_size).ceil() * grid_size;
+        let first_horizontal_line_y = (world_min.y / grid_size).ceil() * grid_size;
+        let vertical_grid_line_count = ((-world_min.x + world_max.x) / grid_size).ceil() as usize;
+        let horizontal_grid_line_count = ((-world_min.y + world_max.y) / grid_size).ceil() as usize;
+
+        let mut y_axis_x_option = None;
+        let mut x_axis_y_option = None;
+
+        let y_top = world_min.y;
+        let y_bottom = world_max.y;
+        let x_left = world_min.x;
+        let x_right = world_max.x;
+
+        (0..vertical_grid_line_count).for_each(|index| {
+            let x = first_vertical_line_x + grid_size * index as f32;
+            let pos_top = self.world_pos_to_screen_pos(pos2(x, y_top), rect);
+            let pos_bottom = self.world_pos_to_screen_pos(pos2(x, y_bottom), rect);
+            if x.abs() < f32::EPSILON {
+                y_axis_x_option = Some(x);
+            } else {
+                ui.painter().line_segment([pos_top, pos_bottom], stroke);
+            }
+        });
+
+        (0..horizontal_grid_line_count).for_each(|index| {
+            let y = first_horizontal_line_y + grid_size * index as f32;
+            let pos_left = self.world_pos_to_screen_pos(pos2(x_left, y), rect);
+            let pos_right = self.world_pos_to_screen_pos(pos2(x_right, y), rect);
+            if y.abs() < f32::EPSILON {
+                x_axis_y_option = Some(y)
+            } else {
+                ui.painter().line_segment([pos_left, pos_right], stroke);
+            }
+        });
+
+        if let Some(y_axis_x) = y_axis_x_option {
+            let pos_top = self.world_pos_to_screen_pos(pos2(y_axis_x, y_top), rect);
+            let pos_bottom = self.world_pos_to_screen_pos(pos2(y_axis_x, y_bottom), rect);
+            ui.painter().line_segment([pos_top, pos_bottom], axis_stroke);
+        }
+        if let Some(x_axis_y) = x_axis_y_option {
+            let pos_left = self.world_pos_to_screen_pos(pos2(x_left, x_axis_y), rect);
+            let pos_right = self.world_pos_to_screen_pos(pos2(x_right, x_axis_y), rect);
+            ui.painter().line_segment([pos_left, pos_right], axis_stroke);
+        }
+    }
 }
 
 // fn is_key_down(ctx: &Context, key: Key) -> bool {
@@ -194,7 +248,7 @@ impl Default for ShroudEditor {
             },
             // zoom: 1,
             zoom: 1.0,
-            grid_size: 1.0,
+            grid_size: 2.5,
             grid_active: true,
             snap_to_grid: true,
             pan: Pos2::new(0.0, 0.0),
@@ -329,53 +383,7 @@ impl eframe::App for ShroudEditor {
                     ui.allocate_response(ui.available_size(), egui::Sense::click_and_drag());
                 let rect = response.rect;
 
-                let background_grid_stroke = Stroke::new(1.0, Color32::BLUE);
-
-                let world_min = self.screen_pos_to_world_pos(rect.min, rect);
-                let world_max = self.screen_pos_to_world_pos(rect.max, rect);
-                let first_vertical_grid_line_x = (world_min.x / GRID_SIZE).ceil() * GRID_SIZE;
-                let first_horizontal_grid_line_y = (world_min.y / GRID_SIZE).ceil() * GRID_SIZE;
-                let vertical_grid_line_count = ((-world_min.x + world_max.x) / GRID_SIZE).ceil() as usize;
-                let horizontal_grid_line_count = ((-world_min.y + world_max.y) / GRID_SIZE).ceil() as usize;
-                (0..vertical_grid_line_count).for_each(|index| {
-                    // let background_grid_stroke = if index == 0 {
-                    //     Stroke::new(1.0, Color32::YELLOW)
-                    // } else {
-                    //     background_grid_stroke
-                    // };
-                    ui.painter().line_segment([
-                        self.world_pos_to_screen_pos(pos2(first_vertical_grid_line_x + GRID_SIZE * index as f32, world_min.y), rect),
-                        self.world_pos_to_screen_pos(pos2(first_vertical_grid_line_x + GRID_SIZE * index as f32, world_max.y), rect),
-                    ], background_grid_stroke);
-                });
-                (0..horizontal_grid_line_count).for_each(|index| {
-                    // let background_grid_stroke = if index == 0 {
-                    //     Stroke::new(1.0, Color32::YELLOW)
-                    // } else {
-                    //     background_grid_stroke
-                    // };
-                    ui.painter().line_segment([
-                        self.world_pos_to_screen_pos(pos2(world_min.x, first_horizontal_grid_line_y + GRID_SIZE * index as f32), rect),
-                        self.world_pos_to_screen_pos(pos2(world_max.x, first_horizontal_grid_line_y + GRID_SIZE * index as f32), rect),
-                    ], background_grid_stroke);
-                });
-
-                let background_grid_stroke = Stroke::new(1.0, Color32::YELLOW);
-
-                ui.painter().line_segment(
-                    [
-                        self.world_pos_to_screen_pos(pos2(-100.0, 0.0), rect),
-                        self.world_pos_to_screen_pos(pos2(100.0, 0.0), rect),
-                    ],
-                    background_grid_stroke,
-                );
-                ui.painter().line_segment(
-                    [
-                        self.world_pos_to_screen_pos(pos2(0.0, -100.0), rect),
-                        self.world_pos_to_screen_pos(pos2(0.0, 100.0), rect),
-                    ],
-                    background_grid_stroke,
-                );
+                self.draw_grid(ui, rect);
 
                 self.shroud.iter().for_each(|shroud_layer_container| {
                     let offset = shroud_layer_container.shroud_layer.offset.clone().unwrap();
