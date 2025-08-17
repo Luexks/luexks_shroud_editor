@@ -33,7 +33,7 @@ pub fn render_shroud_layer(
         .collect();
     let vertices: Vec<Pos2> = vertices
         .iter()
-        .map(|vertex| shroud_editor.position_to_screen_position(*vertex, rect))
+        .map(|vertex| shroud_editor.world_pos_to_screen_pos(*vertex, rect))
         .collect();
 
     // painter.line(vertices, stroke);
