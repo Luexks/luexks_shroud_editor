@@ -17,12 +17,15 @@ use egui::Pos2;
 use egui::Rect;
 use egui::Stroke;
 use egui::Vec2;
+use egui::pos2;
 use luexks_reassembly::blocks::{shroud::Shroud, shroud_layer::ShroudLayer};
 use luexks_reassembly::shapes::shapes::Shapes;
 use luexks_reassembly::utility::display_oriented_math::DisplayOriented3D;
 use luexks_reassembly::utility::display_oriented_math::do3d_float_from;
 use luexks_reassembly::utility::display_oriented_math::don_float_from;
 use parse_vanilla_shapes::get_vanilla_shapes;
+
+const GRID_SIZE: f32 = 50.0; // Temporary
 
 pub enum ShroudLayerInteraction {
     Inaction {
@@ -320,6 +323,80 @@ impl eframe::App for ShroudEditor {
                 let response =
                     ui.allocate_response(ui.available_size(), egui::Sense::click_and_drag());
                 let rect = response.rect;
+
+                // println!("{}", self.zoom);
+                let background_grid_stroke = Stroke::new(1.0, Color32::BLUE);
+                // ui.painter().line_segment([Pos2::new(0.0, 0.0), Pos2::new(1000.0, 1000.0)], background_grid_line);
+                let width = rect.width();
+                let height = rect.height();
+                ui.painter().line_segment(
+                    [
+                        self.position_to_screen_position(pos2(-1000.0, 0.0), rect),
+                        self.position_to_screen_position(pos2(1000.0, 0.0), rect),
+                    ],
+                    background_grid_stroke,
+                );
+                ui.painter().line_segment(
+                    [
+                        self.position_to_screen_position(pos2(0.0, -1000.0), rect),
+                        self.position_to_screen_position(pos2(0.0, 1000.0), rect),
+                    ],
+                    background_grid_stroke,
+                );
+                // let first_vertical_grid_line_x = (min.x / GRID_SIZE).ceil() * GRID_SIZE;
+                // let first_horizontal_grid_line_y = (min.y / GRID_SIZE).ceil() * GRID_SIZE;
+                let center = rect.center();
+                // let first_vertical_grid_line_x = self.pan.x * self.zoom;
+                let first_vertical_grid_line_x = -width + (self.pan.x % GRID_SIZE);
+                let first_horizontal_grid_line_y = -height + (self.pan.y % GRID_SIZE);
+                let vertical_line_count = (2.0 * width / self.zoom / GRID_SIZE).ceil() as usize;
+                let horizontal_line_count = (2.0 * height / self.zoom / GRID_SIZE).ceil() as usize;
+                // println!("{}", height);
+                // ui.painter().line_segment(
+                //     [
+                //         pos2(center.x + first_vertical_grid_line_x, 0.0),
+                //         pos2(center.x + first_vertical_grid_line_x, height),
+                //     ],
+                //     background_grid_stroke,
+                // );
+                // ui.painter().line_segment(
+                //     [
+                //         pos2(center.x + first_vertical_grid_line_x, 0.0),
+                //         pos2(center.x + first_vertical_grid_line_x, height),
+                //     ],
+                //     background_grid_stroke,
+                // );
+                (0..vertical_line_count).for_each(|index| {
+                    ui.painter().line_segment([
+                        pos2(center.x + first_vertical_grid_line_x + GRID_SIZE * self.zoom * index as f32, 0.0),
+                        pos2(center.x + first_vertical_grid_line_x + GRID_SIZE * self.zoom * index as f32, height),
+                    ], background_grid_stroke);
+                });
+                (0..horizontal_line_count).for_each(|index| {
+                    ui.painter().line_segment([
+                        pos2(0.0, center.y + first_horizontal_grid_line_y + GRID_SIZE * self.zoom * index as f32),
+                        pos2(center.x * 2.0, center.y + first_horizontal_grid_line_y + GRID_SIZE * self.zoom * index as f32),
+                    ], background_grid_stroke);
+                });
+
+                // let first_vertical_grid_line_x = (self.pan.x / GRID_SIZE).ceil() * GRID_SIZE;
+                // let first_horizontal_grid_line_y = (self.pan.y / GRID_SIZE).ceil() * GRID_SIZE;
+                // let vertical_line_count = ((max.x - min.x) / self.zoom / GRID_SIZE).floor() as usize;
+                // let horizontal_line_count = ((max.y - min.y) / self.zoom / GRID_SIZE).floor() as usize;
+                // (0..vertical_line_count).for_each(|index| {
+                //     ui.painter().line_segment([
+                //         pos2(first_vertical_grid_line_x + GRID_SIZE * index as f32 * self.zoom, 0.0),
+                //         pos2(first_vertical_grid_line_x + GRID_SIZE * index as f32 * self.zoom, height),
+                //     ], background_grid_stroke);
+                // });
+                // (0..horizontal_line_count).for_each(|index| {
+                //     ui.painter().line_segment([
+                //         pos2(0.0, first_horizontal_grid_line_y + GRID_SIZE * index as f32 * self.zoom),
+                //         pos2(width, first_horizontal_grid_line_y + GRID_SIZE * index as f32 * self.zoom),
+                //     ], background_grid_stroke);
+                // });
+
+
                 self.shroud.iter().for_each(|shroud_layer_container| {
                     let offset = shroud_layer_container.shroud_layer.offset.clone().unwrap();
                     let stroke = if let Some(mouse_pos) = mouse_pos {

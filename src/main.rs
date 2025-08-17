@@ -6,14 +6,15 @@
 use eframe::egui;
 mod shroud_editor;
 use shroud_editor::*;
+mod background_grid;
 mod fonts;
 mod gui;
 mod key_tracker;
 mod pos_in_polygon;
+mod restructure_vertices;
 mod shroud_layer_container;
 mod shroud_layer_rendering;
 mod styles;
-mod restructure_vertices;
 
 fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
