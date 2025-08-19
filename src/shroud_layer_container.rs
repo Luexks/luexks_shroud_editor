@@ -12,10 +12,12 @@ use luexks_reassembly::{
 
 use crate::DEFAULT_SQUARE;
 
+#[derive(Clone)]
 pub struct ShroudLayerContainer {
     pub shroud_layer: ShroudLayer,
     pub vertices: Vec<Pos2>,
     pub shape_id: String,
+    pub delete_next_frame: bool,
 }
 
 impl Default for ShroudLayerContainer {
@@ -29,6 +31,7 @@ impl Default for ShroudLayerContainer {
             },
             vertices: DEFAULT_SQUARE.into(),
             shape_id: "SQUARE".to_string(),
+            delete_next_frame: false,
         }
     }
 }

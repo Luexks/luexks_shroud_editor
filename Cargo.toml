@@ -10,5 +10,6 @@ egui = "0.32.0"
 egui_extras = "0.32.0"
 egui_knob = "0.3.3"
 env_logger = "0.11.8"
+itertools = "0.14.0"
 luexks_reassembly = { path = "../luexks_reassembly" }
 parse_vanilla_shapes = { path = "../parse_vanilla_shapes" }

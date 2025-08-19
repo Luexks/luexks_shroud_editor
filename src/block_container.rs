@@ -1,5 +1,9 @@
 use egui::{Color32, Pos2, Rgba};
-use luexks_reassembly::{blocks::{block::Block, shroud_layer::ShroudLayerColor}, shapes::shape_id::ShapeId, utility::color::Color};
+use luexks_reassembly::{
+    blocks::{block::Block, shroud_layer::ShroudLayerColor},
+    shapes::shape_id::ShapeId,
+    utility::color::Color,
+};
 
 use crate::DEFAULT_SQUARE;
 

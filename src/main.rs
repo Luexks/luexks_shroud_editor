@@ -8,17 +8,17 @@ mod shroud_editor;
 use egui::Pos2;
 use shroud_editor::*;
 mod block_container;
+mod color_type_conversion;
 mod fonts;
 mod gui;
 mod key_tracker;
 mod pos_in_polygon;
+mod render_polygon;
 mod restructure_vertices;
+mod selection_type;
 mod shroud_layer_container;
 mod shroud_layer_interaction;
-mod render_polygon;
 mod styles;
-mod color_type_conversion;
-mod selection_type;
 
 pub const DEFAULT_SQUARE: [Pos2; 4] = [
     Pos2::new(5.0, -5.0),
@@ -41,7 +41,7 @@ fn main() -> eframe::Result {
             egui_extras::install_image_loaders(&cc.egui_ctx);
 
             // Ok(Box::<ShroudEditor>::default())
-            Ok(Box::new(ShroudEditor::new()))
+            Ok(Box::new(ShroudEditor::default()))
         }),
     )
 }
