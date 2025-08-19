@@ -4,9 +4,11 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+arboard = "3.6.0"
 eframe = "0.32.0"
 egui = "0.32.0"
 egui_extras = "0.32.0"
+egui_knob = "0.3.3"
 env_logger = "0.11.8"
 luexks_reassembly = { path = "../luexks_reassembly" }
 parse_vanilla_shapes = { path = "../parse_vanilla_shapes" }

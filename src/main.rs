@@ -5,20 +5,32 @@
 
 use eframe::egui;
 mod shroud_editor;
+use egui::Pos2;
 use shroud_editor::*;
+mod block_container;
 mod fonts;
 mod gui;
 mod key_tracker;
 mod pos_in_polygon;
 mod restructure_vertices;
 mod shroud_layer_container;
-mod shroud_layer_rendering;
+mod shroud_layer_interaction;
+mod render_polygon;
 mod styles;
+mod color_type_conversion;
+mod selection_type;
+
+pub const DEFAULT_SQUARE: [Pos2; 4] = [
+    Pos2::new(5.0, -5.0),
+    Pos2::new(-5.0, -5.0),
+    Pos2::new(-5.0, 5.0),
+    Pos2::new(5.0, 5.0),
+];
 
 fn main() -> eframe::Result {
     env_logger::init(); // Log to stderr (if you run with `RUST_LOG=debug`).
     let options = eframe::NativeOptions {
-        viewport: egui::ViewportBuilder::default().with_inner_size([320.0, 240.0]),
+        viewport: egui::ViewportBuilder::default().with_inner_size([1920.0 / 2.0, 1080.0 / 2.0]),
         ..Default::default()
     };
     eframe::run_native(
@@ -29,7 +41,7 @@ fn main() -> eframe::Result {
             egui_extras::install_image_loaders(&cc.egui_ctx);
 
             // Ok(Box::<ShroudEditor>::default())
-            Ok(Box::new(ShroudEditor::new(cc)))
+            Ok(Box::new(ShroudEditor::new()))
         }),
     )
 }
