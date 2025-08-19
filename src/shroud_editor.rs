@@ -69,6 +69,7 @@ pub struct ShroudEditor {
     fill_color_gradient_delta_enabled: bool,
     last_frame_time: f64,
     dt: f64,
+    only_show_selected_shroud_layers: bool,
 }
 
 impl ShroudEditor {
@@ -255,6 +256,10 @@ impl ShroudEditor {
                 if ui.button("Add Shroud Layer").clicked() {
                     self.shroud.push(ShroudLayerContainer::default());
                 }
+                ui.horizontal(|ui| {
+                    ui.label("Only Show Selected:");
+                    ui.checkbox(&mut self.only_show_selected_shroud_layers, "");
+                });
                 self.shroud_list(ui);
             });
     }
@@ -860,18 +865,20 @@ impl ShroudEditor {
                             let is_selected = self
                                 .shroud_layer_interaction
                                 .is_shroud_layer_index_selected(index);
-                            shroud_layer_settings(
-                                is_selected,
-                                ui,
-                                index,
-                                shroud_layer_container,
-                                &mut self.shroud_layer_interaction,
-                                &self.loaded_shapes,
-                                self.snap_to_grid,
-                                self.grid_size,
-                                self.angle_snap,
-                                self.angle_snap_enabled,
-                            );
+                            if !self.only_show_selected_shroud_layers || is_selected {
+                                shroud_layer_settings(
+                                    is_selected,
+                                    ui,
+                                    index,
+                                    shroud_layer_container,
+                                    &mut self.shroud_layer_interaction,
+                                    &self.loaded_shapes,
+                                    self.snap_to_grid,
+                                    self.grid_size,
+                                    self.angle_snap,
+                                    self.angle_snap_enabled,
+                                );
+                            }
                         },
                     );
                 }
@@ -929,6 +936,7 @@ impl Default for ShroudEditor {
             fill_color_gradient_delta_enabled: true,
             last_frame_time: 0.0,
             dt: 0.0,
+            only_show_selected_shroud_layers: false,
         }
     }
 }
