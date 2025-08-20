@@ -115,6 +115,17 @@ impl ShroudEditor {
             delta *= SQRT_2 * 0.5;
         }
         self.pan = pos2(self.pan.x + delta.x, self.pan.y + delta.y);
+
+        if let ShroudLayerInteraction::Dragging { selection, .. } = &self.shroud_layer_interaction {
+            selection.iter().for_each(|index| {
+                let old_offset = self.shroud[*index].shroud_layer.offset.clone().unwrap();
+                self.shroud[*index].shroud_layer.offset = Some(do3d_float_from(
+                    old_offset.x.to_f32() - delta.x,
+                    old_offset.y.to_f32() - delta.y,
+                    old_offset.z.to_f32()
+                ));
+            });
+        }
     }
 
     pub fn zoom_at_position(&mut self, screen_pos: Pos2, rect: Rect, delta: f32) {
