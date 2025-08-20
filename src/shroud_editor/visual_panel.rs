@@ -17,12 +17,18 @@ impl ShroudEditor {
                 let response =
                     ui.allocate_response(ui.available_size(), egui::Sense::click_and_drag());
                 let rect = response.rect;
+                if let Some(mouse_pos) = mouse_pos {
+                    self.world_mouse_pos = self.screen_pos_to_world_pos(mouse_pos, rect);
+                }
 
                 self.draw_grid(ui, rect);
 
                 self.render_shroud(mouse_pos, ui, rect);
 
-                self.shroud_layer_gizmos(ui, rect);
+                if let ShroudLayerInteraction::Placing { .. } = &self.shroud_layer_interaction {
+                } else {
+                    self.shroud_layer_gizmos(ui, rect);
+                }
 
                 self.zoom(ui, rect);
 
@@ -35,7 +41,21 @@ impl ShroudEditor {
                 {
                     shroud_layer_dragging(
                         ui,
-                        response,
+                        &response,
+                        &selection,
+                        &mut self.shroud,
+                        self.zoom,
+                        self.grid_size,
+                        self.snap_to_grid,
+                        &mut self.shroud_layer_interaction,
+                    );
+                }
+                if let ShroudLayerInteraction::Placing { selection } =
+                    self.shroud_layer_interaction.clone()
+                {
+                    shroud_layer_dragging(
+                        ui,
+                        &response,
                         &selection,
                         &mut self.shroud,
                         self.zoom,

@@ -36,6 +36,16 @@ impl ShroudEditor {
                 ));
             });
         }
+        if let ShroudLayerInteraction::Placing { selection } = &self.shroud_layer_interaction {
+            selection.iter().for_each(|index| {
+                let old_offset = self.shroud[*index].shroud_layer.offset.clone().unwrap();
+                self.shroud[*index].shroud_layer.offset = Some(do3d_float_from(
+                    old_offset.x.to_f32() - delta.x,
+                    old_offset.y.to_f32() - delta.y,
+                    old_offset.z.to_f32(),
+                ));
+            });
+        }
     }
 
     pub fn zoom(&mut self, ui: &mut Ui, rect: Rect) {

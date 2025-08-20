@@ -8,7 +8,7 @@ use crate::{
 
 pub fn shroud_layer_dragging(
     ui: &mut Ui,
-    response: Response,
+    response: &Response,
     selection: &Vec<usize>,
     shroud: &mut Vec<ShroudLayerContainer>,
     zoom: f32,

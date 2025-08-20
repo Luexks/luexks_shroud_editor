@@ -3,12 +3,21 @@ use egui::{
     Checkbox, Color32, Context, DragValue, Grid, Rgba, Slider, Ui,
     color_picker::{Alpha, color_edit_button_rgba},
 };
-use luexks_reassembly::{blocks::shroud::Shroud, utility::component_formatting::format_component};
+use luexks_reassembly::{
+    blocks::{shroud::Shroud, shroud_layer::ShroudLayer},
+    shapes::shape_id::ShapeId,
+    utility::{
+        angle::Angle,
+        component_formatting::format_component,
+        display_oriented_math::{do2d_float_from, do3d_float_from},
+    },
+};
 
 use crate::{
     color_type_conversion::rgba_to_color,
     shroud_editor::{FILL_COLOR_GRADIENT_TIME, ShroudEditor, shape_combo_box::shape_combo_box},
     shroud_layer_container::ShroudLayerContainer,
+    shroud_layer_interaction::ShroudLayerInteraction,
 };
 
 impl ShroudEditor {
@@ -58,7 +67,7 @@ impl ShroudEditor {
                 self.block_settings(ui);
                 ui.heading("Shroud Layers:");
                 if ui.button("Add Shroud Layer").clicked() {
-                    self.shroud.push(ShroudLayerContainer::default());
+                    self.add_shroud_layer()
                 }
                 ui.horizontal(|ui| {
                     ui.label("Only Show Selected:");
@@ -177,6 +186,24 @@ impl ShroudEditor {
             ui.checkbox(&mut self.fill_color_gradient_delta_enabled, "");
             ui.add(Slider::new(&mut self.fill_color_gradient, 0.0..=1.0));
         });
+    }
+
+    fn add_shroud_layer(&mut self) {
+        let new_shroud_offset =
+            do3d_float_from(self.world_mouse_pos.x, self.world_mouse_pos.y, 0.01);
+        self.shroud.push(ShroudLayerContainer {
+            shroud_layer: ShroudLayer {
+                offset: Some(new_shroud_offset),
+                shape: Some(ShapeId::Vanilla("SQUARE".to_string())),
+                size: Some(do2d_float_from(10.0, 5.0)),
+                angle: Some(Angle::Radian(0.0)),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+        self.shroud_layer_interaction = ShroudLayerInteraction::Placing {
+            selection: vec![self.shroud.len() - 1],
+        };
     }
 }
 

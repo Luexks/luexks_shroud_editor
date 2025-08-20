@@ -31,6 +31,7 @@ pub struct ShroudEditor {
     last_frame_time: f64,
     dt: f64,
     only_show_selected_shroud_layers: bool,
+    world_mouse_pos: Pos2,
 }
 
 impl Default for ShroudEditor {
@@ -58,6 +59,7 @@ impl Default for ShroudEditor {
             last_frame_time: 0.0,
             dt: 0.0,
             only_show_selected_shroud_layers: false,
+            world_mouse_pos: Pos2::default(),
         }
     }
 }
