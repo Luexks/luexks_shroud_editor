@@ -32,6 +32,7 @@ pub struct ShroudEditor {
     dt: f64,
     only_show_selected_shroud_layers: bool,
     world_mouse_pos: Pos2,
+    shroud_clipboard: Vec<ShroudLayerContainer>,
 }
 
 impl Default for ShroudEditor {
@@ -60,6 +61,7 @@ impl Default for ShroudEditor {
             dt: 0.0,
             only_show_selected_shroud_layers: false,
             world_mouse_pos: Pos2::default(),
+            shroud_clipboard: Vec::new(),
         }
     }
 }
@@ -76,6 +78,9 @@ impl eframe::App for ShroudEditor {
         self.delete_shroud_layers();
         self.hotkey_shroud_layer_deletion(ctx);
 
+        self.hotkey_copy(ctx);
+        self.hotkey_paste(ctx);
+
         ctx.request_repaint_after(Duration::from_secs_f32(1.0 / 60.0));
     }
 }
@@ -83,6 +88,7 @@ impl eframe::App for ShroudEditor {
 mod delete_shroud_layers;
 mod delta_time;
 mod draw_grid;
+mod hotkey_copy_and_paste;
 mod hotkey_shroud_layer_deletion;
 mod left_panel;
 mod position_conversion;
