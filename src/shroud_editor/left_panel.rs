@@ -86,7 +86,7 @@ impl ShroudEditor {
                 ui.add(DragValue::new(&mut self.grid_size).speed(0.05));
                 self.grid_size = self.grid_size.max(0.1);
                 ui.label("Snap:");
-                ui.add(Checkbox::new(&mut self.snap_to_grid, ""));
+                ui.add(Checkbox::new(&mut self.snap_to_grid_enabled, ""));
             }
         });
     }

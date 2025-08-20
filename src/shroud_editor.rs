@@ -18,7 +18,7 @@ pub struct ShroudEditor {
     pub zoom: f32,
     pub grid_size: f32,
     pub grid_enabled: bool,
-    pub snap_to_grid: bool,
+    pub snap_to_grid_enabled: bool,
     pub angle_snap: f32,
     pub angle_snap_enabled: bool,
     pub pan: Pos2,
@@ -47,7 +47,7 @@ impl Default for ShroudEditor {
             zoom: 1.0,
             grid_size: 2.5,
             grid_enabled: true,
-            snap_to_grid: true,
+            snap_to_grid_enabled: true,
             angle_snap: 10.0,
             angle_snap_enabled: true,
             pan: Pos2::new(0.0, 0.0),
@@ -98,5 +98,6 @@ mod shroud_interaction_checks;
 mod shroud_layer_dragging;
 mod shroud_layer_gizmos;
 mod shroud_settings;
+mod snap_to_grid;
 mod viewport_controls;
 mod visual_panel;

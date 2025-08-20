@@ -16,7 +16,9 @@ impl ShroudEditor {
                 descending_selection.iter().for_each(|index| {
                     self.shroud.remove(*index);
                 });
-                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction { selection: Vec::new() };
+                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                    selection: Vec::new(),
+                };
             }
         }
     }

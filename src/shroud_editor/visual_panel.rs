@@ -46,7 +46,7 @@ impl ShroudEditor {
                         &mut self.shroud,
                         self.zoom,
                         self.grid_size,
-                        self.snap_to_grid,
+                        self.snap_to_grid_enabled,
                         &mut self.shroud_layer_interaction,
                     );
                 }
@@ -60,7 +60,7 @@ impl ShroudEditor {
                         &mut self.shroud,
                         self.zoom,
                         self.grid_size,
-                        self.snap_to_grid,
+                        self.snap_to_grid_enabled,
                         &mut self.shroud_layer_interaction,
                     );
                 }

@@ -37,7 +37,7 @@ impl ShroudEditor {
                                     shroud_layer_container,
                                     &mut self.shroud_layer_interaction,
                                     &self.loaded_shapes,
-                                    self.snap_to_grid,
+                                    self.snap_to_grid_enabled,
                                     self.grid_size,
                                     self.angle_snap,
                                     self.angle_snap_enabled,
@@ -59,7 +59,7 @@ fn shroud_layer_settings(
     shroud_layer_container: &mut ShroudLayerContainer,
     shroud_layer_interaction: &mut ShroudLayerInteraction,
     loaded_shapes: &Shapes,
-    snap_to_grid: bool,
+    snap_to_grid_enabled: bool,
     grid_size: f32,
     angle_snap: f32,
     angle_snap_enabled: bool,
@@ -93,7 +93,11 @@ fn shroud_layer_settings(
                     loaded_shapes,
                 );
 
-                let xy_speed = if snap_to_grid { grid_size / 2.0 } else { 0.05 };
+                let xy_speed = if snap_to_grid_enabled {
+                    grid_size / 2.0
+                } else {
+                    0.05
+                };
                 ui.horizontal(|ui| {
                     let offset = shroud_layer_container.shroud_layer.offset.clone().unwrap();
                     let mut x = offset.x.to_f32();

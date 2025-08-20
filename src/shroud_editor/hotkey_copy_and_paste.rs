@@ -41,16 +41,12 @@ impl ShroudEditor {
                     .for_each(|shroud_layer_container| {
                         let old_offset =
                             shroud_layer_container.shroud_layer.offset.clone().unwrap();
-                        let new_offset = do3d_float_from(
-                            -avg_pos.x + old_offset.x.to_f32() + self.world_mouse_pos.x,
-                            -avg_pos.y + old_offset.y.to_f32() + self.world_mouse_pos.y,
-                            old_offset.z.to_f32(),
+                        let drag_pos = pos2(
+                            old_offset.x.to_f32() - avg_pos.x + self.world_mouse_pos.x,
+                            old_offset.y.to_f32() - avg_pos.y + self.world_mouse_pos.y,
                         );
                         let new_shroud_layer_container = ShroudLayerContainer {
-                            shroud_layer: ShroudLayer {
-                                offset: Some(new_offset),
-                                ..shroud_layer_container.shroud_layer.clone()
-                            },
+                            drag_pos: Some(drag_pos),
                             ..shroud_layer_container.clone()
                         };
                         self.shroud.push(new_shroud_layer_container);
