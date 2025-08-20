@@ -1,11 +1,10 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, Context, DragValue, Grid, Rgba, Slider, Ui,
-    color_picker::{Alpha, color_edit_button_rgba},
+    color_picker::{color_edit_button_rgba, Alpha}, Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, Slider, Ui
 };
 use luexks_reassembly::{
     blocks::{shroud::Shroud, shroud_layer::ShroudLayer},
-    shapes::shape_id::ShapeId,
+    shapes::{shape_id::ShapeId, shapes::Shapes},
     utility::{
         angle::Angle,
         component_formatting::format_component,
@@ -14,10 +13,7 @@ use luexks_reassembly::{
 };
 
 use crate::{
-    color_type_conversion::rgba_to_color,
-    shroud_editor::{FILL_COLOR_GRADIENT_TIME, ShroudEditor, shape_combo_box::shape_combo_box},
-    shroud_layer_container::ShroudLayerContainer,
-    shroud_layer_interaction::ShroudLayerInteraction,
+    color_type_conversion::rgba_to_color, restructure_vertices::restructure_vertices, shroud_editor::{shape_combo_box::shroud_layer_shape_combo_box, ShroudEditor, FILL_COLOR_GRADIENT_TIME}, shroud_layer_container::ShroudLayerContainer, shroud_layer_interaction::ShroudLayerInteraction
 };
 
 impl ShroudEditor {
@@ -109,7 +105,7 @@ impl ShroudEditor {
             .inner_margin(6.0)
             .corner_radius(0.0)
             .show(ui, |ui| {
-                shape_combo_box(
+                block_shape_combo_box(
                     ui,
                     "",
                     &mut self.block_container.block.shape,
@@ -209,4 +205,34 @@ impl ShroudEditor {
 
 fn block_color_setting(ui: &mut Ui, color: &mut Rgba) {
     color_edit_button_rgba(ui, color, Alpha::OnlyBlend);
+}
+
+fn block_shape_combo_box(
+    ui: &mut Ui,
+    id: &str,
+    shape: &mut Option<ShapeId>,
+    shape_id: &mut String,
+    vertices: &mut Vec<Pos2>,
+    loaded_shapes: &Shapes,
+) {
+    ui.horizontal(|ui| {
+        ui.label("shape=");
+        ComboBox::from_id_salt(id.to_string())
+            .selected_text(shape_id.as_str())
+            .show_ui(ui, |ui| {
+                for selectable_shape in &loaded_shapes.0 {
+                    let selectable_shape_id = selectable_shape.get_id().unwrap().to_string();
+                    let response = ui.selectable_value(
+                        shape_id,
+                        selectable_shape_id.clone(),
+                        selectable_shape_id,
+                    );
+                    if response.clicked() {
+                        *vertices =
+                            restructure_vertices(selectable_shape.get_first_scale_vertices());
+                        *shape = selectable_shape.get_id();
+                    }
+                }
+            });
+    });
 }

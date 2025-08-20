@@ -1,5 +1,5 @@
 use egui::{Response, Ui, pos2};
-use luexks_reassembly::utility::display_oriented_math::{DisplayOriented3D, don_float_from};
+use luexks_reassembly::utility::display_oriented_math::{do3d_float_from, don_float_from, DisplayOriented3D};
 
 use crate::{
     shroud_editor::snap_to_grid::snap_to_grid, shroud_layer_container::ShroudLayerContainer,
@@ -46,6 +46,11 @@ pub fn shroud_layer_dragging(
                 y: don_float_from(snapped_offset.y),
                 z: old_offset.z,
             });
+        }
+        if let Some(mirrored_index) = shroud[*selected_index].mirror_index_option {
+            let offset = shroud[*selected_index].shroud_layer.offset.clone().unwrap();
+            let mirrored_offset = do3d_float_from(offset.x.to_f32(), -offset.y.to_f32(), offset.z.to_f32());
+            shroud[mirrored_index].shroud_layer.offset = Some(mirrored_offset);
         }
     });
     if response.drag_stopped() {
