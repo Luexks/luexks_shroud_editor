@@ -1,4 +1,4 @@
-use egui::{Context, Key};
+use egui::{Context, Key, collapsing_header::CollapsingState};
 
 use crate::{shroud_editor::ShroudEditor, shroud_layer_interaction::ShroudLayerInteraction};
 
@@ -16,6 +16,12 @@ impl ShroudEditor {
                         self.shroud[widowed_mirror_index].drag_pos = None;
                     }
                     self.shroud.remove(*index);
+
+                    let mut drop_down =
+                        CollapsingState::load(ctx, index.to_string().into()).unwrap();
+                    drop_down.set_open(true);
+                    drop_down.store(ctx);
+
                     self.shroud.iter_mut().for_each(|shroud_layer_container| {
                         if let Some(mirror_index) = shroud_layer_container.mirror_index_option
                             && mirror_index > *index

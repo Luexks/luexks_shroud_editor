@@ -1,6 +1,6 @@
 use egui::{
-    CollapsingHeader, Color32, DragValue, Grid, Key, ScrollArea, Stroke, Ui,
-    collapsing_header::CollapsingState, scroll_area::ScrollBarVisibility,
+    Color32, DragValue, Grid, Key, ScrollArea, Stroke, Ui, collapsing_header::CollapsingState,
+    scroll_area::ScrollBarVisibility,
 };
 use egui_knob::{Knob, KnobStyle};
 use luexks_reassembly::{

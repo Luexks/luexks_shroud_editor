@@ -1,6 +1,7 @@
 use arboard::Clipboard;
 use egui::{
     Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, Slider, Ui,
+    collapsing_header::CollapsingState,
     color_picker::{Alpha, color_edit_button_rgba},
 };
 use luexks_reassembly::{
@@ -74,6 +75,58 @@ impl ShroudEditor {
                     ui.label("Only Show Selected:");
                     ui.checkbox(&mut self.only_show_selected_shroud_layers, "");
                 });
+                ui.horizontal(|ui| {
+                    if ui.button("Select All").clicked() {
+                        self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                            selection: (0..self.shroud.len()).collect(),
+                        };
+                    }
+                    if ui.button("Deselect All").clicked() {
+                        self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                            selection: Vec::new(),
+                        };
+                    }
+                });
+                ui.horizontal(|ui| {
+                    if ui.button("Expand Selection").clicked() {
+                        self.shroud_layer_interaction
+                            .selection()
+                            .iter()
+                            .for_each(|index| {
+                                let mut drop_down =
+                                    CollapsingState::load(ctx, index.to_string().into()).unwrap();
+                                drop_down.set_open(true);
+                                drop_down.store(ctx);
+                            });
+                    }
+                    if ui.button("Collapse Selection").clicked() {
+                        self.shroud_layer_interaction
+                            .selection()
+                            .iter()
+                            .for_each(|index| {
+                                let mut drop_down =
+                                    CollapsingState::load(ctx, index.to_string().into()).unwrap();
+                                drop_down.set_open(false);
+                                drop_down.store(ctx);
+                            });
+                    }
+                });
+                // if ui.button("Expand All").clicked() {
+                //     (0..self.shroud.len()).for_each(|index| {
+                //         let mut drop_down =
+                //             CollapsingState::load(ctx, index.to_string().into()).unwrap();
+                //         drop_down.set_open(true);
+                //         drop_down.store(ctx);
+                //     });
+                // }
+                // if ui.button("Collapse All").clicked() {
+                //     (0..self.shroud.len()).for_each(|index| {
+                //         let mut drop_down =
+                //             CollapsingState::load(ctx, index.to_string().into()).unwrap();
+                //         drop_down.set_open(false);
+                //         drop_down.store(ctx);
+                //     });
+                // }
                 self.shroud_list(ui);
             });
     }
