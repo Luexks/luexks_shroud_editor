@@ -4,7 +4,7 @@ use luexks_reassembly::{
 };
 
 use crate::{
-    shroud_editor::ShroudEditor,
+    shroud_editor::{ShroudEditor, add_mirror::add_mirror},
     shroud_layer_container::ShroudLayerContainer,
     shroud_layer_interaction::{self, ShroudLayerInteraction},
 };
@@ -50,9 +50,26 @@ impl ShroudEditor {
                             ..shroud_layer_container.clone()
                         };
                         self.shroud.push(new_shroud_layer_container);
+                        let last = self.shroud.len() - 1;
+                        if let Some(_mirror_index) = self.shroud[last].mirror_index_option {
+                            add_mirror(&mut self.shroud, last, true);
+                        }
                     });
+                let clipboard_count_plus_mirrors =
+                    self.shroud_clipboard
+                        .iter()
+                        .fold(0, |count, shroud_layer_container| {
+                            if let Some(_mirror_index) = shroud_layer_container.mirror_index_option
+                            {
+                                count + 2
+                            } else {
+                                count + 1
+                            }
+                        });
                 self.shroud_layer_interaction = ShroudLayerInteraction::Placing {
-                    selection: (self.shroud.len() - clipboard_count..self.shroud.len()).collect(),
+                    selection: (self.shroud.len() - clipboard_count_plus_mirrors
+                        ..self.shroud.len())
+                        .collect(),
                 }
             }
         }

@@ -2,16 +2,24 @@ use crate::shroud_editor::ShroudEditor;
 
 impl ShroudEditor {
     pub fn delete_shroud_layers(&mut self) {
-        let widowed_mirror_indexes = self.shroud.iter().filter_map(|shroud_layer_container| {
-            if shroud_layer_container.delete_next_frame && let Some(mirror_index) = shroud_layer_container.mirror_index_option {
-                Some(mirror_index)
-            } else {
-                None
-            }
-        }).collect::<Vec<_>>();
-        widowed_mirror_indexes.iter().for_each(|widowed_mirror_index| {
-            self.shroud[*widowed_mirror_index].mirror_index_option = None;
-        });
+        let widowed_mirror_indexes = self
+            .shroud
+            .iter()
+            .filter_map(|shroud_layer_container| {
+                if shroud_layer_container.delete_next_frame
+                    && let Some(mirror_index) = shroud_layer_container.mirror_index_option
+                {
+                    Some(mirror_index)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+        widowed_mirror_indexes
+            .iter()
+            .for_each(|widowed_mirror_index| {
+                self.shroud[*widowed_mirror_index].mirror_index_option = None;
+            });
 
         let to_be_deleted_indexes = self
             .shroud

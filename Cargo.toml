@@ -13,3 +13,10 @@ env_logger = "0.11.8"
 itertools = "0.14.0"
 luexks_reassembly = { path = "../luexks_reassembly" }
 parse_vanilla_shapes = { path = "../parse_vanilla_shapes" }
+
+[profile.release]
+opt-level = "z"
+lto = true
+codegen-units = 1
+panic = "abort"
+strip = true

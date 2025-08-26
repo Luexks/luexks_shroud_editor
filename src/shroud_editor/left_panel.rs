@@ -1,6 +1,7 @@
 use arboard::Clipboard;
 use egui::{
-    color_picker::{color_edit_button_rgba, Alpha}, Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, Slider, Ui
+    Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, Slider, Ui,
+    color_picker::{Alpha, color_edit_button_rgba},
 };
 use luexks_reassembly::{
     blocks::{shroud::Shroud, shroud_layer::ShroudLayer},
@@ -13,7 +14,13 @@ use luexks_reassembly::{
 };
 
 use crate::{
-    color_type_conversion::rgba_to_color, restructure_vertices::restructure_vertices, shroud_editor::{shape_combo_box::shroud_layer_shape_combo_box, ShroudEditor, FILL_COLOR_GRADIENT_TIME}, shroud_layer_container::ShroudLayerContainer, shroud_layer_interaction::ShroudLayerInteraction
+    color_type_conversion::rgba_to_color,
+    restructure_vertices::restructure_vertices,
+    shroud_editor::{
+        FILL_COLOR_GRADIENT_TIME, ShroudEditor, shape_combo_box::shroud_layer_shape_combo_box,
+    },
+    shroud_layer_container::ShroudLayerContainer,
+    shroud_layer_interaction::ShroudLayerInteraction,
 };
 
 impl ShroudEditor {

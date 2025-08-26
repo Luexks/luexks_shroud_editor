@@ -1,7 +1,9 @@
 use egui::{ComboBox, Pos2, Ui};
 use luexks_reassembly::shapes::{shape_id::ShapeId, shapes::Shapes};
 
-use crate::{restructure_vertices::restructure_vertices, shroud_layer_container::ShroudLayerContainer};
+use crate::{
+    restructure_vertices::restructure_vertices, shroud_layer_container::ShroudLayerContainer,
+};
 
 pub fn shroud_layer_shape_combo_box(
     ui: &mut Ui,
@@ -31,7 +33,8 @@ pub fn shroud_layer_shape_combo_box(
                         shroud[index].shroud_layer.shape = selectable_shape.get_id();
                         if let Some(mirror_index) = shroud[index].mirror_index_option {
                             shroud[mirror_index].vertices = shroud[index].vertices.clone();
-                            shroud[mirror_index].shroud_layer.shape = shroud[index].shroud_layer.shape.clone();
+                            shroud[mirror_index].shroud_layer.shape =
+                                shroud[index].shroud_layer.shape.clone();
 
                             shroud[mirror_index].shape_id = selectable_shape_id;
                         }

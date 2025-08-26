@@ -67,8 +67,11 @@ impl ShroudEditor {
                 let angle =
                     angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
                 self.shroud[index].shroud_layer.angle = Some(Angle::Degree(angle));
-                if original_angle != angle && let Some(mirror_index) = self.shroud[index].mirror_index_option {
-                    self.shroud[mirror_index].shroud_layer.angle = Some(Angle::Degree(360.0 - angle));
+                if original_angle != angle
+                    && let Some(mirror_index) = self.shroud[index].mirror_index_option
+                {
+                    self.shroud[mirror_index].shroud_layer.angle =
+                        Some(Angle::Degree(360.0 - angle));
                 }
             });
         });
@@ -192,7 +195,9 @@ impl ShroudEditor {
         });
         self.shroud[index].shroud_layer.size = Some(do2d_float_from(width, height));
 
-        if original_size != (width, height) && let Some(mirror_index) = self.shroud[index].mirror_index_option {
+        if original_size != (width, height)
+            && let Some(mirror_index) = self.shroud[index].mirror_index_option
+        {
             self.shroud[mirror_index].shroud_layer.size = Some(do2d_float_from(width, height));
         }
     }

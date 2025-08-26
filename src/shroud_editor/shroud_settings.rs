@@ -1,4 +1,6 @@
-use egui::{scroll_area::ScrollBarVisibility, Color32, DragValue, Grid, Key, ScrollArea, Stroke, Ui};
+use egui::{
+    Color32, DragValue, Grid, Key, ScrollArea, Stroke, Ui, scroll_area::ScrollBarVisibility,
+};
 use egui_knob::{Knob, KnobStyle};
 use luexks_reassembly::{
     blocks::shroud_layer::{ShroudLayer, ShroudLayerColor},
@@ -10,7 +12,9 @@ use luexks_reassembly::{
 };
 
 use crate::{
-    shroud_editor::{shape_combo_box::shroud_layer_shape_combo_box, ShroudEditor},
+    shroud_editor::{
+        ShroudEditor, add_mirror::add_mirror, shape_combo_box::shroud_layer_shape_combo_box,
+    },
     shroud_layer_container::{self, ShroudLayerContainer},
     shroud_layer_interaction::ShroudLayerInteraction,
 };
@@ -83,13 +87,7 @@ fn shroud_layer_settings(
                     shroud_layer_interaction,
                 );
                 shroud_layer_mirror_settings(ui, shroud, index, shroud_layer_interaction);
-                shroud_layer_shape_combo_box(
-                    ui,
-                    &index.to_string(),
-                    shroud,
-                    index,
-                    loaded_shapes,
-                );
+                shroud_layer_shape_combo_box(ui, &index.to_string(), shroud, index, loaded_shapes);
 
                 let xy_speed = if snap_to_grid_enabled {
                     grid_size / 2.0
@@ -110,7 +108,9 @@ fn shroud_layer_settings(
                     ui.add(DragValue::new(&mut z).speed(0.005));
                     ui.label("}");
                     shroud[index].shroud_layer.offset = Some(do3d_float_from(x, y, z));
-                    if original_offset != (x, y, z) && let Some(mirror_index) = shroud[index].mirror_index_option {
+                    if original_offset != (x, y, z)
+                        && let Some(mirror_index) = shroud[index].mirror_index_option
+                    {
                         shroud[mirror_index].shroud_layer.offset = Some(do3d_float_from(x, -y, z));
                     }
                 });
@@ -125,11 +125,15 @@ fn shroud_layer_settings(
                     ui.add(DragValue::new(&mut height).speed(xy_speed));
                     ui.label("}");
                     shroud[index].shroud_layer.size = Some(do2d_float_from(width, height));
-                    if original_size != (width, height) && let Some(mirror_index) = shroud[index].mirror_index_option {
+                    if original_size != (width, height)
+                        && let Some(mirror_index) = shroud[index].mirror_index_option
+                    {
                         if shroud[index].shape_id == "SQUARE" {
-                            shroud[mirror_index].shroud_layer.size = Some(do2d_float_from(width, -height));
+                            shroud[mirror_index].shroud_layer.size =
+                                Some(do2d_float_from(width, -height));
                         } else {
-                            shroud[mirror_index].shroud_layer.size = Some(do2d_float_from(width, height));
+                            shroud[mirror_index].shroud_layer.size =
+                                Some(do2d_float_from(width, height));
                         }
                     }
                 });
@@ -175,7 +179,9 @@ fn shroud_layer_settings(
                         ui.label("taper=");
                         ui.add(DragValue::new(&mut taper).speed(0.025));
                         shroud[index].shroud_layer.taper = Some(taper);
-                        if original_taper != taper && let Some(mirror_index) = shroud[index].mirror_index_option {
+                        if original_taper != taper
+                            && let Some(mirror_index) = shroud[index].mirror_index_option
+                        {
                             shroud[mirror_index].shroud_layer.taper = Some(taper);
                         }
                     });
@@ -249,7 +255,9 @@ fn full_angle_settings(
     ui.label("*pi/180");
     let angle = angle_knob_settings(ui, angle, angle_snap, angle_snap_enabled);
     shroud[index].shroud_layer.angle = Some(Angle::Degree(angle));
-    if original_angle != angle && let Some(mirror_index) = shroud[index].mirror_index_option {
+    if original_angle != angle
+        && let Some(mirror_index) = shroud[index].mirror_index_option
+    {
         shroud[mirror_index].shroud_layer.angle = Some(Angle::Degree(-angle));
     }
 }
@@ -276,7 +284,12 @@ pub fn angle_knob_settings(
     angle
 }
 
-fn shroud_layer_mirror_settings(ui: &mut Ui, shroud: &mut Vec<ShroudLayerContainer>, index: usize, shroud_layer_interaction: &mut ShroudLayerInteraction) {
+fn shroud_layer_mirror_settings(
+    ui: &mut Ui,
+    shroud: &mut Vec<ShroudLayerContainer>,
+    index: usize,
+    shroud_layer_interaction: &mut ShroudLayerInteraction,
+) {
     ui.horizontal(|ui| {
         if let Some(mirror_index) = shroud[index].mirror_index_option {
             if !shroud_layer_interaction.selection().contains(&mirror_index) {
@@ -311,33 +324,7 @@ fn shroud_layer_mirror_settings(ui: &mut Ui, shroud: &mut Vec<ShroudLayerContain
             }
         } else {
             if ui.button("Add Mirror").clicked() || ui.input(|i| i.key_pressed(Key::F)) {
-                shroud[index].mirror_index_option = Some(shroud.len());
-
-                let offset = shroud[index].shroud_layer.offset.clone().unwrap();
-                let shroud_layer_mirror = ShroudLayerContainer {
-                    shroud_layer: ShroudLayer {
-                        offset: Some(do3d_float_from(
-                            offset.x.to_f32(),
-                            -offset.y.to_f32(),
-                            offset.z.to_f32(),
-                        )),
-                        angle: Some(Angle::Radian(
-                            -shroud[index]
-                                .shroud_layer
-                                .angle
-                                .clone()
-                                .unwrap()
-                                .as_radians()
-                                .get_value(),
-                        )),
-                        ..shroud[index].shroud_layer.clone()
-                    },
-                    mirror_index_option: Some(index),
-                    drag_pos: None,
-                    ..shroud[index].clone()
-                };
-
-                shroud.push(shroud_layer_mirror);
+                add_mirror(shroud, index, false);
             }
         }
     });
