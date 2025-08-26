@@ -3,11 +3,11 @@ use egui::{
 };
 use egui_knob::{Knob, KnobStyle};
 use luexks_reassembly::{
-    blocks::shroud_layer::{ShroudLayer, ShroudLayerColor},
+    blocks::shroud_layer::ShroudLayerColor,
     shapes::shapes::Shapes,
     utility::{
         angle::Angle,
-        display_oriented_math::{do2d_float_from, do3d_float_from, don_float_from},
+        display_oriented_math::{do2d_float_from, do3d_float_from},
     },
 };
 
@@ -15,7 +15,7 @@ use crate::{
     shroud_editor::{
         ShroudEditor, add_mirror::add_mirror, shape_combo_box::shroud_layer_shape_combo_box,
     },
-    shroud_layer_container::{self, ShroudLayerContainer},
+    shroud_layer_container::ShroudLayerContainer,
     shroud_layer_interaction::ShroudLayerInteraction,
 };
 
@@ -38,12 +38,13 @@ impl ShroudEditor {
                                 ui,
                                 index,
                                 &mut self.shroud_layer_interaction,
-                                &self.loaded_shapes,
                                 self.snap_to_grid_enabled,
                                 self.grid_size,
                                 self.angle_snap,
                                 self.angle_snap_enabled,
                                 &mut self.shroud,
+                                &self.loaded_shapes,
+                                &self.loaded_shapes_mirror_pairs,
                             );
                         }
                     });
@@ -59,12 +60,13 @@ fn shroud_layer_settings(
     ui: &mut Ui,
     index: usize,
     shroud_layer_interaction: &mut ShroudLayerInteraction,
-    loaded_shapes: &Shapes,
     snap_to_grid_enabled: bool,
     grid_size: f32,
     angle_snap: f32,
     angle_snap_enabled: bool,
     shroud: &mut Vec<ShroudLayerContainer>,
+    loaded_shapes: &Shapes,
+    loaded_shapes_mirror_pairs: &Vec<(usize, usize)>,
 ) {
     ui.vertical(|ui| {
         egui::Frame::new()
@@ -86,8 +88,22 @@ fn shroud_layer_settings(
                     &mut shroud[index],
                     shroud_layer_interaction,
                 );
-                shroud_layer_mirror_settings(ui, shroud, index, shroud_layer_interaction);
-                shroud_layer_shape_combo_box(ui, &index.to_string(), shroud, index, loaded_shapes);
+                shroud_layer_mirror_settings(
+                    ui,
+                    shroud,
+                    index,
+                    shroud_layer_interaction,
+                    loaded_shapes,
+                    loaded_shapes_mirror_pairs,
+                );
+                shroud_layer_shape_combo_box(
+                    ui,
+                    &index.to_string(),
+                    shroud,
+                    index,
+                    loaded_shapes,
+                    loaded_shapes_mirror_pairs,
+                );
 
                 let xy_speed = if snap_to_grid_enabled {
                     grid_size / 2.0
@@ -128,13 +144,15 @@ fn shroud_layer_settings(
                     if original_size != (width, height)
                         && let Some(mirror_index) = shroud[index].mirror_index_option
                     {
-                        if shroud[index].shape_id == "SQUARE" {
-                            shroud[mirror_index].shroud_layer.size =
-                                Some(do2d_float_from(width, -height));
-                        } else {
-                            shroud[mirror_index].shroud_layer.size =
-                                Some(do2d_float_from(width, height));
-                        }
+                        shroud[mirror_index].shroud_layer.size =
+                            Some(do2d_float_from(width, height));
+                        // if shroud[index].shape_id == "SQUARE" {
+                        //     shroud[mirror_index].shroud_layer.size =
+                        //         Some(do2d_float_from(width, -height));
+                        // } else {
+                        //     shroud[mirror_index].shroud_layer.size =
+                        //         Some(do2d_float_from(width, height));
+                        // }
                     }
                 });
                 ui.horizontal(|ui| {
@@ -289,6 +307,8 @@ fn shroud_layer_mirror_settings(
     shroud: &mut Vec<ShroudLayerContainer>,
     index: usize,
     shroud_layer_interaction: &mut ShroudLayerInteraction,
+    loaded_shapes: &Shapes,
+    loaded_shapes_mirror_pairs: &Vec<(usize, usize)>,
 ) {
     ui.horizontal(|ui| {
         if let Some(mirror_index) = shroud[index].mirror_index_option {
@@ -324,7 +344,13 @@ fn shroud_layer_mirror_settings(
             }
         } else {
             if ui.button("Add Mirror").clicked() || ui.input(|i| i.key_pressed(Key::F)) {
-                add_mirror(shroud, index, false);
+                add_mirror(
+                    shroud,
+                    index,
+                    false,
+                    loaded_shapes,
+                    loaded_shapes_mirror_pairs,
+                );
             }
         }
     });

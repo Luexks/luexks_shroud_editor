@@ -1,12 +1,9 @@
 use egui::{Context, Key, pos2};
-use luexks_reassembly::{
-    blocks::shroud_layer::ShroudLayer, utility::display_oriented_math::do3d_float_from,
-};
 
 use crate::{
     shroud_editor::{ShroudEditor, add_mirror::add_mirror},
     shroud_layer_container::ShroudLayerContainer,
-    shroud_layer_interaction::{self, ShroudLayerInteraction},
+    shroud_layer_interaction::ShroudLayerInteraction,
 };
 
 impl ShroudEditor {
@@ -52,7 +49,13 @@ impl ShroudEditor {
                         self.shroud.push(new_shroud_layer_container);
                         let last = self.shroud.len() - 1;
                         if let Some(_mirror_index) = self.shroud[last].mirror_index_option {
-                            add_mirror(&mut self.shroud, last, true);
+                            add_mirror(
+                                &mut self.shroud,
+                                last,
+                                true,
+                                &self.loaded_shapes,
+                                &self.loaded_shapes_mirror_pairs,
+                            );
                         }
                     });
                 let clipboard_count_plus_mirrors =

@@ -1,8 +1,9 @@
-use egui::{ComboBox, Pos2, Ui};
-use luexks_reassembly::shapes::{shape_id::ShapeId, shapes::Shapes};
+use egui::{ComboBox, Ui};
+use luexks_reassembly::shapes::shapes::Shapes;
 
 use crate::{
-    restructure_vertices::restructure_vertices, shroud_layer_container::ShroudLayerContainer,
+    restructure_vertices::restructure_vertices, shroud_editor::add_mirror::get_mirrored_shape_data,
+    shroud_layer_container::ShroudLayerContainer,
 };
 
 pub fn shroud_layer_shape_combo_box(
@@ -14,6 +15,7 @@ pub fn shroud_layer_shape_combo_box(
     // shape_id: &mut String,
     // vertices: &mut Vec<Pos2>,
     loaded_shapes: &Shapes,
+    loaded_shapes_mirror_pairs: &Vec<(usize, usize)>,
 ) {
     ui.horizontal(|ui| {
         ui.label("shape=");
@@ -32,11 +34,15 @@ pub fn shroud_layer_shape_combo_box(
                             restructure_vertices(selectable_shape.get_first_scale_vertices());
                         shroud[index].shroud_layer.shape = selectable_shape.get_id();
                         if let Some(mirror_index) = shroud[index].mirror_index_option {
-                            shroud[mirror_index].vertices = shroud[index].vertices.clone();
-                            shroud[mirror_index].shroud_layer.shape =
-                                shroud[index].shroud_layer.shape.clone();
-
-                            shroud[mirror_index].shape_id = selectable_shape_id;
+                            let (shape, shape_id, vertices) = get_mirrored_shape_data(
+                                shroud,
+                                index,
+                                loaded_shapes,
+                                loaded_shapes_mirror_pairs,
+                            );
+                            shroud[mirror_index].vertices = vertices;
+                            shroud[mirror_index].shroud_layer.shape = Some(shape);
+                            shroud[mirror_index].shape_id = shape_id;
                         }
                     }
                 }

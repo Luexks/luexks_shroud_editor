@@ -33,10 +33,13 @@ pub struct ShroudEditor {
     only_show_selected_shroud_layers: bool,
     world_mouse_pos: Pos2,
     shroud_clipboard: Vec<ShroudLayerContainer>,
+    loaded_shapes_mirror_pairs: Vec<(usize, usize)>,
 }
 
 impl Default for ShroudEditor {
     fn default() -> Self {
+        let loaded_shapes = get_vanilla_shapes();
+        let loaded_shapes_mirror_pairs = get_loaded_shapes_mirror_pairs(&loaded_shapes);
         Self {
             block_container: Default::default(),
             shroud: Vec::default(),
@@ -52,7 +55,7 @@ impl Default for ShroudEditor {
             angle_snap_enabled: true,
             pan: Pos2::new(0.0, 0.0),
             key_tracker: KeyTracker::default(),
-            loaded_shapes: get_vanilla_shapes(),
+            loaded_shapes,
             just_exported_to_clipboard_success_option: None,
             fill_color_gradient: 0.0,
             fill_color_gradient_increasing: true,
@@ -62,6 +65,7 @@ impl Default for ShroudEditor {
             only_show_selected_shroud_layers: false,
             world_mouse_pos: Pos2::default(),
             shroud_clipboard: Vec::new(),
+            loaded_shapes_mirror_pairs,
         }
     }
 }
@@ -102,3 +106,19 @@ mod shroud_settings;
 mod snap_to_grid;
 mod viewport_controls;
 mod visual_panel;
+
+#[rustfmt::skip]
+fn get_loaded_shapes_mirror_pairs(loaded_shapes: &Shapes) -> Vec<(usize, usize)> {
+    let l1 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI2L").unwrap();
+    let r1 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI2R").unwrap();
+    let l2 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI_22_5L").unwrap();
+    let r2 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI_22_5R").unwrap();
+    let l3 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI_30L").unwrap();
+    let r3 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI_30R").unwrap();
+    let loaded_shapes_mirror_pairs = vec![
+        (l1, r1),
+        (l2, r2),
+        (l3, r3),
+    ];
+    loaded_shapes_mirror_pairs
+}
