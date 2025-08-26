@@ -19,7 +19,7 @@ impl ShroudEditor {
     ) -> bool {
         if let Some(mouse_pos) = mouse_pos {
             let offset = shroud_layer_container.shroud_layer.offset.clone().unwrap();
-            if is_pos_in_polygon(
+            is_pos_in_polygon(
                 mouse_pos,
                 self.positions_to_screen_positions(
                     &shroud_layer_container
@@ -31,11 +31,7 @@ impl ShroudEditor {
                         .collect::<Vec<_>>(),
                     rect,
                 ),
-            ) {
-                true
-            } else {
-                false
-            }
+            )
         } else {
             false
         }

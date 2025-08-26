@@ -11,8 +11,8 @@ use crate::{
 pub fn shroud_layer_dragging(
     ui: &mut Ui,
     response: &Response,
-    selection: &Vec<usize>,
-    shroud: &mut Vec<ShroudLayerContainer>,
+    selection: &[usize],
+    shroud: &mut [ShroudLayerContainer],
     zoom: f32,
     grid_size: f32,
     snap_to_grid_enabled: bool,
@@ -27,7 +27,7 @@ pub fn shroud_layer_dragging(
             .offset
             .clone()
             .unwrap();
-        if let None = shroud[*selected_index].drag_pos {
+        if shroud[*selected_index].drag_pos.is_none() {
             shroud[*selected_index].drag_pos =
                 Some(pos2(old_offset.x.to_f32(), old_offset.y.to_f32()));
         }

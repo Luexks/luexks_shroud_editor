@@ -17,7 +17,7 @@ use crate::{
     color_type_conversion::rgba_to_color,
     restructure_vertices::restructure_vertices,
     shroud_editor::{
-        FILL_COLOR_GRADIENT_TIME, ShroudEditor, shape_combo_box::shroud_layer_shape_combo_box,
+        FILL_COLOR_GRADIENT_TIME, ShroudEditor,
     },
     shroud_layer_container::ShroudLayerContainer,
     shroud_layer_interaction::ShroudLayerInteraction,
@@ -128,7 +128,6 @@ impl ShroudEditor {
                             .color_1
                             .clone()
                             .unwrap()
-                            .to_string()
                     ));
                     block_color_setting(ui, &mut self.block_container.color_1);
                     self.block_container.block.color_1 =
@@ -142,7 +141,6 @@ impl ShroudEditor {
                             .color_2
                             .clone()
                             .unwrap()
-                            .to_string()
                     ));
                     block_color_setting(ui, &mut self.block_container.color_2);
                     self.block_container.block.color_2 =
@@ -156,7 +154,6 @@ impl ShroudEditor {
                             .line_color
                             .clone()
                             .unwrap()
-                            .to_string()
                     ));
                     block_color_setting(ui, &mut self.block_container.line_color);
                     self.block_container.block.line_color =

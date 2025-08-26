@@ -66,7 +66,7 @@ fn shroud_layer_settings(
     angle_snap_enabled: bool,
     shroud: &mut Vec<ShroudLayerContainer>,
     loaded_shapes: &Shapes,
-    loaded_shapes_mirror_pairs: &Vec<(usize, usize)>,
+    loaded_shapes_mirror_pairs: &[(usize, usize)],
 ) {
     ui.vertical(|ui| {
         egui::Frame::new()
@@ -234,17 +234,15 @@ fn select_deselect_and_delete_buttons(
                         .collect(),
                 };
             }
-        } else {
-            if ui.button("Deselect").clicked() {
-                *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                    selection: shroud_layer_interaction
-                        .selection()
-                        .iter()
-                        .copied()
-                        .filter(|selection_index| *selection_index != index)
-                        .collect(),
-                };
-            }
+        } else if ui.button("Deselect").clicked() {
+            *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                selection: shroud_layer_interaction
+                    .selection()
+                    .iter()
+                    .copied()
+                    .filter(|selection_index| *selection_index != index)
+                    .collect(),
+            };
         }
         if ui.button("Delete (Double Click)").double_clicked() {
             shroud_layer_container.delete_next_frame = true;
@@ -254,7 +252,7 @@ fn select_deselect_and_delete_buttons(
 
 fn full_angle_settings(
     ui: &mut Ui,
-    shroud: &mut Vec<ShroudLayerContainer>,
+    shroud: &mut [ShroudLayerContainer],
     index: usize,
     angle_snap: f32,
     angle_snap_enabled: bool,
@@ -298,8 +296,7 @@ pub fn angle_knob_settings(
         angle = (angle / angle_snap).round() * angle_snap;
     }
     let angle = (angle - 90.0) % 360.0;
-    let angle = if angle < 0.0 { angle + 360.0 } else { angle };
-    angle
+    if angle < 0.0 { angle + 360.0 } else { angle }
 }
 
 fn shroud_layer_mirror_settings(
@@ -308,7 +305,7 @@ fn shroud_layer_mirror_settings(
     index: usize,
     shroud_layer_interaction: &mut ShroudLayerInteraction,
     loaded_shapes: &Shapes,
-    loaded_shapes_mirror_pairs: &Vec<(usize, usize)>,
+    loaded_shapes_mirror_pairs: &[(usize, usize)],
 ) {
     ui.horizontal(|ui| {
         if let Some(mirror_index) = shroud[index].mirror_index_option {
@@ -323,17 +320,15 @@ fn shroud_layer_mirror_settings(
                             .collect(),
                     };
                 }
-            } else {
-                if ui.button("Deselect Mirror").clicked() {
-                    *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                        selection: shroud_layer_interaction
-                            .selection()
-                            .iter()
-                            .copied()
-                            .filter(|selection_index| *selection_index != mirror_index)
-                            .collect(),
-                    };
-                }
+            } else if ui.button("Deselect Mirror").clicked() {
+                *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                    selection: shroud_layer_interaction
+                        .selection()
+                        .iter()
+                        .copied()
+                        .filter(|selection_index| *selection_index != mirror_index)
+                        .collect(),
+                };
             }
             if ui.button("Unlink").clicked() {
                 shroud[index].mirror_index_option = None;
@@ -342,18 +337,16 @@ fn shroud_layer_mirror_settings(
             if ui.button("Delete Mirror").clicked() {
                 shroud[mirror_index].delete_next_frame = true;
             }
-        } else {
-            if shroud_layer_interaction.selection().contains(&index)
-                && (ui.button("Add Mirror").clicked() || ui.input(|i| i.key_pressed(Key::F)))
-            {
-                add_mirror(
-                    shroud,
-                    index,
-                    false,
-                    loaded_shapes,
-                    loaded_shapes_mirror_pairs,
-                );
-            }
+        } else if shroud_layer_interaction.selection().contains(&index)
+            && (ui.button("Add Mirror").clicked() || ui.input(|i| i.key_pressed(Key::F)))
+        {
+            add_mirror(
+                shroud,
+                index,
+                false,
+                loaded_shapes,
+                loaded_shapes_mirror_pairs,
+            );
         }
     });
 }

@@ -26,7 +26,7 @@ impl ShroudEditor {
                 .for_each(|(pipeline_index, (index, shroud_layer_container))| {
                     let offset = shroud_layer_container.shroud_layer.offset.clone().unwrap();
 
-                    let is_clipping_and_on_top = !(offset.z.to_f32() > current_z) && pipeline_index == render_pipeline.len() - 1;
+                    let is_clipping_and_on_top = offset.z.to_f32() == current_z && pipeline_index == render_pipeline.len() - 1;
                     if  is_clipping_and_on_top {
                         render_polygon_fill(
                             ui.painter(),
@@ -46,11 +46,7 @@ impl ShroudEditor {
                             .for_each(|(index, shroud_layer_container)| {
                                 let is_hovered = if let Some(mouse_pos) = mouse_pos {
                                     if let Some(shroud_that_would_be_selected_index) = self.get_shroud_that_would_be_selected_index_option(mouse_pos, rect) {
-                                        if *index == shroud_that_would_be_selected_index {
-                                            true
-                                        } else {
-                                            false
-                                        }
+                                        *index == shroud_that_would_be_selected_index
                                     } else {
                                         false
                                     }
@@ -94,11 +90,7 @@ impl ShroudEditor {
                     if is_on_top {
                         let is_hovered = if let Some(mouse_pos) = mouse_pos {
                             if let Some(shroud_that_would_be_selected_index) = self.get_shroud_that_would_be_selected_index_option(mouse_pos, rect) {
-                                if *index == shroud_that_would_be_selected_index {
-                                    true
-                                } else {
-                                    false
-                                }
+                                *index == shroud_that_would_be_selected_index
                             } else {
                                 false
                             }

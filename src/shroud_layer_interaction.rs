@@ -1,4 +1,5 @@
 use egui::{Context, Pos2, Rect, Response, Ui};
+use itertools::Itertools;
 
 use crate::shroud_editor::ShroudEditor;
 
@@ -25,39 +26,23 @@ impl ShroudLayerInteraction {
         }
     }
     pub fn is_shroud_layer_index_selected(&self, index: usize) -> bool {
-        let is_shroud_index_selected = match self {
+        match self {
             ShroudLayerInteraction::Inaction { selection } => {
-                if let Some(_index) = selection
+                selection
                     .iter()
-                    .find(|selected_index| index == **selected_index)
-                {
-                    true
-                } else {
-                    false
-                }
+                    .contains(&index)
             }
             ShroudLayerInteraction::Dragging { selection, .. } => {
-                if let Some(_index) = selection
+                selection
                     .iter()
-                    .find(|selected_index| index == **selected_index)
-                {
-                    true
-                } else {
-                    false
-                }
+                    .contains(&index)
             }
             ShroudLayerInteraction::Placing { selection, .. } => {
-                if let Some(_index) = selection
+                selection
                     .iter()
-                    .find(|selected_index| index == **selected_index)
-                {
-                    true
-                } else {
-                    false
-                }
+                    .contains(&index)
             }
-        };
-        is_shroud_index_selected
+        }
     }
 }
 
@@ -114,19 +99,11 @@ impl ShroudEditor {
                     }
                 }
 
-                if response.drag_started() {
-                    if !self.shroud_layer_interaction.selection().is_empty() {
-                        self.shroud_layer_interaction = ShroudLayerInteraction::Dragging {
-                            drag_start_pos: mouse_pos,
-                            selection: self.shroud_layer_interaction.selection(),
-                        };
-                    }
-                    // if let Some(shroud_that_would_be_selected_index) = self.get_shroud_that_would_be_selected_index_option(mouse_pos, rect) {
-                    //     self.shroud_layer_interaction = ShroudLayerInteraction::Dragging {
-                    //         drag_start_pos: mouse_pos,
-                    //         selection: vec![shroud_that_would_be_selected_index],
-                    //     };
-                    // }
+                if response.drag_started() && !self.shroud_layer_interaction.selection().is_empty() {
+                    self.shroud_layer_interaction = ShroudLayerInteraction::Dragging {
+                        drag_start_pos: mouse_pos,
+                        selection: self.shroud_layer_interaction.selection(),
+                    };
                 }
             }
         }

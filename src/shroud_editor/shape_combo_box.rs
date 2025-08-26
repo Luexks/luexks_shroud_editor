@@ -9,13 +9,13 @@ use crate::{
 pub fn shroud_layer_shape_combo_box(
     ui: &mut Ui,
     shape_id: &str,
-    shroud: &mut Vec<ShroudLayerContainer>,
+    shroud: &mut [ShroudLayerContainer],
     index: usize,
     // shape: &mut Option<ShapeId>,
     // shape_id: &mut String,
     // vertices: &mut Vec<Pos2>,
     loaded_shapes: &Shapes,
-    loaded_shapes_mirror_pairs: &Vec<(usize, usize)>,
+    loaded_shapes_mirror_pairs: &[(usize, usize)],
 ) {
     ui.horizontal(|ui| {
         ui.label("shape=");

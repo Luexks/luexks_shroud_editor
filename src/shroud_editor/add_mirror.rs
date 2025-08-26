@@ -14,7 +14,7 @@ pub fn add_mirror(
     index: usize,
     should_mirror_be_selected: bool,
     loaded_shapes: &Shapes,
-    loaded_shapes_mirror_pairs: &Vec<(usize, usize)>,
+    loaded_shapes_mirror_pairs: &[(usize, usize)],
 ) {
     shroud[index].mirror_index_option = Some(shroud.len());
 
@@ -58,10 +58,10 @@ pub fn add_mirror(
 }
 
 pub fn get_mirrored_shape_data(
-    shroud: &Vec<ShroudLayerContainer>,
+    shroud: &[ShroudLayerContainer],
     index: usize,
     loaded_shapes: &Shapes,
-    loaded_shapes_mirror_pairs: &Vec<(usize, usize)>,
+    loaded_shapes_mirror_pairs: &[(usize, usize)],
 ) -> (ShapeId, String, Vec<Pos2>) {
     let shape = shroud[index].shroud_layer.shape.clone().unwrap();
     let shape_id = shroud[index].shape_id.clone();

@@ -1,5 +1,4 @@
-use egui::{Context, Frame, pos2};
-use luexks_reassembly::utility::display_oriented_math::{DisplayOriented3D, don_float_from};
+use egui::{Context, Frame};
 
 use crate::{
     shroud_editor::{ShroudEditor, shroud_layer_dragging::shroud_layer_dragging},

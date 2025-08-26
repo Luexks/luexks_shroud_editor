@@ -19,7 +19,7 @@ impl ShroudEditor {
         }
     }
 
-    pub fn positions_to_screen_positions(&self, positions: &Vec<Pos2>, rect: Rect) -> Vec<Pos2> {
+    pub fn positions_to_screen_positions(&self, positions: &[Pos2], rect: Rect) -> Vec<Pos2> {
         positions
             .iter()
             .map(|position| self.world_pos_to_screen_pos(*position, rect))

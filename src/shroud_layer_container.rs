@@ -75,29 +75,25 @@ impl ShroudLayerContainer {
         let shape_size = pos2(-min_x + max_x, -min_y + max_y);
         let shroud_size = self.shroud_layer.size.clone().unwrap();
 
-        let verts = if shape_id == "SQUARE" {
+        if shape_id == "SQUARE" {
             let shroud_size = do2d_float_from(shroud_size.x.to_f32(), shroud_size.y.to_f32() * 2.0);
             let verts = apply_size_to_verts(verts, shroud_size, shape_size);
             let verts = if let Some(taper) = self.shroud_layer.taper {
-                let verts = vec![
+                vec![
                     pos2(verts[0].x, verts[0].y * taper),
                     verts[1],
                     verts[2],
                     pos2(verts[3].x, verts[3].y * taper),
-                ];
-                verts
+                ]
             } else {
                 verts
             };
-            let verts = apply_angle_to_verts(verts, angle_option);
-            verts
+            apply_angle_to_verts(verts, angle_option)
         } else {
             let verts = apply_angle_to_verts(verts, angle_option);
             let verts = apply_post_angle_application_resize(verts, shape_size, angle_option);
-            let verts = apply_size_to_verts(verts, shroud_size, shape_size);
-            verts
-        };
-        verts
+            apply_size_to_verts(verts, shroud_size, shape_size)
+        }
     }
 }
 
@@ -137,8 +133,8 @@ fn apply_post_angle_application_resize(
             },
         );
         let rotated_shape_size = pos2(-min_x + max_x, -min_y + max_y);
-        let verts = if shape_size != rotated_shape_size {
-            let resized_verts = verts
+        if shape_size != rotated_shape_size {
+            verts
                 .iter()
                 .map(|vert| {
                     pos2(
@@ -156,19 +152,17 @@ fn apply_post_angle_application_resize(
                             },
                     )
                 })
-                .collect();
-            resized_verts
+                .collect()
         } else {
             verts
-        };
-        verts
+        }
     } else {
         verts
     }
 }
 
 fn apply_size_to_verts(verts: Vec<Pos2>, size: DisplayOriented2D, shape_size: Pos2) -> Vec<Pos2> {
-    let verts = verts
+    verts
         .iter()
         .map(|vert| {
             pos2(
@@ -176,6 +170,5 @@ fn apply_size_to_verts(verts: Vec<Pos2>, size: DisplayOriented2D, shape_size: Po
                 vert.y * size.y.to_f32() / shape_size.y,
             )
         })
-        .collect();
-    verts
+        .collect()
 }

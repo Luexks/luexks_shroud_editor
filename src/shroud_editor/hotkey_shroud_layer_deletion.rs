@@ -17,10 +17,8 @@ impl ShroudEditor {
                     }
                     self.shroud.remove(*index);
                     self.shroud.iter_mut().for_each(|shroud_layer_container| {
-                        if let Some(mirror_index) = shroud_layer_container.mirror_index_option {
-                            if mirror_index > *index {
-                                shroud_layer_container.mirror_index_option = Some(mirror_index - 1);
-                            }
+                        if let Some(mirror_index) = shroud_layer_container.mirror_index_option && mirror_index > *index {
+                            shroud_layer_container.mirror_index_option = Some(mirror_index - 1);
                         }
                     });
                 });

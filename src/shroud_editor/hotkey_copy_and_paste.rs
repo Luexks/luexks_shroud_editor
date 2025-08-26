@@ -28,9 +28,7 @@ impl ShroudEditor {
                     pos2(0.0, 0.0),
                     |acc_pos, shroud_layer_container| {
                         let offset = shroud_layer_container.shroud_layer.offset.clone().unwrap();
-                        let acc_pos =
-                            pos2(acc_pos.x + offset.x.to_f32(), acc_pos.y + offset.y.to_f32());
-                        acc_pos
+                        pos2(acc_pos.x + offset.x.to_f32(), acc_pos.y + offset.y.to_f32())
                     },
                 ) / clipboard_count as f32;
                 self.shroud_clipboard
