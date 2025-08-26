@@ -27,21 +27,9 @@ impl ShroudLayerInteraction {
     }
     pub fn is_shroud_layer_index_selected(&self, index: usize) -> bool {
         match self {
-            ShroudLayerInteraction::Inaction { selection } => {
-                selection
-                    .iter()
-                    .contains(&index)
-            }
-            ShroudLayerInteraction::Dragging { selection, .. } => {
-                selection
-                    .iter()
-                    .contains(&index)
-            }
-            ShroudLayerInteraction::Placing { selection, .. } => {
-                selection
-                    .iter()
-                    .contains(&index)
-            }
+            ShroudLayerInteraction::Inaction { selection } => selection.iter().contains(&index),
+            ShroudLayerInteraction::Dragging { selection, .. } => selection.iter().contains(&index),
+            ShroudLayerInteraction::Placing { selection, .. } => selection.iter().contains(&index),
         }
     }
 }
@@ -99,7 +87,8 @@ impl ShroudEditor {
                     }
                 }
 
-                if response.drag_started() && !self.shroud_layer_interaction.selection().is_empty() {
+                if response.drag_started() && !self.shroud_layer_interaction.selection().is_empty()
+                {
                     self.shroud_layer_interaction = ShroudLayerInteraction::Dragging {
                         drag_start_pos: mouse_pos,
                         selection: self.shroud_layer_interaction.selection(),

@@ -337,8 +337,9 @@ fn shroud_layer_mirror_settings(
             if ui.button("Delete Mirror").clicked() {
                 shroud[mirror_index].delete_next_frame = true;
             }
-        } else if shroud_layer_interaction.selection().contains(&index)
-            && (ui.button("Add Mirror").clicked() || ui.input(|i| i.key_pressed(Key::F)))
+        } else if ui.button("Add Mirror").clicked()
+            || (shroud_layer_interaction.selection().contains(&index)
+                && ui.input(|i| i.key_pressed(Key::F)))
         {
             add_mirror(
                 shroud,

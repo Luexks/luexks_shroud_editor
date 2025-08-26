@@ -16,9 +16,7 @@ use luexks_reassembly::{
 use crate::{
     color_type_conversion::rgba_to_color,
     restructure_vertices::restructure_vertices,
-    shroud_editor::{
-        FILL_COLOR_GRADIENT_TIME, ShroudEditor,
-    },
+    shroud_editor::{FILL_COLOR_GRADIENT_TIME, ShroudEditor},
     shroud_layer_container::ShroudLayerContainer,
     shroud_layer_interaction::ShroudLayerInteraction,
 };
@@ -123,11 +121,7 @@ impl ShroudEditor {
                 Grid::new("").show(ui, |ui| {
                     ui.label(format!(
                         "fillColor={}",
-                        self.block_container
-                            .block
-                            .color_1
-                            .clone()
-                            .unwrap()
+                        self.block_container.block.color_1.clone().unwrap()
                     ));
                     block_color_setting(ui, &mut self.block_container.color_1);
                     self.block_container.block.color_1 =
@@ -136,11 +130,7 @@ impl ShroudEditor {
 
                     ui.label(format!(
                         "fillColor1={}",
-                        self.block_container
-                            .block
-                            .color_2
-                            .clone()
-                            .unwrap()
+                        self.block_container.block.color_2.clone().unwrap()
                     ));
                     block_color_setting(ui, &mut self.block_container.color_2);
                     self.block_container.block.color_2 =
@@ -149,11 +139,7 @@ impl ShroudEditor {
 
                     ui.label(format!(
                         "lineColor={}",
-                        self.block_container
-                            .block
-                            .line_color
-                            .clone()
-                            .unwrap()
+                        self.block_container.block.line_color.clone().unwrap()
                     ));
                     block_color_setting(ui, &mut self.block_container.line_color);
                     self.block_container.block.line_color =
