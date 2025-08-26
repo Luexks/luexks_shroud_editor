@@ -1,0 +1,11 @@
+Current bindings are:
+ - WASD move
+ - Scroll zoom
+ - click: select
+ - shift + click: multiselect
+ - drag: drag
+ - shift + drag: multiselect drag
+ - c: copy
+ - v: paste
+ - f: add mirror to selection
+ - r: delete selection
