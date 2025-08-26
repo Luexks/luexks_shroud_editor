@@ -1,5 +1,6 @@
 use egui::{
-    Color32, DragValue, Grid, Key, ScrollArea, Stroke, Ui, scroll_area::ScrollBarVisibility,
+    CollapsingHeader, Color32, DragValue, Grid, Key, ScrollArea, Stroke, Ui,
+    collapsing_header::CollapsingState, scroll_area::ScrollBarVisibility,
 };
 use egui_knob::{Knob, KnobStyle};
 use luexks_reassembly::{
@@ -82,128 +83,137 @@ fn shroud_layer_settings(
                 },
             ))
             .show(ui, |ui| {
-                select_deselect_and_delete_buttons(
-                    ui,
-                    index,
-                    &mut shroud[index],
-                    shroud_layer_interaction,
-                );
-                shroud_layer_mirror_settings(
-                    ui,
-                    shroud,
-                    index,
-                    shroud_layer_interaction,
-                    loaded_shapes,
-                    loaded_shapes_mirror_pairs,
-                );
-                shroud_layer_shape_combo_box(
-                    ui,
-                    &index.to_string(),
-                    shroud,
-                    index,
-                    loaded_shapes,
-                    loaded_shapes_mirror_pairs,
-                );
+                ui.spacing_mut().item_spacing.y = 2.0;
+                CollapsingState::load_with_default_open(ui.ctx(), index.to_string().into(), true)
+                    .show_header(ui, |ui| {
+                        select_deselect_and_delete_buttons(
+                            ui,
+                            index,
+                            &mut shroud[index],
+                            shroud_layer_interaction,
+                        );
+                    })
+                    .body_unindented(|ui| {
+                        shroud_layer_mirror_settings(
+                            ui,
+                            shroud,
+                            index,
+                            shroud_layer_interaction,
+                            loaded_shapes,
+                            loaded_shapes_mirror_pairs,
+                        );
+                        shroud_layer_shape_combo_box(
+                            ui,
+                            &index.to_string(),
+                            shroud,
+                            index,
+                            loaded_shapes,
+                            loaded_shapes_mirror_pairs,
+                        );
 
-                let xy_speed = if snap_to_grid_enabled {
-                    grid_size / 2.0
-                } else {
-                    0.05
-                };
-                ui.horizontal(|ui| {
-                    let offset = shroud[index].shroud_layer.offset.clone().unwrap();
-                    let mut x = offset.x.to_f32();
-                    let mut y = offset.y.to_f32();
-                    let mut z = offset.z.to_f32();
-                    let original_offset = (x, y, z);
-                    ui.label("offset={");
-                    ui.add(DragValue::new(&mut x).speed(xy_speed));
-                    ui.label(",");
-                    ui.add(DragValue::new(&mut y).speed(xy_speed));
-                    ui.label(",");
-                    ui.add(DragValue::new(&mut z).speed(0.005));
-                    ui.label("}");
-                    shroud[index].shroud_layer.offset = Some(do3d_float_from(x, y, z));
-                    if original_offset != (x, y, z)
-                        && let Some(mirror_index) = shroud[index].mirror_index_option
-                    {
-                        shroud[mirror_index].shroud_layer.offset = Some(do3d_float_from(x, -y, z));
-                    }
-                });
-                ui.horizontal(|ui| {
-                    let size = shroud[index].shroud_layer.size.clone().unwrap();
-                    let mut width = size.x.to_f32();
-                    let mut height = size.y.to_f32();
-                    let original_size = (width, height);
-                    ui.label("size={");
-                    ui.add(DragValue::new(&mut width).speed(xy_speed));
-                    ui.label(",");
-                    ui.add(DragValue::new(&mut height).speed(xy_speed));
-                    ui.label("}");
-                    shroud[index].shroud_layer.size = Some(do2d_float_from(width, height));
-                    if original_size != (width, height)
-                        && let Some(mirror_index) = shroud[index].mirror_index_option
-                    {
-                        shroud[mirror_index].shroud_layer.size =
-                            Some(do2d_float_from(width, height));
-                        // if shroud[index].shape_id == "SQUARE" {
-                        //     shroud[mirror_index].shroud_layer.size =
-                        //         Some(do2d_float_from(width, -height));
-                        // } else {
-                        //     shroud[mirror_index].shroud_layer.size =
-                        //         Some(do2d_float_from(width, height));
-                        // }
-                    }
-                });
-                ui.horizontal(|ui| {
-                    full_angle_settings(ui, shroud, index, angle_snap, angle_snap_enabled);
-                });
+                        let xy_speed = if snap_to_grid_enabled {
+                            grid_size / 2.0
+                        } else {
+                            0.05
+                        };
+                        ui.horizontal(|ui| {
+                            let offset = shroud[index].shroud_layer.offset.clone().unwrap();
+                            let mut x = offset.x.to_f32();
+                            let mut y = offset.y.to_f32();
+                            let mut z = offset.z.to_f32();
+                            let original_offset = (x, y, z);
+                            ui.label("offset={");
+                            ui.add(DragValue::new(&mut x).speed(xy_speed));
+                            ui.label(",");
+                            ui.add(DragValue::new(&mut y).speed(xy_speed));
+                            ui.label(",");
+                            ui.add(DragValue::new(&mut z).speed(0.005));
+                            ui.label("}");
+                            shroud[index].shroud_layer.offset = Some(do3d_float_from(x, y, z));
+                            if original_offset != (x, y, z)
+                                && let Some(mirror_index) = shroud[index].mirror_index_option
+                            {
+                                shroud[mirror_index].shroud_layer.offset =
+                                    Some(do3d_float_from(x, -y, z));
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            let size = shroud[index].shroud_layer.size.clone().unwrap();
+                            let mut width = size.x.to_f32();
+                            let mut height = size.y.to_f32();
+                            let original_size = (width, height);
+                            ui.label("size={");
+                            ui.add(DragValue::new(&mut width).speed(xy_speed));
+                            ui.label(",");
+                            ui.add(DragValue::new(&mut height).speed(xy_speed));
+                            ui.label("}");
+                            shroud[index].shroud_layer.size = Some(do2d_float_from(width, height));
+                            if original_size != (width, height)
+                                && let Some(mirror_index) = shroud[index].mirror_index_option
+                            {
+                                shroud[mirror_index].shroud_layer.size =
+                                    Some(do2d_float_from(width, height));
+                                // if shroud[index].shape_id == "SQUARE" {
+                                //     shroud[mirror_index].shroud_layer.size =
+                                //         Some(do2d_float_from(width, -height));
+                                // } else {
+                                //     shroud[mirror_index].shroud_layer.size =
+                                //         Some(do2d_float_from(width, height));
+                                // }
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            full_angle_settings(ui, shroud, index, angle_snap, angle_snap_enabled);
+                        });
 
-                let shroud_layer_container = &mut shroud[index];
-                let mut color_1 = shroud_layer_container.shroud_layer.color_1.clone().unwrap();
-                let mut color_2 = shroud_layer_container.shroud_layer.color_2.clone().unwrap();
-                let mut line_color = shroud_layer_container
-                    .shroud_layer
-                    .line_color
-                    .clone()
-                    .unwrap();
-                let original_color_1 = color_1.clone();
-                let original_color_2 = color_2.clone();
-                let original_line_color = line_color.clone();
-                Grid::new(index.to_string()).show(ui, |ui| {
-                    shroud_color_setting(ui, &mut color_1, "tri_color_id=");
-                    shroud_color_setting(ui, &mut color_2, "tri_color1_id=");
-                    shroud_color_setting(ui, &mut line_color, "line_color_id=");
-                });
-                shroud_layer_container.shroud_layer.color_1 = Some(color_1.clone());
-                shroud_layer_container.shroud_layer.color_2 = Some(color_2.clone());
-                shroud_layer_container.shroud_layer.line_color = Some(line_color.clone());
-                if let Some(mirror_index) = shroud[index].mirror_index_option {
-                    if original_color_1 != color_1 {
-                        shroud[mirror_index].shroud_layer.color_1 = Some(color_1);
-                    }
-                    if original_color_2 != color_2 {
-                        shroud[mirror_index].shroud_layer.color_2 = Some(color_2);
-                    }
-                    if original_line_color != line_color {
-                        shroud[mirror_index].shroud_layer.line_color = Some(line_color);
-                    }
-                }
+                        let shroud_layer_container = &mut shroud[index];
+                        let mut color_1 =
+                            shroud_layer_container.shroud_layer.color_1.clone().unwrap();
+                        let mut color_2 =
+                            shroud_layer_container.shroud_layer.color_2.clone().unwrap();
+                        let mut line_color = shroud_layer_container
+                            .shroud_layer
+                            .line_color
+                            .clone()
+                            .unwrap();
+                        let original_color_1 = color_1.clone();
+                        let original_color_2 = color_2.clone();
+                        let original_line_color = line_color.clone();
+                        Grid::new(index.to_string()).show(ui, |ui| {
+                            shroud_color_setting(ui, &mut color_1, "tri_color_id=");
+                            shroud_color_setting(ui, &mut color_2, "tri_color1_id=");
+                            shroud_color_setting(ui, &mut line_color, "line_color_id=");
+                        });
+                        shroud_layer_container.shroud_layer.color_1 = Some(color_1.clone());
+                        shroud_layer_container.shroud_layer.color_2 = Some(color_2.clone());
+                        shroud_layer_container.shroud_layer.line_color = Some(line_color.clone());
+                        if let Some(mirror_index) = shroud[index].mirror_index_option {
+                            if original_color_1 != color_1 {
+                                shroud[mirror_index].shroud_layer.color_1 = Some(color_1);
+                            }
+                            if original_color_2 != color_2 {
+                                shroud[mirror_index].shroud_layer.color_2 = Some(color_2);
+                            }
+                            if original_line_color != line_color {
+                                shroud[mirror_index].shroud_layer.line_color = Some(line_color);
+                            }
+                        }
 
-                if shroud[index].shape_id == "SQUARE" {
-                    ui.horizontal(|ui| {
-                        let mut taper = shroud[index].shroud_layer.taper.unwrap_or(1.0);
-                        let original_taper = taper;
-                        ui.label("taper=");
-                        ui.add(DragValue::new(&mut taper).speed(0.025));
-                        shroud[index].shroud_layer.taper = Some(taper);
-                        if original_taper != taper
-                            && let Some(mirror_index) = shroud[index].mirror_index_option
-                        {
-                            shroud[mirror_index].shroud_layer.taper = Some(taper);
+                        if shroud[index].shape_id == "SQUARE" {
+                            ui.horizontal(|ui| {
+                                let mut taper = shroud[index].shroud_layer.taper.unwrap_or(1.0);
+                                let original_taper = taper;
+                                ui.label("taper=");
+                                ui.add(DragValue::new(&mut taper).speed(0.025));
+                                shroud[index].shroud_layer.taper = Some(taper);
+                                if original_taper != taper
+                                    && let Some(mirror_index) = shroud[index].mirror_index_option
+                                {
+                                    shroud[mirror_index].shroud_layer.taper = Some(taper);
+                                }
+                            });
                         }
                     });
-                }
             });
     });
 }
