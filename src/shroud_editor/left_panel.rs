@@ -1,12 +1,12 @@
+use std::f32::{EPSILON, INFINITY};
+
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, Slider,
-    Ui,
-    collapsing_header::CollapsingState,
-    color_picker::{Alpha, color_edit_button_rgba},
+    collapsing_header::CollapsingState, color_picker::{color_edit_button_rgba, Alpha}, vec2, Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui
 };
+use egui_extras::syntax_highlighting::{highlight, CodeTheme};
 use luexks_reassembly::{
-    blocks::{shroud::Shroud, shroud_layer::ShroudLayer},
+    blocks::{shroud::{self, Shroud}, shroud_layer::ShroudLayer},
     shapes::{shape_id::ShapeId, shapes::Shapes},
     utility::{
         angle::Angle,
@@ -14,11 +14,12 @@ use luexks_reassembly::{
         display_oriented_math::{do2d_float_from, do3d_float_from},
     },
 };
+use mlua::Lua;
 
 use crate::{
     color_type_conversion::rgba_to_color,
     restructure_vertices::restructure_vertices,
-    shroud_editor::{FILL_COLOR_GRADIENT_TIME, ShroudEditor},
+    shroud_editor::{parse_shroud_text::parse_shroud_text, ShroudEditor, FILL_COLOR_GRADIENT_TIME},
     shroud_layer_container::ShroudLayerContainer,
     shroud_layer_interaction::ShroudLayerInteraction,
 };
@@ -29,41 +30,45 @@ impl ShroudEditor {
             .exact_width(300.0)
             .show(ctx, |ui| {
                 ui.heading("Luexks Shroud Editor");
-                ui.horizontal(|ui| {
-                    let export_to_clipboard_button = ui.button("Export to Clipboard");
-                    if export_to_clipboard_button.clicked() {
-                        let mut clipboard = Clipboard::new().unwrap();
-                        let shroud = format_component(
-                            Shroud(
-                                self.shroud
-                                    .iter()
-                                    .map(|shroud_layer_container| {
-                                        shroud_layer_container.shroud_layer.clone()
-                                    })
-                                    .collect(),
-                            ),
-                            "shroud",
-                        );
-                        let shroud_export = shroud.to_string();
-                        let just_exported_to_clipboard_status =
-                            clipboard.set_text(shroud_export).is_ok();
-                        self.just_exported_to_clipboard_success_option =
-                            Some(just_exported_to_clipboard_status)
-                    }
-                    if let Some(just_exported_to_clipboard_success) =
-                        self.just_exported_to_clipboard_success_option
-                    {
-                        if export_to_clipboard_button.contains_pointer() {
-                            if just_exported_to_clipboard_success {
-                                ui.label("Copied to clipboard.");
-                            } else {
-                                ui.label("Failed :(");
-                            }
-                        } else {
-                            self.just_exported_to_clipboard_success_option = None
-                        }
-                    }
-                });
+                CollapsingState::load_with_default_open(ctx, "file".into(), false)
+                    .show_header(ui, |ui| ui.heading("File"))
+                    .body_unindented(|ui| {
+                        self.export_to_clipboard_button(ui);
+                        CollapsingState::load_with_default_open(ctx, "import".into(), false)
+                            .show_header(ui, |ui| {
+                                ui.strong("Import by Paste");
+                            })
+                            .body(|ui| {
+                                if ui.button("Import").clicked() {
+                                    // let lua = Lua::new();
+                                    match parse_shroud_text(&self.shroud_import_text) {
+                                        Ok(imported_shroud) => { self.shroud = imported_shroud; }
+                                        Err(err) => { println!("{}", err) },
+                                    }
+                                }
+                                ScrollArea::both()
+                                    .show(ui, |ui| {
+                                        // ui.code_editor(&mut self.shroud_import_text);
+                                        // let mut theme = CodeTheme::from_memory(ctx, style())
+                                        // ui.add_sized(vec2(INFINITY, INFINITY), )
+                                        let theme = CodeTheme::light(12.0);
+                                        let mut layouter = |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
+                                            // let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "rs");
+                                            let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "toml");
+                                            layout_job.wrap.max_width = wrap_width;
+                                            ui.fonts(|f| f.layout_job(layout_job))
+                                        };
+                                        ui.add_sized(
+                                            vec2(1000.0, 500.0),
+                                            TextEdit::multiline(&mut self.shroud_import_text)
+                                                .code_editor()
+                                                .desired_width(INFINITY)
+                                                .layouter(&mut layouter),
+
+                                        );
+                                    });
+                            });
+                    });
                 CollapsingState::load_with_default_open(ctx, "editor".into(), true)
                     .show_header(ui, |ui| ui.heading("Editor Settings"))
                     .body_unindented(|ui| {
@@ -233,6 +238,67 @@ impl ShroudEditor {
         self.shroud_layer_interaction = ShroudLayerInteraction::Placing {
             selection: vec![self.shroud.len() - 1],
         };
+    }
+
+    fn export_to_clipboard_button(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            let export_to_clipboard_button = ui.button("Export to Clipboard");
+            if export_to_clipboard_button.clicked() {
+                let mut clipboard = Clipboard::new().unwrap();
+                let shroud = format_component(
+                    Shroud(
+                        self.shroud
+                            .iter()
+                            .map(|shroud_layer_container| {
+                                let shroud_layer = shroud_layer_container.shroud_layer.clone();
+                                ShroudLayer {
+                                    angle: if shroud_layer
+                                        .angle
+                                        .clone()
+                                        .unwrap()
+                                        .as_radians()
+                                        .get_value()
+                                        .abs()
+                                        < EPSILON
+                                    {
+                                        None
+                                    } else {
+                                        shroud_layer.angle.clone()
+                                    },
+                                    taper: if shroud_layer_container.shape_id
+                                        != "SQUARE".to_string()
+                                        && shroud_layer.taper.clone().unwrap() == 1.0
+                                    {
+                                        None
+                                    } else {
+                                        shroud_layer.taper.clone()
+                                    },
+                                    ..shroud_layer
+                                }
+                            })
+                            .collect(),
+                    ),
+                    "shroud",
+                );
+                let shroud_export = shroud.to_string();
+                let just_exported_to_clipboard_status = clipboard.set_text(shroud_export).is_ok();
+                self.just_exported_to_clipboard_success_option =
+                    Some(just_exported_to_clipboard_status)
+            }
+            if let Some(just_exported_to_clipboard_success) =
+                self.just_exported_to_clipboard_success_option
+            {
+                if export_to_clipboard_button.contains_pointer() {
+                    if just_exported_to_clipboard_success {
+                        ui.label("Copied to clipboard.");
+                    } else {
+                        ui.label("Failed :(");
+                    }
+                } else {
+                    self.just_exported_to_clipboard_success_option = None
+                }
+            }
+        });
     }
 }
 

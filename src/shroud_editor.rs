@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use crate::block_container::BlockContainer;
 use crate::key_tracker::KeyTracker;
+use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
 use crate::shroud_layer_container::ShroudLayerContainer;
 use crate::shroud_layer_interaction::ShroudLayerInteraction;
 use egui::Pos2;
@@ -34,6 +35,7 @@ pub struct ShroudEditor {
     world_mouse_pos: Pos2,
     shroud_clipboard: Vec<ShroudLayerContainer>,
     loaded_shapes_mirror_pairs: Vec<(usize, usize)>,
+    shroud_import_text: String,
 }
 
 impl Default for ShroudEditor {
@@ -46,7 +48,6 @@ impl Default for ShroudEditor {
             shroud_layer_interaction: ShroudLayerInteraction::Inaction {
                 selection: Vec::new(),
             },
-            // zoom: 1,
             zoom: 1.0,
             grid_size: 2.5,
             grid_visible: true,
@@ -66,6 +67,7 @@ impl Default for ShroudEditor {
             world_mouse_pos: Pos2::default(),
             shroud_clipboard: Vec::new(),
             loaded_shapes_mirror_pairs,
+            shroud_import_text: SHROUD_IMPORT_TEXT_DEFAULT.to_string(),
         }
     }
 }
@@ -106,6 +108,7 @@ mod shroud_settings;
 mod snap_to_grid;
 mod viewport_controls;
 mod visual_panel;
+mod parse_shroud_text;
 
 #[rustfmt::skip]
 fn get_loaded_shapes_mirror_pairs(loaded_shapes: &Shapes) -> Vec<(usize, usize)> {

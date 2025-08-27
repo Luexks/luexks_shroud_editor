@@ -1708,6 +1708,7 @@ dependencies = [
  "env_logger",
  "itertools",
  "luexks_reassembly",
+ "mlua",
  "parse_vanilla_shapes",
 ]
 
