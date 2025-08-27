@@ -15,7 +15,7 @@ pub fn shroud_layer_dragging(
     shroud: &mut [ShroudLayerContainer],
     zoom: f32,
     grid_size: f32,
-    snap_to_grid_enabled: bool,
+    grid_snap_enabled: bool,
     shroud_layer_interaction: &mut ShroudLayerInteraction,
 ) {
     let delta = ui.input(|i| i.pointer.delta()) / zoom;
@@ -41,7 +41,7 @@ pub fn shroud_layer_dragging(
             y: don_float_from(y),
             z: old_offset.z.clone(),
         });
-        if snap_to_grid_enabled {
+        if grid_snap_enabled {
             let snapped_offset = snap_to_grid(grid_size, pos2(x, y));
             shroud[*selected_index].shroud_layer.offset = Some(DisplayOriented3D {
                 x: don_float_from(snapped_offset.x),

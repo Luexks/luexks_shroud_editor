@@ -39,7 +39,7 @@ impl ShroudEditor {
                                 ui,
                                 index,
                                 &mut self.shroud_layer_interaction,
-                                self.snap_to_grid_enabled,
+                                self.grid_snap_enabled,
                                 self.grid_size,
                                 self.angle_snap,
                                 self.angle_snap_enabled,
@@ -61,7 +61,7 @@ fn shroud_layer_settings(
     ui: &mut Ui,
     index: usize,
     shroud_layer_interaction: &mut ShroudLayerInteraction,
-    snap_to_grid_enabled: bool,
+    grid_snap_enabled: bool,
     grid_size: f32,
     angle_snap: f32,
     angle_snap_enabled: bool,
@@ -111,7 +111,7 @@ fn shroud_layer_settings(
                             loaded_shapes_mirror_pairs,
                         );
 
-                        let xy_speed = if snap_to_grid_enabled {
+                        let xy_speed = if grid_snap_enabled {
                             grid_size / 2.0
                         } else {
                             0.05

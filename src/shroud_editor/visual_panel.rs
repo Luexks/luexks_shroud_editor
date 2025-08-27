@@ -20,7 +20,9 @@ impl ShroudEditor {
                     self.world_mouse_pos = self.screen_pos_to_world_pos(mouse_pos, rect);
                 }
 
-                self.draw_grid(ui, rect);
+                if self.grid_visible {
+                    self.draw_grid(ui, rect);
+                }
 
                 self.render_shroud(mouse_pos, ui, rect);
 
@@ -45,7 +47,7 @@ impl ShroudEditor {
                         &mut self.shroud,
                         self.zoom,
                         self.grid_size,
-                        self.snap_to_grid_enabled,
+                        self.grid_snap_enabled,
                         &mut self.shroud_layer_interaction,
                     );
                 }
@@ -59,7 +61,7 @@ impl ShroudEditor {
                         &mut self.shroud,
                         self.zoom,
                         self.grid_size,
-                        self.snap_to_grid_enabled,
+                        self.grid_snap_enabled,
                         &mut self.shroud_layer_interaction,
                     );
                 }

@@ -31,7 +31,7 @@ impl ShroudEditor {
                         gizmo_size,
                         *index,
                         self.grid_size,
-                        self.snap_to_grid_enabled,
+                        self.grid_snap_enabled,
                     );
                 }
             });
@@ -85,7 +85,7 @@ impl ShroudEditor {
         gizmo_size: f32,
         index: usize,
         grid_size: f32,
-        snap_to_grid_enabled: bool,
+        grid_snap_enabled: bool,
     ) {
         let size = self.shroud[index].shroud_layer.size.clone().unwrap();
         let mut width = size.x.to_f32();
@@ -136,7 +136,7 @@ impl ShroudEditor {
             Rect::from_two_pos(height_gizmo_pos_top_left, height_gizmo_pos_bottom_right);
         ui.scope_builder(UiBuilder::new().max_rect(gizmo_rect), |ui| {
             egui::Frame::new().fill(Color32::BLACK).show(ui, |ui| {
-                let xy_speed = if snap_to_grid_enabled {
+                let xy_speed = if grid_snap_enabled {
                     grid_size / 2.0
                 } else {
                     0.05
@@ -185,7 +185,7 @@ impl ShroudEditor {
         let gizmo_rect = Rect::from_two_pos(width_gizmo_pos_top_left, width_gizmo_pos_bottom_right);
         ui.scope_builder(UiBuilder::new().max_rect(gizmo_rect), |ui| {
             egui::Frame::new().fill(Color32::BLACK).show(ui, |ui| {
-                let xy_speed = if snap_to_grid_enabled {
+                let xy_speed = if grid_snap_enabled {
                     grid_size / 2.0
                 } else {
                     0.05

@@ -1,6 +1,7 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, Slider, Ui,
+    Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, Slider,
+    Ui,
     collapsing_header::CollapsingState,
     color_picker::{Alpha, color_edit_button_rgba},
 };
@@ -63,11 +64,15 @@ impl ShroudEditor {
                         }
                     }
                 });
-                self.background_grid_settings(ui);
-                self.angle_snap_settings(ui);
-                self.fill_color_gradient_setting(ui);
+                CollapsingState::load_with_default_open(ctx, "editor".into(), true)
+                    .show_header(ui, |ui| ui.heading("Editor Settings"))
+                    .body_unindented(|ui| {
+                        self.background_grid_settings(ui);
+                        self.angle_snap_settings(ui);
+                        self.fill_color_gradient_setting(ui);
+                    });
                 self.block_settings(ui);
-                ui.heading("Shroud Layers:");
+                ui.heading("Shroud Layers");
                 if ui.button("Add Shroud Layer").clicked() {
                     self.add_shroud_layer()
                 }
@@ -111,37 +116,19 @@ impl ShroudEditor {
                             });
                     }
                 });
-                // if ui.button("Expand All").clicked() {
-                //     (0..self.shroud.len()).for_each(|index| {
-                //         let mut drop_down =
-                //             CollapsingState::load(ctx, index.to_string().into()).unwrap();
-                //         drop_down.set_open(true);
-                //         drop_down.store(ctx);
-                //     });
-                // }
-                // if ui.button("Collapse All").clicked() {
-                //     (0..self.shroud.len()).for_each(|index| {
-                //         let mut drop_down =
-                //             CollapsingState::load(ctx, index.to_string().into()).unwrap();
-                //         drop_down.set_open(false);
-                //         drop_down.store(ctx);
-                //     });
-                // }
                 self.shroud_list(ui);
             });
     }
 
     fn background_grid_settings(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
-            ui.label("Grid Enabled:");
-            ui.add(Checkbox::new(&mut self.grid_enabled, ""));
-            if self.grid_enabled {
-                ui.label("Size:");
-                ui.add(DragValue::new(&mut self.grid_size).speed(0.05));
-                self.grid_size = self.grid_size.max(0.1);
-                ui.label("Snap:");
-                ui.add(Checkbox::new(&mut self.snap_to_grid_enabled, ""));
-            }
+            ui.label("Grid Visible:");
+            ui.add(Checkbox::new(&mut self.grid_visible, ""));
+            ui.label("Size:");
+            ui.add(DragValue::new(&mut self.grid_size).speed(0.05));
+            self.grid_size = self.grid_size.max(0.1);
+            ui.label("Snap:");
+            ui.add(Checkbox::new(&mut self.grid_snap_enabled, ""));
         });
     }
 
@@ -157,50 +144,53 @@ impl ShroudEditor {
     }
 
     fn block_settings(&mut self, ui: &mut Ui) {
-        ui.heading("Block Settings");
-        egui::Frame::new()
-            .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
-            .inner_margin(6.0)
-            .corner_radius(0.0)
-            .show(ui, |ui| {
-                block_shape_combo_box(
-                    ui,
-                    "",
-                    &mut self.block_container.block.shape,
-                    &mut self.block_container.shape_id,
-                    &mut self.block_container.vertices,
-                    &self.loaded_shapes,
-                );
-                Grid::new("").show(ui, |ui| {
-                    ui.label(format!(
-                        "fillColor={}",
-                        self.block_container.block.color_1.clone().unwrap()
-                    ));
-                    block_color_setting(ui, &mut self.block_container.color_1);
-                    self.block_container.block.color_1 =
-                        Some(rgba_to_color(self.block_container.color_1));
-                    ui.end_row();
+        CollapsingState::load_with_default_open(ui.ctx(), "block".into(), true)
+            .show_header(ui, |ui| ui.heading("Block Settings"))
+            .body_unindented(|ui| {
+                egui::Frame::new()
+                    .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
+                    .inner_margin(6.0)
+                    .corner_radius(0.0)
+                    .show(ui, |ui| {
+                        block_shape_combo_box(
+                            ui,
+                            "",
+                            &mut self.block_container.block.shape,
+                            &mut self.block_container.shape_id,
+                            &mut self.block_container.vertices,
+                            &self.loaded_shapes,
+                        );
+                        Grid::new("").show(ui, |ui| {
+                            ui.label(format!(
+                                "fillColor={}",
+                                self.block_container.block.color_1.clone().unwrap()
+                            ));
+                            block_color_setting(ui, &mut self.block_container.color_1);
+                            self.block_container.block.color_1 =
+                                Some(rgba_to_color(self.block_container.color_1));
+                            ui.end_row();
 
-                    ui.label(format!(
-                        "fillColor1={}",
-                        self.block_container.block.color_2.clone().unwrap()
-                    ));
-                    block_color_setting(ui, &mut self.block_container.color_2);
-                    self.block_container.block.color_2 =
-                        Some(rgba_to_color(self.block_container.color_2));
-                    ui.end_row();
+                            ui.label(format!(
+                                "fillColor1={}",
+                                self.block_container.block.color_2.clone().unwrap()
+                            ));
+                            block_color_setting(ui, &mut self.block_container.color_2);
+                            self.block_container.block.color_2 =
+                                Some(rgba_to_color(self.block_container.color_2));
+                            ui.end_row();
 
-                    ui.label(format!(
-                        "lineColor={}",
-                        self.block_container.block.line_color.clone().unwrap()
-                    ));
-                    block_color_setting(ui, &mut self.block_container.line_color);
-                    self.block_container.block.line_color =
-                        Some(rgba_to_color(self.block_container.line_color));
-                    ui.end_row();
-                });
+                            ui.label(format!(
+                                "lineColor={}",
+                                self.block_container.block.line_color.clone().unwrap()
+                            ));
+                            block_color_setting(ui, &mut self.block_container.line_color);
+                            self.block_container.block.line_color =
+                                Some(rgba_to_color(self.block_container.line_color));
+                            ui.end_row();
+                        });
 
-                ui.add_space(4.0);
+                        ui.add_space(4.0);
+                    });
             });
     }
 
