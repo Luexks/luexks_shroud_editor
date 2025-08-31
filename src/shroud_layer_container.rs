@@ -12,7 +12,7 @@ use luexks_reassembly::{
 
 use crate::DEFAULT_SQUARE;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct ShroudLayerContainer {
     pub shroud_layer: ShroudLayer,
     pub vertices: Vec<Pos2>,

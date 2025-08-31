@@ -21,7 +21,6 @@ use luexks_reassembly::{
         display_oriented_math::{do2d_float_from, do3d_float_from},
     },
 };
-use mlua::Lua;
 
 use crate::{
     color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option},
@@ -41,40 +40,40 @@ impl ShroudEditor {
                     .show_header(ui, |ui| ui.heading("File"))
                     .body_unindented(|ui| {
                         self.export_to_clipboard_button(ui);
-                        // CollapsingState::load_with_default_open(ctx, "import".into(), false)
-                        //     .show_header(ui, |ui| {
-                        //         ui.strong("Import by Paste");
-                        //     })
-                        //     .body(|ui| {
-                        //         if ui.button("Import").clicked() {
-                        //             // let lua = Lua::new();
-                        //             match parse_shroud_text(&self.shroud_import_text) {
-                        //                 Ok(imported_shroud) => { self.shroud = imported_shroud; }
-                        //                 Err(err) => { println!("{}", err) },
-                        //             }
-                        //         }
-                        //         ScrollArea::both()
-                        //             .show(ui, |ui| {
-                        //                 // ui.code_editor(&mut self.shroud_import_text);
-                        //                 // let mut theme = CodeTheme::from_memory(ctx, style())
-                        //                 // ui.add_sized(vec2(INFINITY, INFINITY), )
-                        //                 let theme = CodeTheme::light(12.0);
-                        //                 let mut layouter = |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
-                        //                     // let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "rs");
-                        //                     let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "toml");
-                        //                     layout_job.wrap.max_width = wrap_width;
-                        //                     ui.fonts(|f| f.layout_job(layout_job))
-                        //                 };
-                        //                 ui.add_sized(
-                        //                     vec2(1000.0, 500.0),
-                        //                     TextEdit::multiline(&mut self.shroud_import_text)
-                        //                         .code_editor()
-                        //                         .desired_width(INFINITY)
-                        //                         .layouter(&mut layouter),
+                        CollapsingState::load_with_default_open(ctx, "import".into(), false)
+                            .show_header(ui, |ui| {
+                                ui.strong("Import by Paste");
+                            })
+                            .body(|ui| {
+                                if ui.button("Import").clicked() {
+                                    // let lua = Lua::new();
+                                    match parse_shroud_text(&self.shroud_import_text) {
+                                        Ok(imported_shroud) => { self.shroud = imported_shroud; }
+                                        Err(err) => { println!("{}", err) },
+                                    }
+                                }
+                                ScrollArea::both()
+                                    .show(ui, |ui| {
+                                        // ui.code_editor(&mut self.shroud_import_text);
+                                        // let mut theme = CodeTheme::from_memory(ctx, style())
+                                        // ui.add_sized(vec2(INFINITY, INFINITY), )
+                                        let theme = CodeTheme::light(12.0);
+                                        let mut layouter = |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
+                                            // let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "rs");
+                                            let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "toml");
+                                            layout_job.wrap.max_width = wrap_width;
+                                            ui.fonts(|f| f.layout_job(layout_job))
+                                        };
+                                        ui.add_sized(
+                                            vec2(1000.0, 500.0),
+                                            TextEdit::multiline(&mut self.shroud_import_text)
+                                                .code_editor()
+                                                .desired_width(INFINITY)
+                                                .layouter(&mut layouter),
 
-                        //                 );
-                        //             });
-                        //     });
+                                        );
+                                    });
+                            });
                     });
                 CollapsingState::load_with_default_open(ctx, "editor".into(), true)
                     .show_header(ui, |ui| ui.heading("Editor Settings"))
