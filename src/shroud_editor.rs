@@ -36,6 +36,7 @@ pub struct ShroudEditor {
     shroud_clipboard: Vec<ShroudLayerContainer>,
     loaded_shapes_mirror_pairs: Vec<(usize, usize)>,
     shroud_import_text: String,
+    pub just_imported_from_paste_box_message_option: Option<String>,
 }
 
 impl Default for ShroudEditor {
@@ -68,6 +69,7 @@ impl Default for ShroudEditor {
             shroud_clipboard: Vec::new(),
             loaded_shapes_mirror_pairs,
             shroud_import_text: SHROUD_IMPORT_TEXT_DEFAULT.to_string(),
+            just_imported_from_paste_box_message_option: None,
         }
     }
 }

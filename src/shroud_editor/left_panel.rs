@@ -45,25 +45,30 @@ impl ShroudEditor {
                                 ui.strong("Import by Paste");
                             })
                             .body(|ui| {
-                                if ui.button("Import").clicked() {
-                                    // let lua = Lua::new();
-                                    match parse_shroud_text(&self.shroud_import_text, &self.loaded_shapes) {
-                                        Ok(imported_shroud) => {
-                                            self.shroud = imported_shroud;
-                                        }
-                                        Err(err) => {
-                                            println!("{}", err)
+                                ui.horizontal(|ui| {
+                                    let response = ui.button("Import");
+                                    if response.clicked() {
+                                        match parse_shroud_text(&self.shroud_import_text, &self.loaded_shapes) {
+                                            Ok(imported_shroud) => {
+                                                self.shroud = imported_shroud;
+                                                self.just_imported_from_paste_box_message_option = Some("YES!".to_string());
+                                            }
+                                            Err(err) => {
+                                                self.just_imported_from_paste_box_message_option = Some(err);
+                                            }
                                         }
                                     }
-                                }
+                                    if let Some(message) = &self.just_imported_from_paste_box_message_option {
+                                        ui.label(message);
+                                    }
+                                    if !response.contains_pointer() {
+                                        self.just_imported_from_paste_box_message_option = None;
+                                    }
+                                });
                                 ScrollArea::both().show(ui, |ui| {
-                                    // ui.code_editor(&mut self.shroud_import_text);
-                                    // let mut theme = CodeTheme::from_memory(ctx, style())
-                                    // ui.add_sized(vec2(INFINITY, INFINITY), )
                                     let theme = CodeTheme::light(12.0);
                                     let mut layouter =
                                         |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
-                                            // let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "rs");
                                             let mut layout_job = highlight(
                                                 ctx,
                                                 ui.style(),
