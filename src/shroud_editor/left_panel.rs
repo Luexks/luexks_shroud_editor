@@ -26,7 +26,7 @@ use mlua::Lua;
 use crate::{
     color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option},
     restructure_vertices::restructure_vertices,
-    shroud_editor::{parse_shroud_text::parse_shroud_text, ShroudEditor, FILL_COLOR_GRADIENT_TIME},
+    shroud_editor::{FILL_COLOR_GRADIENT_TIME, ShroudEditor, parse_shroud_text::parse_shroud_text},
     shroud_layer_container::ShroudLayerContainer,
     shroud_layer_interaction::ShroudLayerInteraction,
 };
@@ -313,31 +313,28 @@ impl ShroudEditor {
 }
 
 fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut String) {
-    // fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut Vec<u8>) {
-    // ui.text_edit_singleline(input_color);
     let response = ui.add(
         TextEdit::singleline(input_color)
             .code_editor()
             .min_size(vec2(100.0, 20.0))
             .hint_text("0xFFFFFFFF"),
     );
-    // if response.has_focus() {
-    //     println!("Has Focus");
-    // }
-    // let mut input_color_string = String::from_utf8_lossy(input_color);
-    // ui.add(TextEdit::singleline(&mut input_color_string).code_editor());
-    // *input_color = input_color_string.to_string().bytes().collect::<Vec<u8>>();
-    if response.changed() && let Some(rgba) = str_to_rgba_option(input_color) {
-        *color = rgba;
-    }
-    // } else {
-    //     println!("None");
-    // }
-    let original_color = *color;
-    color_edit_button_rgba(ui, color, Alpha::OnlyBlend);
-    if !response.has_focus() && original_color != *color {
-        *input_color = rgba_to_color_string(*color);
-    }
+    ui.horizontal(|ui| {
+        let rgba_option = str_to_rgba_option(input_color);
+        if let Some(rgba) = rgba_option {
+            if response.changed() {
+                *color = rgba;
+            }
+        }
+        let original_color = *color;
+        color_edit_button_rgba(ui, color, Alpha::OnlyBlend);
+        if !response.changed() && original_color != *color {
+            *input_color = rgba_to_color_string(*color);
+        }
+        if !response.has_focus() && rgba_option.is_none() {
+            ui.colored_label(Color32::RED, ">:(");
+        }
+    });
 }
 
 fn block_shape_combo_box(
