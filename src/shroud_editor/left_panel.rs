@@ -2,11 +2,18 @@ use std::f32::{EPSILON, INFINITY};
 
 use arboard::Clipboard;
 use egui::{
-    collapsing_header::CollapsingState, color_picker::{color_edit_button_rgba, Alpha}, vec2, Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui
+    Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, ScrollArea, Slider,
+    TextBuffer, TextEdit, Ui,
+    collapsing_header::CollapsingState,
+    color_picker::{Alpha, color_edit_button_rgba},
+    vec2,
 };
-use egui_extras::syntax_highlighting::{highlight, CodeTheme};
+use egui_extras::syntax_highlighting::{CodeTheme, highlight};
 use luexks_reassembly::{
-    blocks::{shroud::{self, Shroud}, shroud_layer::ShroudLayer},
+    blocks::{
+        shroud::{self, Shroud},
+        shroud_layer::ShroudLayer,
+    },
     shapes::{shape_id::ShapeId, shapes::Shapes},
     utility::{
         angle::Angle,
@@ -17,7 +24,7 @@ use luexks_reassembly::{
 use mlua::Lua;
 
 use crate::{
-    color_type_conversion::rgba_to_color,
+    color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option},
     restructure_vertices::restructure_vertices,
     shroud_editor::{parse_shroud_text::parse_shroud_text, ShroudEditor, FILL_COLOR_GRADIENT_TIME},
     shroud_layer_container::ShroudLayerContainer,
@@ -34,40 +41,40 @@ impl ShroudEditor {
                     .show_header(ui, |ui| ui.heading("File"))
                     .body_unindented(|ui| {
                         self.export_to_clipboard_button(ui);
-                        CollapsingState::load_with_default_open(ctx, "import".into(), false)
-                            .show_header(ui, |ui| {
-                                ui.strong("Import by Paste");
-                            })
-                            .body(|ui| {
-                                if ui.button("Import").clicked() {
-                                    // let lua = Lua::new();
-                                    match parse_shroud_text(&self.shroud_import_text) {
-                                        Ok(imported_shroud) => { self.shroud = imported_shroud; }
-                                        Err(err) => { println!("{}", err) },
-                                    }
-                                }
-                                ScrollArea::both()
-                                    .show(ui, |ui| {
-                                        // ui.code_editor(&mut self.shroud_import_text);
-                                        // let mut theme = CodeTheme::from_memory(ctx, style())
-                                        // ui.add_sized(vec2(INFINITY, INFINITY), )
-                                        let theme = CodeTheme::light(12.0);
-                                        let mut layouter = |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
-                                            // let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "rs");
-                                            let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "toml");
-                                            layout_job.wrap.max_width = wrap_width;
-                                            ui.fonts(|f| f.layout_job(layout_job))
-                                        };
-                                        ui.add_sized(
-                                            vec2(1000.0, 500.0),
-                                            TextEdit::multiline(&mut self.shroud_import_text)
-                                                .code_editor()
-                                                .desired_width(INFINITY)
-                                                .layouter(&mut layouter),
+                        // CollapsingState::load_with_default_open(ctx, "import".into(), false)
+                        //     .show_header(ui, |ui| {
+                        //         ui.strong("Import by Paste");
+                        //     })
+                        //     .body(|ui| {
+                        //         if ui.button("Import").clicked() {
+                        //             // let lua = Lua::new();
+                        //             match parse_shroud_text(&self.shroud_import_text) {
+                        //                 Ok(imported_shroud) => { self.shroud = imported_shroud; }
+                        //                 Err(err) => { println!("{}", err) },
+                        //             }
+                        //         }
+                        //         ScrollArea::both()
+                        //             .show(ui, |ui| {
+                        //                 // ui.code_editor(&mut self.shroud_import_text);
+                        //                 // let mut theme = CodeTheme::from_memory(ctx, style())
+                        //                 // ui.add_sized(vec2(INFINITY, INFINITY), )
+                        //                 let theme = CodeTheme::light(12.0);
+                        //                 let mut layouter = |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
+                        //                     // let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "rs");
+                        //                     let mut layout_job = highlight(ctx, ui.style(), &theme, buf.as_str(), "toml");
+                        //                     layout_job.wrap.max_width = wrap_width;
+                        //                     ui.fonts(|f| f.layout_job(layout_job))
+                        //                 };
+                        //                 ui.add_sized(
+                        //                     vec2(1000.0, 500.0),
+                        //                     TextEdit::multiline(&mut self.shroud_import_text)
+                        //                         .code_editor()
+                        //                         .desired_width(INFINITY)
+                        //                         .layouter(&mut layouter),
 
-                                        );
-                                    });
-                            });
+                        //                 );
+                        //             });
+                        //     });
                     });
                 CollapsingState::load_with_default_open(ctx, "editor".into(), true)
                     .show_header(ui, |ui| ui.heading("Editor Settings"))
@@ -166,29 +173,32 @@ impl ShroudEditor {
                             &self.loaded_shapes,
                         );
                         Grid::new("").show(ui, |ui| {
-                            ui.label(format!(
-                                "fillColor={}",
-                                self.block_container.block.color_1.clone().unwrap()
-                            ));
-                            block_color_setting(ui, &mut self.block_container.color_1);
+                            ui.label("fillColor=");
+                            block_color_settings(
+                                ui,
+                                &mut self.block_container.color_1,
+                                &mut self.block_container.input_color_1,
+                            );
                             self.block_container.block.color_1 =
                                 Some(rgba_to_color(self.block_container.color_1));
                             ui.end_row();
 
-                            ui.label(format!(
-                                "fillColor1={}",
-                                self.block_container.block.color_2.clone().unwrap()
-                            ));
-                            block_color_setting(ui, &mut self.block_container.color_2);
+                            ui.label("fillColor1=");
+                            block_color_settings(
+                                ui,
+                                &mut self.block_container.color_2,
+                                &mut self.block_container.input_color_2,
+                            );
                             self.block_container.block.color_2 =
                                 Some(rgba_to_color(self.block_container.color_2));
                             ui.end_row();
 
-                            ui.label(format!(
-                                "lineColor={}",
-                                self.block_container.block.line_color.clone().unwrap()
-                            ));
-                            block_color_setting(ui, &mut self.block_container.line_color);
+                            ui.label("lineColor=");
+                            block_color_settings(
+                                ui,
+                                &mut self.block_container.line_color,
+                                &mut self.block_container.input_line_color,
+                            );
                             self.block_container.block.line_color =
                                 Some(rgba_to_color(self.block_container.line_color));
                             ui.end_row();
@@ -302,8 +312,32 @@ impl ShroudEditor {
     }
 }
 
-fn block_color_setting(ui: &mut Ui, color: &mut Rgba) {
+fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut String) {
+    // fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut Vec<u8>) {
+    // ui.text_edit_singleline(input_color);
+    let response = ui.add(
+        TextEdit::singleline(input_color)
+            .code_editor()
+            .min_size(vec2(100.0, 20.0))
+            .hint_text("0xFFFFFFFF"),
+    );
+    // if response.has_focus() {
+    //     println!("Has Focus");
+    // }
+    // let mut input_color_string = String::from_utf8_lossy(input_color);
+    // ui.add(TextEdit::singleline(&mut input_color_string).code_editor());
+    // *input_color = input_color_string.to_string().bytes().collect::<Vec<u8>>();
+    if response.changed() && let Some(rgba) = str_to_rgba_option(input_color) {
+        *color = rgba;
+    }
+    // } else {
+    //     println!("None");
+    // }
+    let original_color = *color;
     color_edit_button_rgba(ui, color, Alpha::OnlyBlend);
+    if !response.has_focus() && original_color != *color {
+        *input_color = rgba_to_color_string(*color);
+    }
 }
 
 fn block_shape_combo_box(

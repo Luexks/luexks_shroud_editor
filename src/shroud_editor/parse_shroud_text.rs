@@ -8,7 +8,7 @@ pub fn parse_shroud_text(shroud_text: &str) -> Result<Vec<ShroudLayerContainer>,
     let lua = Lua::new();
     lua.load(format!("pi={}", PI)).exec().unwrap();
     if let Err(err) = lua.load(shroud_text).exec() {
-        return Err(format!("Failed to parse shroud: {}", err))
+        return Err(format!("Failed to parse shroud: {}", err));
     }
     // let shroud: Vec<Table> = lua
     //     .load(shroud_text)

@@ -98,6 +98,7 @@ mod draw_grid;
 mod hotkey_copy_and_paste;
 mod hotkey_shroud_layer_deletion;
 mod left_panel;
+mod parse_shroud_text;
 mod position_conversion;
 mod render_shroud;
 mod shape_combo_box;
@@ -108,7 +109,6 @@ mod shroud_settings;
 mod snap_to_grid;
 mod viewport_controls;
 mod visual_panel;
-mod parse_shroud_text;
 
 #[rustfmt::skip]
 fn get_loaded_shapes_mirror_pairs(loaded_shapes: &Shapes) -> Vec<(usize, usize)> {
