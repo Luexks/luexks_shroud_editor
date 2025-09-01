@@ -12,18 +12,10 @@ egui_knob = "0.3.3"
 env_logger = "0.11.8"
 itertools = "0.14.0"
 nom = "8.0.0"
-# luexks_reassembly = { path = "../luexks_reassembly", git = "https://github.com/Luexks/luexks_reassembly_2.git" }
-# parse_vanilla_shapes = { path = "../parse_vanilla_shapes", git = "https://github.com/Luexks/parse_vanilla_shapes.git" }
-
-# luexks_reassembly = { git = "https://github.com/Luexks/luexks_reassembly_2", version = "0.1.0" }
-# parse_vanilla_shapes = {  git = "https://github.com/Luexks/parse_vanilla_shapes", version = "0.1.0"  }
-
 luexks_reassembly = { git = "https://github.com/Luexks/luexks_reassembly_2.git" }
 parse_vanilla_shapes = {  git = "https://github.com/Luexks/parse_vanilla_shapes.git" }
 
-# [patch.crates-io]
 [patch."https://github.com/Luexks/luexks_reassembly_2.git"]
-# [dev-dependencies]
 luexks_reassembly = { path = "../luexks_reassembly" }
 [patch."https://github.com/Luexks/parse_vanilla_shapes.git"]
 parse_vanilla_shapes = { path = "../parse_vanilla_shapes" }
