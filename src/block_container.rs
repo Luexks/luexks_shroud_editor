@@ -20,6 +20,7 @@ pub struct BlockContainer {
     // pub input_color_1: Vec<u8>,
     // pub input_color_2: Vec<u8>,
     // pub input_line_color: Vec<u8>,
+    // pub search_buf: String,
 }
 
 impl Default for BlockContainer {
@@ -78,6 +79,7 @@ impl Default for BlockContainer {
             input_color_1,
             input_color_2,
             input_line_color,
+            // search_buf: String::new(),
         }
     }
 }

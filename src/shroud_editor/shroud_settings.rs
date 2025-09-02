@@ -39,6 +39,7 @@ impl ShroudEditor {
                         &mut self.shroud,
                         &self.loaded_shapes,
                         &self.loaded_shapes_mirror_pairs,
+                        &mut self.shape_search_buf,
                     );
                 }
             });
@@ -60,6 +61,7 @@ fn shroud_layer_settings(
     shroud: &mut Vec<ShroudLayerContainer>,
     loaded_shapes: &Shapes,
     loaded_shapes_mirror_pairs: &[(usize, usize)],
+    shape_search_buf: &mut String,
 ) {
     ui.vertical(|ui| {
         egui::Frame::new()
@@ -96,11 +98,11 @@ fn shroud_layer_settings(
                         );
                         shroud_layer_shape_combo_box(
                             ui,
-                            &index.to_string(),
                             shroud,
                             index,
                             loaded_shapes,
                             loaded_shapes_mirror_pairs,
+                            shape_search_buf,
                         );
 
                         let xy_speed = if grid_snap_enabled {

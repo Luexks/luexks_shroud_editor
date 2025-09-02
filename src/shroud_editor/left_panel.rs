@@ -1,7 +1,6 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, ScrollArea, Slider,
-    TextBuffer, TextEdit, Ui,
+    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui,
     collapsing_header::CollapsingState,
     color_picker::{Alpha, color_edit_button_rgba},
     scroll_area::ScrollBarVisibility,
@@ -137,11 +136,12 @@ impl ShroudEditor {
                     .show(ui, |ui| {
                         block_shape_combo_box(
                             ui,
-                            "",
                             &mut self.block_container.block.shape,
                             &mut self.block_container.shape_id,
                             &mut self.block_container.vertices,
                             &self.loaded_shapes,
+                            // &mut self.block_container.search_buf,
+                            &mut self.shape_search_buf,
                         );
                         Grid::new("").show(ui, |ui| {
                             ui.label("fillColor=");
@@ -355,30 +355,51 @@ fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut String)
 
 fn block_shape_combo_box(
     ui: &mut Ui,
-    id: &str,
     shape: &mut Option<ShapeId>,
     shape_id: &mut String,
     vertices: &mut Vec<Pos2>,
     loaded_shapes: &Shapes,
+    search_buf: &mut String,
 ) {
     ui.horizontal(|ui| {
         ui.label("shape=");
-        ComboBox::from_id_salt(id.to_string())
-            .selected_text(shape_id.as_str())
-            .show_ui(ui, |ui| {
-                for selectable_shape in &loaded_shapes.0 {
-                    let selectable_shape_id = selectable_shape.get_id().unwrap().to_string();
-                    let response = ui.selectable_value(
-                        shape_id,
-                        selectable_shape_id.clone(),
-                        selectable_shape_id,
-                    );
-                    if response.clicked() {
-                        *vertices =
-                            restructure_vertices(selectable_shape.get_first_scale_vertices());
-                        *shape = selectable_shape.get_id();
-                    }
-                }
+        Popup::from_toggle_button_response(&ui.button(shape_id.as_str()))
+            .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
+            .show(|ui| {
+                ui.add(
+                    TextEdit::singleline(search_buf)
+                        .code_editor()
+                        .desired_width(120.0)
+                        .hint_text("Search (:"),
+                );
+                ScrollArea::vertical()
+                    .min_scrolled_height(500.0)
+                    .max_height(500.0)
+                    .min_scrolled_width(250.0)
+                    .max_width(250.0)
+                    .show(ui, |ui| {
+                        for selectable_shape in &loaded_shapes.0 {
+                            let selectable_shape_id =
+                                selectable_shape.get_id().unwrap().to_string();
+                            if search_buf.is_empty()
+                                || selectable_shape_id
+                                    .to_lowercase()
+                                    .contains(&*search_buf.to_lowercase())
+                            {
+                                let response = ui.selectable_value(
+                                    shape_id,
+                                    selectable_shape_id.clone(),
+                                    selectable_shape_id,
+                                );
+                                if response.clicked() {
+                                    *vertices = restructure_vertices(
+                                        selectable_shape.get_first_scale_vertices(),
+                                    );
+                                    *shape = selectable_shape.get_id();
+                                }
+                            }
+                        }
+                    });
             });
     });
 }

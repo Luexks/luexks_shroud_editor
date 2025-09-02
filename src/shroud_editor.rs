@@ -38,6 +38,7 @@ pub struct ShroudEditor {
     loaded_shapes_mirror_pairs: Vec<(usize, usize)>,
     shroud_import_text: String,
     pub just_imported_from_paste_box_message_option: Option<ShroudParseResult>,
+    shape_search_buf: String,
 }
 
 impl Default for ShroudEditor {
@@ -71,6 +72,7 @@ impl Default for ShroudEditor {
             loaded_shapes_mirror_pairs,
             shroud_import_text: SHROUD_IMPORT_TEXT_DEFAULT.to_string(),
             just_imported_from_paste_box_message_option: None,
+            shape_search_buf: String::new(),
         }
     }
 }
