@@ -6,14 +6,12 @@ use egui::{
     TextBuffer, TextEdit, Ui,
     collapsing_header::CollapsingState,
     color_picker::{Alpha, color_edit_button_rgba},
+    scroll_area::ScrollBarVisibility,
     vec2,
 };
 use egui_extras::syntax_highlighting::{CodeTheme, highlight};
 use luexks_reassembly::{
-    blocks::{
-        shroud::{self, Shroud},
-        shroud_layer::ShroudLayer,
-    },
+    blocks::{shroud::Shroud, shroud_layer::ShroudLayer},
     shapes::{shape_id::ShapeId, shapes::Shapes},
     utility::{
         angle::Angle,
@@ -25,7 +23,10 @@ use luexks_reassembly::{
 use crate::{
     color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option},
     restructure_vertices::restructure_vertices,
-    shroud_editor::{FILL_COLOR_GRADIENT_TIME, ShroudEditor, parse_shroud_text::parse_shroud_text},
+    shroud_editor::{
+        FILL_COLOR_GRADIENT_TIME, ShroudEditor,
+        parse_shroud_text::{ShroudParseResult, parse_shroud_text},
+    },
     shroud_layer_container::ShroudLayerContainer,
     shroud_layer_interaction::ShroudLayerInteraction,
 };
@@ -33,115 +34,74 @@ use crate::{
 impl ShroudEditor {
     pub fn left_panel(&mut self, ctx: &Context) {
         egui::SidePanel::left("side_panel")
-            .exact_width(300.0)
+            .min_width(300.0)
+            .resizable(true)
             .show(ctx, |ui| {
                 ui.heading("Luexks Shroud Editor");
-                CollapsingState::load_with_default_open(ctx, "file".into(), false)
-                    .show_header(ui, |ui| ui.heading("File"))
-                    .body_unindented(|ui| {
-                        self.export_to_clipboard_button(ui);
-                        CollapsingState::load_with_default_open(ctx, "import".into(), false)
-                            .show_header(ui, |ui| {
-                                ui.strong("Import by Paste");
-                            })
-                            .body(|ui| {
-                                ui.horizontal(|ui| {
-                                    let response = ui.button("Import");
-                                    if response.clicked() {
-                                        match parse_shroud_text(&self.shroud_import_text, &self.loaded_shapes) {
-                                            Ok(imported_shroud) => {
-                                                self.shroud = imported_shroud;
-                                                self.just_imported_from_paste_box_message_option = Some("YES!".to_string());
-                                            }
-                                            Err(err) => {
-                                                self.just_imported_from_paste_box_message_option = Some(err);
-                                            }
-                                        }
-                                    }
-                                    if let Some(message) = &self.just_imported_from_paste_box_message_option {
-                                        ui.label(message);
-                                    }
-                                    if !response.contains_pointer() {
-                                        self.just_imported_from_paste_box_message_option = None;
-                                    }
-                                });
-                                ScrollArea::both().show(ui, |ui| {
-                                    let theme = CodeTheme::light(12.0);
-                                    let mut layouter =
-                                        |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
-                                            let mut layout_job = highlight(
-                                                ctx,
-                                                ui.style(),
-                                                &theme,
-                                                buf.as_str(),
-                                                "toml",
-                                            );
-                                            layout_job.wrap.max_width = wrap_width;
-                                            ui.fonts(|f| f.layout_job(layout_job))
-                                        };
-                                    ui.add_sized(
-                                        vec2(1000.0, 500.0),
-                                        TextEdit::multiline(&mut self.shroud_import_text)
-                                            .code_editor()
-                                            .desired_width(INFINITY)
-                                            .layouter(&mut layouter),
-                                    );
-                                });
+                ScrollArea::vertical()
+                    .auto_shrink(false)
+                    .scroll_bar_visibility(ScrollBarVisibility::VisibleWhenNeeded)
+                    .show(ui, |ui| {
+                        CollapsingState::load_with_default_open(ctx, "file".into(), false)
+                            .show_header(ui, |ui| ui.heading("File"))
+                            .body_unindented(|ui| {
+                                self.export_shroud_to_clipboard_button(ui);
+                                self.import_shroud_from_paste_box(ui);
                             });
+                        CollapsingState::load_with_default_open(ctx, "editor".into(), true)
+                            .show_header(ui, |ui| ui.heading("Editor Settings"))
+                            .body_unindented(|ui| {
+                                self.background_grid_settings(ui);
+                                self.angle_snap_settings(ui);
+                                self.fill_color_gradient_setting(ui);
+                            });
+                        self.block_settings(ui);
+                        ui.heading("Shroud Layers");
+                        if ui.button("Add Shroud Layer").clicked() {
+                            self.add_shroud_layer()
+                        }
+                        ui.horizontal(|ui| {
+                            ui.label("Only Show Selected:");
+                            ui.checkbox(&mut self.only_show_selected_shroud_layers, "");
+                        });
+                        ui.horizontal(|ui| {
+                            if ui.button("Select All").clicked() {
+                                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                                    selection: (0..self.shroud.len()).collect(),
+                                };
+                            }
+                            if ui.button("Deselect All").clicked() {
+                                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                                    selection: Vec::new(),
+                                };
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            if ui.button("Expand Selection").clicked() {
+                                self.shroud_layer_interaction.selection().iter().for_each(
+                                    |index| {
+                                        let mut drop_down =
+                                            CollapsingState::load(ctx, index.to_string().into())
+                                                .unwrap();
+                                        drop_down.set_open(true);
+                                        drop_down.store(ctx);
+                                    },
+                                );
+                            }
+                            if ui.button("Collapse Selection").clicked() {
+                                self.shroud_layer_interaction.selection().iter().for_each(
+                                    |index| {
+                                        let mut drop_down =
+                                            CollapsingState::load(ctx, index.to_string().into())
+                                                .unwrap();
+                                        drop_down.set_open(false);
+                                        drop_down.store(ctx);
+                                    },
+                                );
+                            }
+                        });
+                        self.shroud_list(ui);
                     });
-                CollapsingState::load_with_default_open(ctx, "editor".into(), true)
-                    .show_header(ui, |ui| ui.heading("Editor Settings"))
-                    .body_unindented(|ui| {
-                        self.background_grid_settings(ui);
-                        self.angle_snap_settings(ui);
-                        self.fill_color_gradient_setting(ui);
-                    });
-                self.block_settings(ui);
-                ui.heading("Shroud Layers");
-                if ui.button("Add Shroud Layer").clicked() {
-                    self.add_shroud_layer()
-                }
-                ui.horizontal(|ui| {
-                    ui.label("Only Show Selected:");
-                    ui.checkbox(&mut self.only_show_selected_shroud_layers, "");
-                });
-                ui.horizontal(|ui| {
-                    if ui.button("Select All").clicked() {
-                        self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                            selection: (0..self.shroud.len()).collect(),
-                        };
-                    }
-                    if ui.button("Deselect All").clicked() {
-                        self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                            selection: Vec::new(),
-                        };
-                    }
-                });
-                ui.horizontal(|ui| {
-                    if ui.button("Expand Selection").clicked() {
-                        self.shroud_layer_interaction
-                            .selection()
-                            .iter()
-                            .for_each(|index| {
-                                let mut drop_down =
-                                    CollapsingState::load(ctx, index.to_string().into()).unwrap();
-                                drop_down.set_open(true);
-                                drop_down.store(ctx);
-                            });
-                    }
-                    if ui.button("Collapse Selection").clicked() {
-                        self.shroud_layer_interaction
-                            .selection()
-                            .iter()
-                            .for_each(|index| {
-                                let mut drop_down =
-                                    CollapsingState::load(ctx, index.to_string().into()).unwrap();
-                                drop_down.set_open(false);
-                                drop_down.store(ctx);
-                            });
-                    }
-                });
-                self.shroud_list(ui);
             });
     }
 
@@ -263,9 +223,9 @@ impl ShroudEditor {
         };
     }
 
-    fn export_to_clipboard_button(&mut self, ui: &mut Ui) {
+    fn export_shroud_to_clipboard_button(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
-            let export_to_clipboard_button = ui.button("Export to Clipboard");
+            let export_to_clipboard_button = ui.button("Export Shroud to Clipboard");
             if export_to_clipboard_button.clicked() {
                 let mut clipboard = Clipboard::new().unwrap();
                 let shroud = format_component(
@@ -322,6 +282,51 @@ impl ShroudEditor {
                 }
             }
         });
+    }
+
+    fn import_shroud_from_paste_box(&mut self, ui: &mut Ui) {
+        CollapsingState::load_with_default_open(ui.ctx(), "import_shroud".into(), false)
+            .show_header(ui, |ui| {
+                ui.strong("Import Shroud from Paste Box");
+            })
+            .body(|ui| {
+                ui.horizontal(|ui| {
+                    let response = ui.button("Import");
+                    if response.clicked() {
+                        match parse_shroud_text(&self.shroud_import_text, &self.loaded_shapes) {
+                            Ok(imported_shroud) => {
+                                self.shroud = imported_shroud;
+                                self.just_imported_from_paste_box_message_option =
+                                    Some(ShroudParseResult::Success);
+                            }
+                            Err(err) => {
+                                self.just_imported_from_paste_box_message_option = Some(err);
+                            }
+                        }
+                    }
+                    if let Some(message) = &self.just_imported_from_paste_box_message_option {
+                        ui.label(message.to_string());
+                    }
+                    if !response.contains_pointer() {
+                        self.just_imported_from_paste_box_message_option = None;
+                    }
+                });
+                ScrollArea::horizontal().show(ui, |ui| {
+                    let theme = CodeTheme::light(12.0);
+                    let mut layouter = |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
+                        let mut layout_job =
+                            highlight(ui.ctx(), ui.style(), &theme, buf.as_str(), "toml");
+                        layout_job.wrap.max_width = wrap_width;
+                        ui.fonts(|f| f.layout_job(layout_job))
+                    };
+                    ui.add(
+                        TextEdit::multiline(&mut self.shroud_import_text)
+                            .code_editor()
+                            .desired_width(INFINITY)
+                            .layouter(&mut layouter),
+                    );
+                });
+            });
     }
 }
 

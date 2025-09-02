@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use crate::block_container::BlockContainer;
 use crate::key_tracker::KeyTracker;
+use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
 use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
 use crate::shroud_layer_container::ShroudLayerContainer;
 use crate::shroud_layer_interaction::ShroudLayerInteraction;
@@ -36,7 +37,7 @@ pub struct ShroudEditor {
     shroud_clipboard: Vec<ShroudLayerContainer>,
     loaded_shapes_mirror_pairs: Vec<(usize, usize)>,
     shroud_import_text: String,
-    pub just_imported_from_paste_box_message_option: Option<String>,
+    pub just_imported_from_paste_box_message_option: Option<ShroudParseResult>,
 }
 
 impl Default for ShroudEditor {

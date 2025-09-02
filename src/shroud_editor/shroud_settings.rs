@@ -1,7 +1,4 @@
-use egui::{
-    Color32, DragValue, Grid, Key, ScrollArea, Stroke, Ui, collapsing_header::CollapsingState,
-    scroll_area::ScrollBarVisibility,
-};
+use egui::{Color32, DragValue, Grid, Key, Stroke, Ui, collapsing_header::CollapsingState};
 use egui_knob::{Knob, KnobStyle};
 use luexks_reassembly::{
     blocks::shroud_layer::ShroudLayerColor,
@@ -22,37 +19,32 @@ use crate::{
 
 impl ShroudEditor {
     pub fn shroud_list(&mut self, ui: &mut Ui) {
-        ScrollArea::vertical()
-            .auto_shrink(false)
-            .scroll_bar_visibility(ScrollBarVisibility::VisibleWhenNeeded)
-            .show(ui, |ui| {
-                if self.shroud.is_empty() {
-                    ui.label("No shrouds :(");
-                } else {
-                    (0..self.shroud.len()).for_each(|index| {
-                        let is_selected = self
-                            .shroud_layer_interaction
-                            .is_shroud_layer_index_selected(index);
-                        if !self.only_show_selected_shroud_layers || is_selected {
-                            shroud_layer_settings(
-                                is_selected,
-                                ui,
-                                index,
-                                &mut self.shroud_layer_interaction,
-                                self.grid_snap_enabled,
-                                self.grid_size,
-                                self.angle_snap,
-                                self.angle_snap_enabled,
-                                &mut self.shroud,
-                                &self.loaded_shapes,
-                                &self.loaded_shapes_mirror_pairs,
-                            );
-                        }
-                    });
+        if self.shroud.is_empty() {
+            ui.label("No shrouds :(");
+        } else {
+            (0..self.shroud.len()).for_each(|index| {
+                let is_selected = self
+                    .shroud_layer_interaction
+                    .is_shroud_layer_index_selected(index);
+                if !self.only_show_selected_shroud_layers || is_selected {
+                    shroud_layer_settings(
+                        is_selected,
+                        ui,
+                        index,
+                        &mut self.shroud_layer_interaction,
+                        self.grid_snap_enabled,
+                        self.grid_size,
+                        self.angle_snap,
+                        self.angle_snap_enabled,
+                        &mut self.shroud,
+                        &self.loaded_shapes,
+                        &self.loaded_shapes_mirror_pairs,
+                    );
                 }
-
-                ui.add_space(4.0);
             });
+        }
+
+        ui.add_space(4.0);
     }
 }
 

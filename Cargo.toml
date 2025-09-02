@@ -14,6 +14,7 @@ itertools = "0.14.0"
 nom = "8.0.0"
 luexks_reassembly = { git = "https://github.com/Luexks/luexks_reassembly_2.git" }
 parse_vanilla_shapes = {  git = "https://github.com/Luexks/parse_vanilla_shapes.git" }
+thiserror = "2.0.16"
 
 [patch."https://github.com/Luexks/luexks_reassembly_2.git"]
 luexks_reassembly = { path = "../luexks_reassembly" }
