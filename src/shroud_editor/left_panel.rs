@@ -1,5 +1,3 @@
-use std::f32::{EPSILON, INFINITY};
-
 use arboard::Clipboard;
 use egui::{
     Checkbox, Color32, ComboBox, Context, DragValue, Grid, Pos2, Rgba, ScrollArea, Slider,
@@ -242,7 +240,7 @@ impl ShroudEditor {
                                         .as_radians()
                                         .get_value()
                                         .abs()
-                                        < EPSILON
+                                        < f32::EPSILON
                                     {
                                         None
                                     } else {
@@ -322,7 +320,7 @@ impl ShroudEditor {
                     ui.add(
                         TextEdit::multiline(&mut self.shroud_import_text)
                             .code_editor()
-                            .desired_width(INFINITY)
+                            .desired_width(f32::INFINITY)
                             .layouter(&mut layouter),
                     );
                 });

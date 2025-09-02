@@ -14,8 +14,8 @@ use nom::{
         streaming::tag_no_case,
         take_until,
     },
-    character::complete::{alphanumeric1, digit1},
-    combinator::{complete, map, map_res, opt, peek, recognize, value},
+    character::complete::digit1,
+    combinator::{complete, map, opt, peek, recognize, value},
     error::Error,
     multi::{many0, many1},
     sequence::{delimited, pair, preceded, separated_pair, terminated},
@@ -73,11 +73,6 @@ pub enum ShroudParseResult {
 
 #[rustfmt::skip]
 pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Vec<ShroudLayerContainer>, ShroudParseResult> {
-    // let _ = dbg!(parse_number_expression("42"));
-    // let _ = dbg!(recognize(pair(digit1::<&str, ()>, opt(pair(char('.'), opt(digit1))))).parse("42"));
-    // let _ = dbg!(recognize(digit1::<&str, ()>).parse("42"));
-    // let _ = dbg!(map(recognize((digit_negative1, opt(char('.')), opt(digit1))), |s| s.parse::<f32>().unwrap()).parse("42"));
-    // let _ = dbg!(map(recognize((digit_negative1, opt(complete(char('.'))), opt(complete(digit1)))), |s| s.parse::<f32>().unwrap()).parse("42"));
     let (_, shroud_data) = shroud(shroud_text)
         .map_err(|_| ShroudParseResult::Shroud)?;
     shroud_data.iter().map(|shroud_layer_data| {
@@ -225,30 +220,8 @@ pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Ve
     }).collect()
 }
 
-// fn digit_negative1(input: &str) -> IResult<&str, &str> {
-//     take_while1(|c: char| c.is_ascii_digit() || c == '-').parse(input)
-//     // dbg!(take_while1(|c: char| c.is_ascii_digit() || c == '-').parse(dbg!(input)))
-// }
-
 fn parse_number(input: &str) -> IResult<&str, f32> {
     alt((
-        // map(
-        //     // map_res(
-        //     // recognize(pair(digit_negative1, opt(pair(char('.'), opt(digit_negative1))))),
-        //     // recognize(pair(digit1, opt(pair(char('.'), digit1)))),
-        //     // recognize(pair(digit_negative1, pair(char('.'), digit1))),
-        //     // recognize(pair(digit_negative1, preceded(char('.'), digit1))),
-        //     // recognize(delimited(digit_negative1, char('.'), digit1)),
-        //     // recognize(pair(digit1, pair(char('.'), digit1))),
-        //     // digit1,
-        //     // recognize((opt(char('-')), digit1, opt((char('.'), digit1)))),
-        //     recognize((digit_negative1, char('.'), digit1)),
-        //     // |s: &str| s.parse::<f32>().unwrap(),
-        //     |s: &str| dbg!(s).parse::<f32>().unwrap(),
-        //     // |s: &str| s.parse::<f32>(),
-        // ),
-        // map(digit_negative1, |s: &str| dbg!(s).parse::<f32>().unwrap()),
-        // map(recognize((digit_negative1, char('.'), digit1)), |s| s.parse::<f32>().unwrap()),
         map(
             recognize((
                 opt(complete(char::<&str, Error<&str>>('-'))),
@@ -258,7 +231,6 @@ fn parse_number(input: &str) -> IResult<&str, f32> {
             )),
             |s| s.parse::<f32>().unwrap(),
         ),
-        // map(tag_no_case("pi"), |_| dbg!(PI)),
         map(tag_no_case("pi"), |_| PI),
     ))
     .parse(input)
@@ -272,12 +244,6 @@ enum Operator {
 
 fn parse_number_expression(input: &str) -> IResult<&str, f32> {
     let (remainder, first_number) = parse_number(input)?;
-    // if remainder.is_empty() {
-    //     return Ok((remainder, first_number));
-    // }
-    // dbg!(remainder);
-    // dbg!(first_number);
-    // let (remainder, operator_number_pairs) = dbg!(many0(pair(
     let (remainder, operator_number_pairs) = many0(pair(
         alt((
             value(
@@ -291,12 +257,7 @@ fn parse_number_expression(input: &str) -> IResult<&str, f32> {
         )),
         parse_number,
     ))
-    // .parse(remainder))?;
     .parse(remainder)?;
-    // if operator_number_pairs.is_empty() {
-    //     return Ok((remainder, first_number));
-    // }
-    // dbg!(&operator_number_pairs);
     Ok((
         remainder,
         operator_number_pairs
@@ -306,13 +267,6 @@ fn parse_number_expression(input: &str) -> IResult<&str, f32> {
                 Operator::Div => acc / number,
             }),
     ))
-    // let (_, valuess) = many1(alt((
-    //     take_while1(|c: char| c.is_ascii_digit() || c == '.'),
-    //     tag("pi"),
-    //     tag("*"),
-    //     tag("/"),
-    // ))).parse(input).unwrap();
-    // todo!();
 }
 
 fn match_shape<'a>(loaded_shapes: &'a Shapes, shape_name_string: &'a str) -> Option<&'a Shape> {
@@ -351,14 +305,6 @@ fn alphanumeric_special_1(input: &str) -> IResult<&str, &str> {
 }
 
 fn whitespace_and_comment(input: &str) -> IResult<&str, ()> {
-    // value(
-    //     (),
-    //     many0(alt((
-    //         value((), take_while(|c: char| c.is_whitespace() || c == ',')),
-    //         map(comment, |_| ()),
-    //     ))),
-    // )
-    // .parse(input)
     let (remainder, _) =
         value((), take_while(|c: char| c.is_whitespace() || c == ',')).parse(input)?;
     let (remainder, _) = comment(remainder)?;
@@ -408,9 +354,4 @@ fn shroud(input: &str) -> IResult<&str, Vec<Vec<(&str, Vec<&str>)>>> {
 
 fn comment(input: &str) -> IResult<&str, Option<&str>> {
     opt(preceded(tag("--"), terminated(take_until("\n"), tag("\n")))).parse(input)
-    // if peek(tag("--")).parse(input).is_ok() {
-    //     take_until(tag("\n"))
-    // } else {
-    //     IResult::Ok(input)
-    // }
 }
