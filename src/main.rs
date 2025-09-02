@@ -19,6 +19,7 @@ mod selection_type;
 mod shroud_import_text_default;
 mod shroud_layer_container;
 mod shroud_layer_interaction;
+mod size_from_verts;
 mod styles;
 
 pub const DEFAULT_SQUARE: [Pos2; 4] = [

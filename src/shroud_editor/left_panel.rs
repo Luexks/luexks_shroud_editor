@@ -1,6 +1,7 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui,
+    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba,
+    ScrollArea, Slider, TextBuffer, TextEdit, Ui,
     collapsing_header::CollapsingState,
     color_picker::{Alpha, color_edit_button_rgba},
     scroll_area::ScrollBarVisibility,
@@ -129,6 +130,10 @@ impl ShroudEditor {
         CollapsingState::load_with_default_open(ui.ctx(), "block".into(), true)
             .show_header(ui, |ui| ui.heading("Block Settings"))
             .body_unindented(|ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Visible:");
+                    ui.checkbox(&mut self.block_container.visible, "");
+                });
                 egui::Frame::new()
                     .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
                     .inner_margin(6.0)
@@ -142,7 +147,10 @@ impl ShroudEditor {
                             &self.loaded_shapes,
                             // &mut self.block_container.search_buf,
                             &mut self.shape_search_buf,
+                            &mut self.block_container.max_scale,
+                            self.block_container.block.scale.unwrap(),
                         );
+                        self.block_scale_settings(ui);
                         Grid::new("").show(ui, |ui| {
                             ui.label("fillColor=");
                             block_color_settings(
@@ -326,6 +334,29 @@ impl ShroudEditor {
                 });
             });
     }
+
+    fn block_scale_settings(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            ui.label("scale=");
+            let mut scale = self.block_container.block.scale.clone().unwrap();
+            let original_scale = scale;
+            ui.add(Slider::new(&mut scale, 1..=self.block_container.max_scale));
+            if original_scale != scale {
+                self.block_container.block.scale = Some(scale);
+                self.block_container.vertices = restructure_vertices(
+                    self.loaded_shapes
+                        .0
+                        .iter()
+                        .find(|shape| {
+                            shape.get_id().unwrap().to_string()
+                                == self.block_container.shape_id
+                        })
+                        .unwrap()
+                        .get_nth_scale_vertices(scale as usize - 1),
+                );
+            }
+        });
+    }
 }
 
 fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut String) {
@@ -360,6 +391,8 @@ fn block_shape_combo_box(
     vertices: &mut Vec<Pos2>,
     loaded_shapes: &Shapes,
     search_buf: &mut String,
+    max_scale: &mut u8,
+    scale: u8,
 ) {
     ui.horizontal(|ui| {
         ui.label("shape=");
@@ -392,8 +425,10 @@ fn block_shape_combo_box(
                                     selectable_shape_id,
                                 );
                                 if response.clicked() {
+                                    *max_scale = selectable_shape.get_scale_count() as u8;
+                                    let scale = u8::min(scale, *max_scale);
                                     *vertices = restructure_vertices(
-                                        selectable_shape.get_first_scale_vertices(),
+                                        selectable_shape.get_nth_scale_vertices(scale as usize - 1),
                                     );
                                     *shape = selectable_shape.get_id();
                                 }

@@ -21,6 +21,8 @@ pub struct BlockContainer {
     // pub input_color_2: Vec<u8>,
     // pub input_line_color: Vec<u8>,
     // pub search_buf: String,
+    pub visible: bool,
+    pub max_scale: u8,
 }
 
 impl Default for BlockContainer {
@@ -80,6 +82,8 @@ impl Default for BlockContainer {
             input_color_2,
             input_line_color,
             // search_buf: String::new(),
+            visible: true,
+            max_scale: 10,
         }
     }
 }

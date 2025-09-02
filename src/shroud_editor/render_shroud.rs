@@ -1,24 +1,50 @@
 use egui::{Pos2, Rect, Ui};
 use itertools::Itertools;
+use luexks_reassembly::{
+    blocks::shroud_layer::ShroudLayer, utility::display_oriented_math::do3d_float_from,
+};
 
 use crate::{
     render_polygon::{render_polygon_fill, render_polygon_outline},
     selection_type::SelectionType,
     shroud_editor::ShroudEditor,
+    shroud_layer_container::ShroudLayerContainer,
+    size_from_verts::{do2d_size_from_verts, do2d_square_size_from_verts},
 };
 
 impl ShroudEditor {
     #[rustfmt::skip]
     pub fn render_shroud(&self, mouse_pos: Option<Pos2>, ui: &mut Ui, rect: Rect) {
-        if !self.shroud.is_empty() {
-            let render_pipeline = self.shroud.iter()
-                .enumerate()
-                .sorted_by(|(_, shroud_layer_container_1), (_, shroud_layer_container_2)| {
-                    let z1 = shroud_layer_container_1.shroud_layer.offset.clone().unwrap().z.to_f32();
-                    let z2 = shroud_layer_container_2.shroud_layer.offset.clone().unwrap().z.to_f32();
-                    z1.partial_cmp(&z2).unwrap()
-                })
-                .collect::<Vec<_>>();
+        let block_as_shroud_layer_container = ShroudLayerContainer {
+            shroud_layer: if self.block_container.shape_id == "SQUARE" {
+                ShroudLayer {
+                    size: Some(do2d_square_size_from_verts(&self.block_container.vertices)),
+                    offset: Some(do3d_float_from(-5.0, 0.0, 0.0)),
+                    ..Default::default()
+                }
+            } else {
+                ShroudLayer {
+                    size: Some(do2d_size_from_verts(&self.block_container.vertices)),
+                    ..Default::default()
+                }
+            },
+            shape_id: self.block_container.shape_id.clone(),
+            vertices: self.block_container.vertices.clone(),
+            ..Default::default()
+        };
+        let render_pipeline = self.shroud.clone();
+        let render_pipeline = if self.block_container.visible {
+            render_pipeline.into_iter().chain(std::iter::once(block_as_shroud_layer_container)).collect()
+        } else { render_pipeline };
+        let render_pipeline = render_pipeline.iter()
+            .enumerate()
+            .sorted_by(|(_, shroud_layer_container_1), (_, shroud_layer_container_2)| {
+                let z1 = shroud_layer_container_1.shroud_layer.offset.clone().unwrap().z.to_f32();
+                let z2 = shroud_layer_container_2.shroud_layer.offset.clone().unwrap().z.to_f32();
+                z1.partial_cmp(&z2).unwrap()
+            })
+            .collect::<Vec<_>>();
+        if !render_pipeline.is_empty() {
             let mut current_z = render_pipeline.first().unwrap().1.shroud_layer.offset.clone().unwrap().z.to_f32();
             let mut next_outline_render_start_index = usize::default();
             render_pipeline.iter()
