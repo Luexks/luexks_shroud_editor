@@ -3,6 +3,8 @@ use std::time::Duration;
 
 use crate::block_container::BlockContainer;
 use crate::key_tracker::KeyTracker;
+use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
+use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
 use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
 use crate::shroud_layer_container::ShroudLayerContainer;
@@ -37,8 +39,10 @@ pub struct ShroudEditor {
     shroud_clipboard: Vec<ShroudLayerContainer>,
     loaded_shapes_mirror_pairs: Vec<(usize, usize)>,
     shroud_import_text: String,
-    pub just_imported_from_paste_box_message_option: Option<ShroudParseResult>,
+    pub just_imported_shroud_from_paste_box_message_option: Option<ShroudParseResult>,
     shape_search_buf: String,
+    shapes_import_text: String,
+    just_imported_shapes_from_paste_box_message_option: Option<ShapesParseResult>,
 }
 
 impl Default for ShroudEditor {
@@ -71,8 +75,10 @@ impl Default for ShroudEditor {
             shroud_clipboard: Vec::new(),
             loaded_shapes_mirror_pairs,
             shroud_import_text: SHROUD_IMPORT_TEXT_DEFAULT.to_string(),
-            just_imported_from_paste_box_message_option: None,
+            just_imported_shroud_from_paste_box_message_option: None,
             shape_search_buf: String::new(),
+            shapes_import_text: SHAPES_IMPORT_TEXT_DEFAULT.to_string(),
+            just_imported_shapes_from_paste_box_message_option: None,
         }
     }
 }
@@ -103,7 +109,9 @@ mod draw_grid;
 mod hotkey_copy_and_paste;
 mod hotkey_shroud_layer_deletion;
 mod left_panel;
+mod parse_shapes_text;
 mod parse_shroud_text;
+mod parsing;
 mod position_conversion;
 mod render_shroud;
 mod shape_combo_box;

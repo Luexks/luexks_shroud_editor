@@ -24,7 +24,9 @@ use std::f32::{self, consts::PI};
 use thiserror::Error;
 
 use crate::{
-    restructure_vertices::restructure_vertices, shroud_layer_container::ShroudLayerContainer,
+    restructure_vertices::restructure_vertices,
+    shroud_editor::parsing::{parse_number_expression, variable, ws},
+    shroud_layer_container::ShroudLayerContainer,
 };
 
 use nom::character::char;
@@ -220,55 +222,6 @@ pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Ve
     }).collect()
 }
 
-fn parse_number(input: &str) -> IResult<&str, f32> {
-    alt((
-        map(
-            recognize((
-                opt(complete(char::<&str, Error<&str>>('-'))),
-                digit1,
-                opt(complete(char('.'))),
-                opt(complete(digit1)),
-            )),
-            |s| s.parse::<f32>().unwrap(),
-        ),
-        map(tag_no_case("pi"), |_| PI),
-    ))
-    .parse(input)
-}
-
-#[derive(Clone, Copy, Debug)]
-enum Operator {
-    Div,
-    Mul,
-}
-
-fn parse_number_expression(input: &str) -> IResult<&str, f32> {
-    let (remainder, first_number) = parse_number(input)?;
-    let (remainder, operator_number_pairs) = many0(pair(
-        alt((
-            value(
-                Operator::Mul,
-                complete(pair(opt(complete(whitespace_and_comment)), char('*'))),
-            ),
-            value(
-                Operator::Div,
-                complete(pair(opt(complete(whitespace_and_comment)), char('/'))),
-            ),
-        )),
-        parse_number,
-    ))
-    .parse(remainder)?;
-    Ok((
-        remainder,
-        operator_number_pairs
-            .iter()
-            .fold(first_number, |acc, (operator, number)| match operator {
-                Operator::Mul => acc * number,
-                Operator::Div => acc / number,
-            }),
-    ))
-}
-
 fn match_shape<'a>(loaded_shapes: &'a Shapes, shape_name_string: &'a str) -> Option<&'a Shape> {
     loaded_shapes
         .0
@@ -276,82 +229,15 @@ fn match_shape<'a>(loaded_shapes: &'a Shapes, shape_name_string: &'a str) -> Opt
         .find(|loaded_shapes| loaded_shapes.get_id().unwrap().to_string() == shape_name_string)
 }
 
-fn variable_name(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| c.is_alphanumeric() || c == '_')(input)
-}
-
-fn variable_value(input: &str) -> IResult<&str, Vec<&str>> {
-    if peek(char::<&str, Error<_>>('{')).parse(input).is_ok() {
-        delimited(
-            tag("{"),
-            many1(delimited(
-                whitespace_and_comment,
-                alphanumeric_special_1,
-                whitespace_and_comment,
-            )),
-            tag("}"),
-        )
-        .parse(input)
-    } else {
-        many1(alphanumeric_special_1).parse(input)
-    }
-}
-
-fn alphanumeric_special_1(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| {
-        c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '/' || c == '*'
-    })
-    .parse(input)
-}
-
-fn whitespace_and_comment(input: &str) -> IResult<&str, ()> {
-    let (remainder, _) =
-        value((), take_while(|c: char| c.is_whitespace() || c == ',')).parse(input)?;
-    let (remainder, _) = comment(remainder)?;
-    let (remainder, _) =
-        value((), take_while(|c: char| c.is_whitespace() || c == ',')).parse(remainder)?;
-    Ok((remainder, ()))
-}
-
-fn whitespace_and_equals(input: &str) -> IResult<&str, ()> {
-    value(
-        (),
-        take_while(|c: char| c.is_whitespace() || c == ',' || c == '='),
-    )
-    .parse(input)
-}
-
-fn variable(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
-    separated_pair(variable_name, whitespace_and_equals, variable_value).parse(input)
-}
-
 fn shroud_layer_container(input: &str) -> IResult<&str, Vec<(&str, Vec<&str>)>> {
-    delimited(
-        tag("{"),
-        many0(delimited(
-            whitespace_and_comment,
-            variable,
-            whitespace_and_comment,
-        )),
-        tag("}"),
-    )
-    .parse(input)
+    delimited(tag("{"), many0(delimited(ws, variable, ws)), tag("}")).parse(input)
 }
 
 fn shroud(input: &str) -> IResult<&str, Vec<Vec<(&str, Vec<&str>)>>> {
-    let (remainder, _) = whitespace_and_comment(input)?;
+    let (remainder, _) = ws(input)?;
     let (remainder, _) = tag("shroud")(remainder)?;
-    let (remainder, _) = whitespace_and_equals(remainder)?;
+    let (remainder, _) = ws(remainder)?;
     let (remainder, _) = tag("{")(remainder)?;
-    let (remainder, _) = whitespace_and_comment(remainder)?;
-    many0(delimited(
-        whitespace_and_comment,
-        shroud_layer_container,
-        whitespace_and_comment,
-    ))
-    .parse(remainder)
-}
-
-fn comment(input: &str) -> IResult<&str, Option<&str>> {
-    opt(preceded(tag("--"), terminated(take_until("\n"), tag("\n")))).parse(input)
+    let (remainder, _) = ws(remainder)?;
+    many0(delimited(ws, shroud_layer_container, ws)).parse(remainder)
 }

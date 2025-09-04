@@ -1,7 +1,7 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba,
-    ScrollArea, Slider, TextBuffer, TextEdit, Ui,
+    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea,
+    Slider, TextBuffer, TextEdit, Ui,
     collapsing_header::CollapsingState,
     color_picker::{Alpha, color_edit_button_rgba},
     scroll_area::ScrollBarVisibility,
@@ -17,12 +17,14 @@ use luexks_reassembly::{
         display_oriented_math::{do2d_float_from, do3d_float_from},
     },
 };
+use parse_vanilla_shapes::VANILLA_SHAPE_COUNT;
 
 use crate::{
     color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option},
     restructure_vertices::restructure_vertices,
     shroud_editor::{
         FILL_COLOR_GRADIENT_TIME, ShroudEditor,
+        parse_shapes_text::{ShapesParseResult, parse_shapes_text},
         parse_shroud_text::{ShroudParseResult, parse_shroud_text},
     },
     shroud_layer_container::ShroudLayerContainer,
@@ -45,6 +47,7 @@ impl ShroudEditor {
                             .body_unindented(|ui| {
                                 self.export_shroud_to_clipboard_button(ui);
                                 self.import_shroud_from_paste_box(ui);
+                                self.import_shapes_from_paste_box(ui);
                             });
                         CollapsingState::load_with_default_open(ctx, "editor".into(), true)
                             .show_header(ui, |ui| ui.heading("Editor Settings"))
@@ -302,19 +305,20 @@ impl ShroudEditor {
                         match parse_shroud_text(&self.shroud_import_text, &self.loaded_shapes) {
                             Ok(imported_shroud) => {
                                 self.shroud = imported_shroud;
-                                self.just_imported_from_paste_box_message_option =
+                                self.just_imported_shroud_from_paste_box_message_option =
                                     Some(ShroudParseResult::Success);
                             }
                             Err(err) => {
-                                self.just_imported_from_paste_box_message_option = Some(err);
+                                self.just_imported_shroud_from_paste_box_message_option = Some(err);
                             }
                         }
                     }
-                    if let Some(message) = &self.just_imported_from_paste_box_message_option {
+                    if let Some(message) = &self.just_imported_shroud_from_paste_box_message_option
+                    {
                         ui.label(message.to_string());
                     }
                     if !response.contains_pointer() {
-                        self.just_imported_from_paste_box_message_option = None;
+                        self.just_imported_shroud_from_paste_box_message_option = None;
                     }
                 });
                 ScrollArea::horizontal().show(ui, |ui| {
@@ -348,14 +352,66 @@ impl ShroudEditor {
                         .0
                         .iter()
                         .find(|shape| {
-                            shape.get_id().unwrap().to_string()
-                                == self.block_container.shape_id
+                            shape.get_id().unwrap().to_string() == self.block_container.shape_id
                         })
                         .unwrap()
                         .get_nth_scale_vertices(scale as usize - 1),
                 );
             }
         });
+    }
+
+    fn import_shapes_from_paste_box(&mut self, ui: &mut Ui) {
+        CollapsingState::load_with_default_open(ui.ctx(), "import_shape".into(), false)
+            .show_header(ui, |ui| {
+                ui.strong("Import Shapes from Paste Box");
+            })
+            .body(|ui| {
+                ui.label("Keep all custom shapes in paste box.");
+                ui.horizontal(|ui| {
+                    let response = ui.button("Import");
+                    if response.clicked() {
+                        match parse_shapes_text(&self.shapes_import_text) {
+                            Ok(imported_shapes) => {
+                                self.loaded_shapes = Shapes(
+                                    self.loaded_shapes.0[0..VANILLA_SHAPE_COUNT]
+                                        .into_iter()
+                                        .cloned()
+                                        .chain(imported_shapes.0)
+                                        .collect(),
+                                );
+                                self.just_imported_shapes_from_paste_box_message_option =
+                                    Some(ShapesParseResult::Success);
+                            }
+                            Err(err) => {
+                                self.just_imported_shapes_from_paste_box_message_option = Some(err);
+                            }
+                        }
+                    }
+                    if let Some(message) = &self.just_imported_shapes_from_paste_box_message_option
+                    {
+                        ui.label(message.to_string());
+                    }
+                    if !response.contains_pointer() {
+                        self.just_imported_shapes_from_paste_box_message_option = None;
+                    }
+                });
+                ScrollArea::horizontal().show(ui, |ui| {
+                    let theme = CodeTheme::light(12.0);
+                    let mut layouter = |ui: &Ui, buf: &dyn TextBuffer, wrap_width: f32| {
+                        let mut layout_job =
+                            highlight(ui.ctx(), ui.style(), &theme, buf.as_str(), "toml");
+                        layout_job.wrap.max_width = wrap_width;
+                        ui.fonts(|f| f.layout_job(layout_job))
+                    };
+                    ui.add(
+                        TextEdit::multiline(&mut self.shapes_import_text)
+                            .code_editor()
+                            .desired_width(f32::INFINITY)
+                            .layouter(&mut layouter),
+                    );
+                });
+            });
     }
 }
 

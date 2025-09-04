@@ -16,6 +16,7 @@ mod pos_in_polygon;
 mod render_polygon;
 mod restructure_vertices;
 mod selection_type;
+mod shapes_import_text_default;
 mod shroud_import_text_default;
 mod shroud_layer_container;
 mod shroud_layer_interaction;
