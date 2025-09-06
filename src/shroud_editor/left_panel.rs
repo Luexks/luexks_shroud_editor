@@ -373,6 +373,7 @@ impl ShroudEditor {
                     if response.clicked() {
                         match parse_shapes_text(&self.shapes_import_text) {
                             Ok(imported_shapes) => {
+                                // dbg!(&imported_shapes);
                                 self.loaded_shapes = Shapes(
                                     self.loaded_shapes.0[0..VANILLA_SHAPE_COUNT]
                                         .into_iter()

@@ -18,7 +18,7 @@ use nom::{
         take_until,
     },
     character::complete::digit1,
-    combinator::{complete, map, opt, peek, recognize, value},
+    combinator::{complete, map, opt, peek, recognize, rest, value},
     error::Error,
     multi::{many0, many1},
     sequence::{delimited, pair, preceded, separated_pair, terminated},
@@ -76,29 +76,36 @@ pub enum ShapesParseResult {
 
     #[error("Failed to parse taper: `{0}` :(")]
     Taper(String),
+
+    #[error("{0}")]
+    Debug(String),
 }
 
 pub fn parse_shapes_text(input: &str) -> Result<Shapes, ShapesParseResult> {
     // shapes(input).unwrap_or_else(Err(ShapesParseResult::Shapes))
     match shapes(input) {
         Ok((_, shapes)) => Ok(shapes),
-        Err(_) => Err(ShapesParseResult::Shapes),
+        Err(err) => Err(ShapesParseResult::Debug(err.to_string())),
     }
 }
 
 fn shapes(input: &str) -> IResult<&str, Shapes> {
     let (remainder, _) = ws_around(tag("{")).parse(input)?;
-    let (_, shapes) = many0(ws_around(shape)).parse(remainder)?;
+    // dbg!(remainder);
+    let (remainder, shapes) = many1(ws_around(shape)).parse(remainder)?;
+    // dbg!(remainder);
     Ok((remainder, Shapes(shapes)))
 }
 
 fn shape(input: &str) -> IResult<&str, Shape> {
+    // dbg!(&input);
     let (remainder, (id, scales, _)) = brackets_around((
         ws_around(digit1),
         brackets_around(many1(ws_around(scale))),
         ws,
     ))
     .parse(input)?;
+    // dbg!(&scales);
     Ok((
         remainder,
         Shape::Standard {
@@ -109,7 +116,31 @@ fn shape(input: &str) -> IResult<&str, Shape> {
 }
 
 fn scale(input: &str) -> IResult<&str, Scale> {
-    let (remainder, verts) = brackets_around(preceded(take_until("verts="), verts)).parse(input)?;
+    // dbg!(input);
+    let (remainder, verts) = brackets_around(ws_around(delimited(
+        take_until("verts="),
+        preceded(tag("verts="), verts),
+        ws_around((
+            take_until("ports"),
+            preceded(tag("ports"), whitespace_and_equals),
+            complete((
+                char('{'),
+                many0((char('{'), take_until("}"), char('}'))),
+                char('}'),
+            )),
+        )),
+    )))
+    .parse(input)?;
+    // dbg!(remainder, &verts);
+    // dbg!(remainder);
+    // let (remainder, _) = ws_around(complete(opt((
+    //     tag("ports"),
+    //     whitespace_and_equals,
+    //     brackets_around(rest),
+    // ))))
+    // let (remainder, _) = rest
+    // .parse(remainder)?;
+    // dbg!(remainder);
     Ok((
         remainder,
         Scale {
@@ -120,16 +151,20 @@ fn scale(input: &str) -> IResult<&str, Scale> {
 }
 
 fn verts(input: &str) -> IResult<&str, Vertices> {
-    let (remainder, verts) = many1(ws_around(vert)).parse(input)?;
+    // dbg!(input);
+    let (remainder, verts) = brackets_around(many1(ws_around(vert))).parse(input)?;
+    // dbg!(remainder, &verts);
     Ok((remainder, Vertices(verts)))
 }
 
 fn vert(input: &str) -> IResult<&str, Vertex> {
+    // dbg!(input);
     let (remainder, (x, y)) = brackets_around(ws_around(separated_pair(
         parse_number_expression,
         ws,
         parse_number_expression,
     )))
     .parse(input)?;
+    // dbg!(remainder);
     Ok((remainder, Vertex(do2d_float_from(x, y))))
 }
