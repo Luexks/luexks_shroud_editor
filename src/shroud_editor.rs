@@ -41,6 +41,7 @@ pub struct ShroudEditor {
     shroud_import_text: String,
     pub just_imported_shroud_from_paste_box_message_option: Option<ShroudParseResult>,
     shape_search_buf: String,
+    shape_search_show_vanilla: bool,
     shapes_import_text: String,
     just_imported_shapes_from_paste_box_message_option: Option<ShapesParseResult>,
 }
@@ -77,6 +78,7 @@ impl Default for ShroudEditor {
             shroud_import_text: SHROUD_IMPORT_TEXT_DEFAULT.to_string(),
             just_imported_shroud_from_paste_box_message_option: None,
             shape_search_buf: String::new(),
+            shape_search_show_vanilla: true,
             shapes_import_text: SHAPES_IMPORT_TEXT_DEFAULT.to_string(),
             just_imported_shapes_from_paste_box_message_option: None,
         }

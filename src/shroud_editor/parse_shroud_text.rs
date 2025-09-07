@@ -6,21 +6,7 @@ use luexks_reassembly::{
         display_oriented_math::{do2d_float_from, do3d_float_from},
     },
 };
-use nom::{
-    IResult, Parser,
-    branch::alt,
-    bytes::{
-        complete::{tag, take_while, take_while1},
-        streaming::tag_no_case,
-        take_until,
-    },
-    character::complete::digit1,
-    combinator::{complete, map, opt, peek, recognize, value},
-    error::Error,
-    multi::{many0, many1},
-    sequence::{delimited, pair, preceded, separated_pair, terminated},
-};
-use std::f32::{self, consts::PI};
+use nom::{IResult, Parser, bytes::complete::tag, multi::many0, sequence::delimited};
 use thiserror::Error;
 
 use crate::{
@@ -28,8 +14,6 @@ use crate::{
     shroud_editor::parsing::{parse_number_expression, variable, whitespace_and_equals, ws},
     shroud_layer_container::ShroudLayerContainer,
 };
-
-use nom::character::char;
 
 #[derive(Error, Debug)]
 pub enum ShroudParseResult {

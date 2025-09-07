@@ -1,5 +1,5 @@
 use nom::{
-    Err, IResult, Parser,
+    IResult, Parser,
     branch::alt,
     bytes::{
         complete::{tag, take_while, take_while1},
@@ -8,16 +8,11 @@ use nom::{
     },
     character::complete::digit1,
     combinator::{complete, map, opt, peek, recognize, value},
-    error::Error,
+    error::{Error, ParseError},
     multi::{many0, many1},
     sequence::{delimited, pair, preceded, separated_pair, terminated},
 };
 use std::f32::{self, consts::PI};
-use thiserror::Error;
-
-use crate::{
-    restructure_vertices::restructure_vertices, shroud_layer_container::ShroudLayerContainer,
-};
 
 use nom::character::char;
 
@@ -88,7 +83,7 @@ pub fn alphanumeric_special_1(input: &str) -> IResult<&str, &str> {
     .parse(input)
 }
 
-pub fn ws(input: &str) -> IResult<&str, ()> {
+pub fn ws<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, (), E> {
     let (remainder, _) =
         value((), take_while(|c: char| c.is_whitespace() || c == ',')).parse(input)?;
     let (remainder, _) = comment(remainder)?;
@@ -97,7 +92,9 @@ pub fn ws(input: &str) -> IResult<&str, ()> {
     Ok((remainder, ()))
 }
 
-pub fn whitespace_and_equals(input: &str) -> IResult<&str, ()> {
+pub fn whitespace_and_equals<'a, E: ParseError<&'a str>>(
+    input: &'a str,
+) -> IResult<&'a str, (), E> {
     value(
         (),
         take_while(|c: char| c.is_whitespace() || c == ',' || c == '='),
@@ -109,26 +106,22 @@ pub fn variable(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
     separated_pair(variable_name, whitespace_and_equals, variable_value).parse(input)
 }
 
-pub fn comment(input: &str) -> IResult<&str, Option<&str>> {
+pub fn comment<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Option<&'a str>, E> {
     opt(preceded(tag("--"), terminated(take_until("\n"), tag("\n")))).parse(input)
 }
 
-// pub fn ws<'a, O, F>(inner: F) -> impl FnMut(&'a str) -> IResult<&'a str, O>
-// pub fn ws<'a, O, F>(inner: F) -> F
-pub fn ws_around<'a, O, F>(
-    inner: F,
-) -> impl Parser<&'a str, Output = O, Error = nom::error::Error<&'a str>>
+pub fn ws_around<'a, O, F, E>(inner: F) -> impl Parser<&'a str, Output = O, Error = E>
 where
-    F: Parser<&'a str, Output = O, Error = nom::error::Error<&'a str>>, // F: FnMut(&'a str) -> IResult<&'a str, O>,
+    F: Parser<&'a str, Output = O, Error = E>,
+    E: nom::error::ParseError<&'a str>,
 {
     delimited(ws, inner, ws)
 }
 
-pub fn brackets_around<'a, O, F>(
-    inner: F,
-) -> impl Parser<&'a str, Output = O, Error = nom::error::Error<&'a str>>
+pub fn brackets_around<'a, O, F, E>(inner: F) -> impl Parser<&'a str, Output = O, Error = E>
 where
-    F: Parser<&'a str, Output = O, Error = nom::error::Error<&'a str>>,
+    F: Parser<&'a str, Output = O, Error = E>,
+    E: nom::error::ParseError<&'a str>,
 {
     delimited(char('{'), inner, char('}'))
 }

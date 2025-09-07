@@ -39,6 +39,7 @@ impl ShroudEditor {
                         &mut self.shroud,
                         &self.loaded_shapes,
                         &self.loaded_shapes_mirror_pairs,
+                        &mut self.shape_search_show_vanilla,
                         &mut self.shape_search_buf,
                     );
                 }
@@ -61,6 +62,7 @@ fn shroud_layer_settings(
     shroud: &mut Vec<ShroudLayerContainer>,
     loaded_shapes: &Shapes,
     loaded_shapes_mirror_pairs: &[(usize, usize)],
+    show_vanilla: &mut bool,
     shape_search_buf: &mut String,
 ) {
     ui.vertical(|ui| {
@@ -102,6 +104,7 @@ fn shroud_layer_settings(
                             index,
                             loaded_shapes,
                             loaded_shapes_mirror_pairs,
+                            show_vanilla,
                             shape_search_buf,
                         );
 

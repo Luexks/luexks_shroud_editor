@@ -149,6 +149,7 @@ impl ShroudEditor {
                             &mut self.block_container.vertices,
                             &self.loaded_shapes,
                             // &mut self.block_container.search_buf,
+                            &mut self.shape_search_show_vanilla,
                             &mut self.shape_search_buf,
                             &mut self.block_container.max_scale,
                             self.block_container.block.scale.unwrap(),
@@ -376,7 +377,7 @@ impl ShroudEditor {
                                 // dbg!(&imported_shapes);
                                 self.loaded_shapes = Shapes(
                                     self.loaded_shapes.0[0..VANILLA_SHAPE_COUNT]
-                                        .into_iter()
+                                        .iter()
                                         .cloned()
                                         .chain(imported_shapes.0)
                                         .collect(),
@@ -447,6 +448,7 @@ fn block_shape_combo_box(
     shape_id: &mut String,
     vertices: &mut Vec<Pos2>,
     loaded_shapes: &Shapes,
+    show_vanilla: &mut bool,
     search_buf: &mut String,
     max_scale: &mut u8,
     scale: u8,
@@ -462,13 +464,21 @@ fn block_shape_combo_box(
                         .desired_width(120.0)
                         .hint_text("Search (:"),
                 );
+                ui.horizontal(|ui| {
+                    ui.label("Show Vanilla:");
+                    ui.checkbox(show_vanilla, "");
+                });
                 ScrollArea::vertical()
                     .min_scrolled_height(500.0)
                     .max_height(500.0)
                     .min_scrolled_width(250.0)
                     .max_width(250.0)
                     .show(ui, |ui| {
-                        for selectable_shape in &loaded_shapes.0 {
+                        for selectable_shape in if *show_vanilla {
+                            &loaded_shapes.0
+                        } else {
+                            &loaded_shapes.0[VANILLA_SHAPE_COUNT..]
+                        } {
                             let selectable_shape_id =
                                 selectable_shape.get_id().unwrap().to_string();
                             if search_buf.is_empty()

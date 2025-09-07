@@ -1,5 +1,6 @@
 use egui::{Popup, PopupCloseBehavior, ScrollArea, TextEdit, Ui};
 use luexks_reassembly::shapes::shapes::Shapes;
+use parse_vanilla_shapes::VANILLA_SHAPE_COUNT;
 
 use crate::{
     restructure_vertices::restructure_vertices, shroud_editor::add_mirror::get_mirrored_shape_data,
@@ -12,6 +13,7 @@ pub fn shroud_layer_shape_combo_box(
     index: usize,
     loaded_shapes: &Shapes,
     loaded_shapes_mirror_pairs: &[(usize, usize)],
+    show_vanilla: &mut bool,
     search_buf: &mut String,
 ) {
     ui.horizontal(|ui| {
@@ -25,13 +27,21 @@ pub fn shroud_layer_shape_combo_box(
                         .desired_width(120.0)
                         .hint_text("Search (:"),
                 );
+                ui.horizontal(|ui| {
+                    ui.label("Show Vanilla:");
+                    ui.checkbox(show_vanilla, "");
+                });
                 ScrollArea::vertical()
                     .min_scrolled_height(500.0)
                     .max_height(500.0)
                     .min_scrolled_width(250.0)
                     .max_width(250.0)
                     .show(ui, |ui| {
-                        for selectable_shape in &loaded_shapes.0 {
+                        for selectable_shape in if *show_vanilla {
+                            &loaded_shapes.0
+                        } else {
+                            &loaded_shapes.0[VANILLA_SHAPE_COUNT..]
+                        } {
                             let selectable_shape_id =
                                 selectable_shape.get_id().unwrap().to_string();
                             if search_buf.is_empty()
