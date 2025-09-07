@@ -258,13 +258,12 @@ impl ShroudEditor {
                                     } else {
                                         shroud_layer.angle.clone()
                                     },
-                                    taper: if shroud_layer_container.shape_id
-                                        != "SQUARE".to_string()
-                                        && shroud_layer.taper.clone().unwrap() == 1.0
+                                    taper: if shroud_layer_container.shape_id != "SQUARE"
+                                        && shroud_layer.taper.unwrap() == 1.0
                                     {
                                         None
                                     } else {
-                                        shroud_layer.taper.clone()
+                                        shroud_layer.taper
                                     },
                                     ..shroud_layer
                                 }
@@ -343,7 +342,7 @@ impl ShroudEditor {
     fn block_scale_settings(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             ui.label("scale=");
-            let mut scale = self.block_container.block.scale.clone().unwrap();
+            let mut scale = self.block_container.block.scale.unwrap();
             let original_scale = scale;
             ui.add(Slider::new(&mut scale, 1..=self.block_container.max_scale));
             if original_scale != scale {
@@ -368,7 +367,8 @@ impl ShroudEditor {
                 ui.strong("Import Shapes from Paste Box");
             })
             .body(|ui| {
-                ui.label("Keep all custom shapes in paste box.");
+                ui.label("READ: Keep all custom shapes in paste box.");
+                ui.label("READ: If a custom shape used by a shroud layer is not reimported, nothing significant will happen, but it will just be weird.");
                 ui.horizontal(|ui| {
                     let response = ui.button("Import");
                     if response.clicked() {
@@ -426,10 +426,10 @@ fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut String)
     );
     ui.horizontal(|ui| {
         let rgba_option = str_to_rgba_option(input_color);
-        if let Some(rgba) = rgba_option {
-            if response.changed() {
-                *color = rgba;
-            }
+        if let Some(rgba) = rgba_option
+            && response.changed()
+        {
+            *color = rgba;
         }
         let original_color = *color;
         color_edit_button_rgba(ui, color, Alpha::OnlyBlend);
