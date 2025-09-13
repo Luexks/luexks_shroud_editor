@@ -46,6 +46,25 @@ impl ShroudLayerContainer {
         // println!("{}", shape_id);
         // println!("{}", self.shroud_layer.shape.clone().unwrap().get_name());
         let verts = self.vertices.clone();
+        let verts = match shape_id {
+            "CANNON" => {
+                vec![
+                    verts[6], // pos2(verts[6].x + 0.1, verts[6].y),
+                    verts[2], verts[3], verts[7], // pos2(verts[7].x + 0.1, verts[7].y),
+                    verts[4], verts[5], verts[0], verts[1],
+                ]
+            }
+            "SENSOR" => {
+                vec![
+                    verts[4],
+                    verts[2],
+                    verts[3],
+                    verts[0],
+                    verts[1],
+                ]
+            }
+            _ => verts,
+        };
         let avg_vert_pos = match shape_id {
             "SQUARE" => pos2(-5.0, 0.0),
             "COMMAND" => pos2(0.0, 0.0),

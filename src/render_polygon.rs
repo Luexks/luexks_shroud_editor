@@ -114,13 +114,25 @@ pub fn render_polygon_fill(
         .map(|vertex| shroud_editor.world_pos_to_screen_pos(*vertex, rect))
         .collect();
 
-    (0..vertices.len())
+    println!("Begin");
+    (0..vertices.len() - 2)
         .map(|_| vertices[0])
         .zip(vertices.iter().cycle().skip(1))
         .zip(vertices.iter().cycle().skip(2))
         .for_each(|((vertex_a, vertex_b), vertex_c)| {
-            let points = vec![vertex_a, *vertex_b, *vertex_c];
-            painter.add(Shape::convex_polygon(points, fill_color, Stroke::NONE));
+            let area = ((vertex_a.x * (vertex_b.y - vertex_c.y)
+                + vertex_b.x * (vertex_c.y - vertex_a.y)
+                + vertex_c.x * (vertex_a.y - vertex_b.y))
+                / 2.0)
+                .abs();
+            println!("{}", area);
+            // if area != 0.0 {
+            if area > 0.1 {
+                let points = vec![vertex_a, *vertex_b, *vertex_c];
+                painter.add(Shape::convex_polygon(points, fill_color, Stroke::NONE));
+            } else {
+                println!("Culled");
+            }
         });
     (0..vertices.len())
         .map(|_| vertices[0])
