@@ -54,14 +54,13 @@ impl ShroudLayerContainer {
                     verts[4], verts[5], verts[0], verts[1],
                 ]
             }
-            "SENSOR" => {
+            "CANNON2" => {
                 vec![
-                    verts[4],
-                    verts[2],
-                    verts[3],
-                    verts[0],
-                    verts[1],
+                    verts[0], verts[1], verts[6], verts[4], verts[5], verts[7], verts[2], verts[3],
                 ]
+            }
+            "SENSOR" => {
+                vec![verts[4], verts[2], verts[3], verts[0], verts[1]]
             }
             _ => verts,
         };

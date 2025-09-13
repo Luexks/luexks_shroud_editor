@@ -62,6 +62,7 @@ impl ShroudEditor {
                             offset.clone(),
                             shroud_layer_container.shroud_layer.color_1.clone().unwrap(),
                             shroud_layer_container.shroud_layer.color_2.clone().unwrap(),
+                            &shroud_layer_container.shape_id,
                         );
                     }
 
@@ -109,6 +110,7 @@ impl ShroudEditor {
                             offset.clone(),
                             shroud_layer_container.shroud_layer.color_1.clone().unwrap(),
                             shroud_layer_container.shroud_layer.color_2.clone().unwrap(),
+                            &shroud_layer_container.shape_id,
                         );
                     }
                     current_z = offset.z.to_f32();

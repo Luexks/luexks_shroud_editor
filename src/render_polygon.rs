@@ -97,6 +97,7 @@ pub fn render_polygon_fill(
     offset: DisplayOriented3D,
     color_1: ShroudLayerColor,
     color_2: ShroudLayerColor,
+    shape_id: &str,
 ) {
     let color_1 = shroud_editor.block_container.get_shroud_color(color_1);
     let color_2 = shroud_editor.block_container.get_shroud_color(color_2);
@@ -114,32 +115,77 @@ pub fn render_polygon_fill(
         .map(|vertex| shroud_editor.world_pos_to_screen_pos(*vertex, rect))
         .collect();
 
-    println!("Begin");
-    (0..vertices.len() - 2)
-        .map(|_| vertices[0])
-        .zip(vertices.iter().cycle().skip(1))
-        .zip(vertices.iter().cycle().skip(2))
-        .for_each(|((vertex_a, vertex_b), vertex_c)| {
-            let area = ((vertex_a.x * (vertex_b.y - vertex_c.y)
-                + vertex_b.x * (vertex_c.y - vertex_a.y)
-                + vertex_c.x * (vertex_a.y - vertex_b.y))
-                / 2.0)
-                .abs();
-            println!("{}", area);
-            // if area != 0.0 {
-            if area > 0.1 {
-                let points = vec![vertex_a, *vertex_b, *vertex_c];
-                painter.add(Shape::convex_polygon(points, fill_color, Stroke::NONE));
-            } else {
-                println!("Culled");
-            }
-        });
-    (0..vertices.len())
-        .map(|_| vertices[0])
-        .zip(vertices[1..vertices.len() - 1].iter())
-        .for_each(|(vertex_a, vertex_b)| {
-            painter.line_segment([vertex_a, *vertex_b], fill_stroke);
-        });
+    match shape_id {
+        "CANNON2" => {
+            (0..=2)
+                .map(|_| vertices[0])
+                .zip(vertices.iter().cycle().skip(1))
+                .zip(vertices.iter().cycle().skip(2))
+                .for_each(|((vertex_a, vertex_b), vertex_c)| {
+                    let area = ((vertex_a.x * (vertex_b.y - vertex_c.y)
+                        + vertex_b.x * (vertex_c.y - vertex_a.y)
+                        + vertex_c.x * (vertex_a.y - vertex_b.y))
+                        / 2.0)
+                        .abs();
+                    if area > 0.1 {
+                        let points = vec![vertex_a, *vertex_b, *vertex_c];
+                        painter.add(Shape::convex_polygon(points, fill_color, Stroke::NONE));
+                    }
+                });
+            (0..=2)
+                .map(|_| vertices[4])
+                .zip(vertices.iter().cycle().skip(5))
+                .zip(vertices.iter().cycle().skip(6))
+                .for_each(|((vertex_a, vertex_b), vertex_c)| {
+                    let area = ((vertex_a.x * (vertex_b.y - vertex_c.y)
+                        + vertex_b.x * (vertex_c.y - vertex_a.y)
+                        + vertex_c.x * (vertex_a.y - vertex_b.y))
+                        / 2.0)
+                        .abs();
+                    if area > 0.1 {
+                        let points = vec![vertex_a, *vertex_b, *vertex_c];
+                        painter.add(Shape::convex_polygon(points, fill_color, Stroke::NONE));
+                    }
+                });
+            (0..4)
+                .map(|_| vertices[0])
+                .zip(vertices[1..vertices.len() - 1].iter())
+                .for_each(|(vertex_a, vertex_b)| {
+                    painter.line_segment([vertex_a, *vertex_b], fill_stroke);
+                });
+            (0..4)
+                .map(|_| vertices[4])
+                .zip(vertices.iter().cycle().skip(5))
+                .for_each(|(vertex_a, vertex_b)| {
+                    painter.line_segment([vertex_a, *vertex_b], fill_stroke);
+                });
+            // painter.circle(vertices[0], 5.0, Color32::RED, Stroke::new(5.0, Color32::BLUE));
+            // painter.circle(vertices[4], 5.0, Color32::RED, Stroke::new(5.0, Color32::BLUE));
+        },
+        _ => {
+            (0..vertices.len() - 2)
+                .map(|_| vertices[0])
+                .zip(vertices.iter().cycle().skip(1))
+                .zip(vertices.iter().cycle().skip(2))
+                .for_each(|((vertex_a, vertex_b), vertex_c)| {
+                    let area = ((vertex_a.x * (vertex_b.y - vertex_c.y)
+                        + vertex_b.x * (vertex_c.y - vertex_a.y)
+                        + vertex_c.x * (vertex_a.y - vertex_b.y))
+                        / 2.0)
+                        .abs();
+                    if area > 0.1 {
+                        let points = vec![vertex_a, *vertex_b, *vertex_c];
+                        painter.add(Shape::convex_polygon(points, fill_color, Stroke::NONE));
+                    }
+                });
+            (0..vertices.len())
+                .map(|_| vertices[0])
+                .zip(vertices[1..vertices.len() - 1].iter())
+                .for_each(|(vertex_a, vertex_b)| {
+                    painter.line_segment([vertex_a, *vertex_b], fill_stroke);
+                });
+        },
+    }
 }
 
 pub fn render_polygon_outline(
