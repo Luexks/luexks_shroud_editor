@@ -11,7 +11,7 @@ impl ShroudEditor {
             .for_each(|index| {
                 if *index < self.shroud.len() {
                     let offset = self.shroud[*index].shroud_layer.offset.clone().unwrap();
-                    let gizmo_center = pos2(offset.x.to_f32(), offset.y.to_f32());
+                    let gizmo_center = pos2(offset.x.to_f32(), -offset.y.to_f32());
                     let (gizmo_pos_top_left, gizmo_pos_bottom_right) = (
                         self.world_pos_to_screen_pos(gizmo_center, rect),
                         self.world_pos_to_screen_pos(gizmo_center, rect),
@@ -57,6 +57,7 @@ impl ShroudEditor {
         ui.scope_builder(UiBuilder::new().max_rect(gizmo_rect), |ui| {
             egui::Frame::new().fill(Color32::BLACK).show(ui, |ui| {
                 let angle = self.shroud[index]
+                    // let angle = 360.0 - self.shroud[index]
                     .shroud_layer
                     .angle
                     .clone()
@@ -72,6 +73,7 @@ impl ShroudEditor {
                 {
                     self.shroud[mirror_index].shroud_layer.angle =
                         Some(Angle::Degree(360.0 - angle));
+                    // Some(Angle::Degree(-(angle - 360.0)));
                 }
             });
         });
@@ -95,7 +97,7 @@ impl ShroudEditor {
         let is_square = self.shroud[index].shape_id == "SQUARE";
         const GIZMO_DISTANCE: f32 = 50.0;
         let height_gizmo_pos_top_left = if is_square {
-            let angle = self.shroud[index]
+            let angle = -self.shroud[index]
                 .shroud_layer
                 .angle
                 .clone()
@@ -114,7 +116,7 @@ impl ShroudEditor {
             )
         };
         let height_gizmo_pos_bottom_right = if is_square {
-            let angle = self.shroud[index]
+            let angle = -self.shroud[index]
                 .shroud_layer
                 .angle
                 .clone()
@@ -147,7 +149,7 @@ impl ShroudEditor {
         // let angle = angle;
         // let gizmo_distance = 20.0;
         let width_gizmo_pos_top_left = if is_square {
-            let angle = self.shroud[index]
+            let angle = -self.shroud[index]
                 .shroud_layer
                 .angle
                 .clone()
@@ -165,7 +167,7 @@ impl ShroudEditor {
             )
         };
         let width_gizmo_pos_bottom_right = if is_square {
-            let angle = self.shroud[index]
+            let angle = -self.shroud[index]
                 .shroud_layer
                 .angle
                 .clone()

@@ -217,7 +217,7 @@ impl ShroudEditor {
 
     fn add_shroud_layer(&mut self) {
         let new_shroud_offset =
-            do3d_float_from(self.world_mouse_pos.x, self.world_mouse_pos.y, 0.01);
+            do3d_float_from(self.world_mouse_pos.x, -self.world_mouse_pos.y, 0.01);
         self.shroud.push(ShroudLayerContainer {
             shroud_layer: ShroudLayer {
                 offset: Some(new_shroud_offset),

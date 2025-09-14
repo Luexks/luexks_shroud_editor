@@ -107,7 +107,7 @@ pub fn render_polygon_fill(
 
     let vertices: Vec<Pos2> = vertices
         .iter()
-        .map(|vertex| Pos2::new(vertex.x + offset.x.to_f32(), vertex.y + offset.y.to_f32()))
+        .map(|vertex| Pos2::new(vertex.x + offset.x.to_f32(), vertex.y - offset.y.to_f32()))
         .collect();
 
     let vertices: Vec<Pos2> = vertices
@@ -161,7 +161,7 @@ pub fn render_polygon_fill(
                 });
             // painter.circle(vertices[0], 5.0, Color32::RED, Stroke::new(5.0, Color32::BLUE));
             // painter.circle(vertices[4], 5.0, Color32::RED, Stroke::new(5.0, Color32::BLUE));
-        },
+        }
         _ => {
             (0..vertices.len() - 2)
                 .map(|_| vertices[0])
@@ -184,7 +184,7 @@ pub fn render_polygon_fill(
                 .for_each(|(vertex_a, vertex_b)| {
                     painter.line_segment([vertex_a, *vertex_b], fill_stroke);
                 });
-        },
+        }
     }
 }
 
@@ -204,7 +204,7 @@ pub fn render_polygon_outline(
 
     let vertices: Vec<Pos2> = vertices
         .iter()
-        .map(|vertex| Pos2::new(vertex.x + offset.x.to_f32(), vertex.y + offset.y.to_f32()))
+        .map(|vertex| Pos2::new(vertex.x + offset.x.to_f32(), vertex.y - offset.y.to_f32()))
         .collect();
 
     let vertices: Vec<Pos2> = vertices

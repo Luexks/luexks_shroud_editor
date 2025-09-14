@@ -26,7 +26,7 @@ impl ShroudEditor {
                         .get_shroud_layer_vertices()
                         .iter()
                         .map(|vertex| {
-                            Pos2::new(vertex.x + offset.x.to_f32(), vertex.y + offset.y.to_f32())
+                            Pos2::new(vertex.x + offset.x.to_f32(), vertex.y - offset.y.to_f32())
                         })
                         .collect::<Vec<_>>(),
                     rect,

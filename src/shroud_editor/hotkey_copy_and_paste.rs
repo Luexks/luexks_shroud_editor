@@ -38,7 +38,7 @@ impl ShroudEditor {
                             shroud_layer_container.shroud_layer.offset.clone().unwrap();
                         let drag_pos = pos2(
                             old_offset.x.to_f32() - avg_pos.x + self.world_mouse_pos.x,
-                            old_offset.y.to_f32() - avg_pos.y + self.world_mouse_pos.y,
+                            old_offset.y.to_f32() - avg_pos.y - self.world_mouse_pos.y,
                         );
                         let new_shroud_layer_container = ShroudLayerContainer {
                             drag_pos: Some(drag_pos),

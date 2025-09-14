@@ -33,7 +33,7 @@ pub fn shroud_layer_dragging(
         }
         let (x, y) = (
             delta.x + shroud[*selected_index].drag_pos.unwrap().x,
-            delta.y + shroud[*selected_index].drag_pos.unwrap().y,
+            -delta.y + shroud[*selected_index].drag_pos.unwrap().y,
         );
         shroud[*selected_index].drag_pos = Some(pos2(x, y));
         shroud[*selected_index].shroud_layer.offset = Some(DisplayOriented3D {

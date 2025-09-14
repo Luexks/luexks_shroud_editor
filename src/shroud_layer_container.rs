@@ -43,15 +43,11 @@ impl Default for ShroudLayerContainer {
 impl ShroudLayerContainer {
     pub fn get_shroud_layer_vertices(&self) -> Vec<Pos2> {
         let shape_id = self.shape_id.as_str();
-        // println!("{}", shape_id);
-        // println!("{}", self.shroud_layer.shape.clone().unwrap().get_name());
         let verts = self.vertices.clone();
         let verts = match shape_id {
             "CANNON" => {
                 vec![
-                    verts[6], // pos2(verts[6].x + 0.1, verts[6].y),
-                    verts[2], verts[3], verts[7], // pos2(verts[7].x + 0.1, verts[7].y),
-                    verts[4], verts[5], verts[0], verts[1],
+                    verts[6], verts[2], verts[3], verts[7], verts[4], verts[5], verts[0], verts[1],
                 ]
             }
             "CANNON2" => {
@@ -97,12 +93,21 @@ impl ShroudLayerContainer {
             let shroud_size = do2d_float_from(shroud_size.x.to_f32(), shroud_size.y.to_f32() * 2.0);
             let verts = apply_size_to_verts(verts, shroud_size, shape_size);
             let verts = if let Some(taper) = self.shroud_layer.taper {
-                vec![
-                    pos2(verts[0].x, verts[0].y * taper),
-                    verts[1],
-                    verts[2],
-                    pos2(verts[3].x, verts[3].y * taper),
-                ]
+                if taper >= 0.0 {
+                    vec![
+                        pos2(verts[0].x, verts[0].y * taper),
+                        verts[1],
+                        verts[2],
+                        pos2(verts[3].x, verts[3].y * taper),
+                    ]
+                } else {
+                    vec![
+                        verts[0],
+                        pos2(verts[2].x, verts[2].y * taper),
+                        pos2(verts[1].x, verts[1].y * taper),
+                        verts[3],
+                    ]
+                }
             } else {
                 verts
             };
@@ -117,7 +122,7 @@ impl ShroudLayerContainer {
 
 fn apply_angle_to_verts(verts: Vec<Pos2>, angle_option: &Option<Angle>) -> Vec<Pos2> {
     if let Some(angle) = angle_option {
-        let angle = angle.as_radians().get_value();
+        let angle = -angle.as_radians().get_value();
         let sin_angle = angle.sin();
         let cos_angle = angle.cos();
         verts
