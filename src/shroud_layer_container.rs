@@ -55,6 +55,10 @@ impl ShroudLayerContainer {
                     verts[0], verts[1], verts[6], verts[4], verts[5], verts[7], verts[2], verts[3],
                 ]
             }
+            // "RIGHT_TRI" => apply_angle_to_verts(verts, &Some(Angle::Degree(45.0))),
+            // "RIGHT_TRI2L" | "RIGHT_TRI2R" | "RIGHT_TRI_22_5L" | "RIGHT_TRI_22_5R" | "RIGHT_TRI_30L" | "RIGHT_TRI_30R" => {
+            //     apply_angle_to_verts(verts, &Some(Angle::Degree(-90.0)))
+            // },
             "SENSOR" => {
                 vec![verts[4], verts[2], verts[3], verts[0], verts[1]]
             }
@@ -62,7 +66,9 @@ impl ShroudLayerContainer {
         };
         let avg_vert_pos = match shape_id {
             "SQUARE" => pos2(-5.0, 0.0),
-            "COMMAND" => pos2(0.0, 0.0),
+            "COMMAND" | "CANNON" | "CANNON2" | "MISSILE_LAUNCHER" | "MISSILE_SHORT" => {
+                pos2(0.0, 0.0)
+            }
             _ => {
                 verts.iter().fold(Pos2::default(), |pos, vert| {
                     pos2(pos.x + vert.x, pos.y + vert.y)
@@ -73,7 +79,6 @@ impl ShroudLayerContainer {
             .iter()
             .map(|vert| pos2(vert.x - avg_vert_pos.x, vert.y - avg_vert_pos.y))
             .collect::<Vec<_>>();
-        // println!("{:?}", verts);
         let (min_x, max_x, min_y, max_y) = verts.iter().fold(
             (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
             |(min_x, max_x, min_y, max_y), vert| {
@@ -113,17 +118,13 @@ impl ShroudLayerContainer {
             };
             apply_angle_to_verts(verts, angle_option)
         } else {
-            let are_width_and_height_scale_factors_equal =
-                shape_size.x / shroud_size.x.to_f32() == shape_size.y / shroud_size.y.to_f32();
-
-            if are_width_and_height_scale_factors_equal {
-                let verts = apply_size_to_verts(verts, shroud_size, shape_size);
-                apply_angle_to_verts(verts, angle_option)
+            let verts = apply_angle_to_verts(verts, angle_option);
+            let verts = if shape_id == "RIGHT_TRI" {
+                apply_angle_to_verts(verts, &Some(Angle::Degree(-45.0)))
             } else {
-                let verts = apply_angle_to_verts(verts, angle_option);
-                let verts = apply_post_angle_application_resize(verts, shape_size, angle_option);
-                apply_size_to_verts(verts, shroud_size, shape_size)
-            }
+                verts
+            };
+            apply_size_to_verts(verts, shroud_size, shape_size)
         }
     }
 }
@@ -146,51 +147,51 @@ fn apply_angle_to_verts(verts: Vec<Pos2>, angle_option: &Option<Angle>) -> Vec<P
     }
 }
 
-fn apply_post_angle_application_resize(
-    verts: Vec<Pos2>,
-    shape_size: Pos2,
-    angle_option: &Option<Angle>,
-) -> Vec<Pos2> {
-    if angle_option.is_some() {
-        let (min_x, max_x, min_y, max_y) = verts.iter().fold(
-            (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
-            |(min_x, max_x, min_y, max_y), vert| {
-                (
-                    vert.x.min(min_x),
-                    vert.x.max(max_x),
-                    vert.y.min(min_y),
-                    vert.y.max(max_y),
-                )
-            },
-        );
-        let rotated_shape_size = pos2(-min_x + max_x, -min_y + max_y);
-        if shape_size != rotated_shape_size {
-            verts
-                .iter()
-                .map(|vert| {
-                    pos2(
-                        vert.x * shape_size.x
-                            / if rotated_shape_size.x.abs() < f32::EPSILON {
-                                1.0
-                            } else {
-                                rotated_shape_size.x
-                            },
-                        vert.y * shape_size.y
-                            / if rotated_shape_size.y.abs() < f32::EPSILON {
-                                1.0
-                            } else {
-                                rotated_shape_size.y
-                            },
-                    )
-                })
-                .collect()
-        } else {
-            verts
-        }
-    } else {
-        verts
-    }
-}
+// fn apply_post_angle_application_resize(
+//     verts: Vec<Pos2>,
+//     shape_size: Pos2,
+//     angle_option: &Option<Angle>,
+// ) -> Vec<Pos2> {
+//     if angle_option.is_some() {
+//         let (min_x, max_x, min_y, max_y) = verts.iter().fold(
+//             (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
+//             |(min_x, max_x, min_y, max_y), vert| {
+//                 (
+//                     vert.x.min(min_x),
+//                     vert.x.max(max_x),
+//                     vert.y.min(min_y),
+//                     vert.y.max(max_y),
+//                 )
+//             },
+//         );
+//         let rotated_shape_size = pos2(-min_x + max_x, -min_y + max_y);
+//         if shape_size != rotated_shape_size {
+//             verts
+//                 .iter()
+//                 .map(|vert| {
+//                     pos2(
+//                         vert.x * shape_size.x
+//                             / if rotated_shape_size.x.abs() < f32::EPSILON {
+//                                 1.0
+//                             } else {
+//                                 rotated_shape_size.x
+//                             },
+//                         vert.y * shape_size.y
+//                             / if rotated_shape_size.y.abs() < f32::EPSILON {
+//                                 1.0
+//                             } else {
+//                                 rotated_shape_size.y
+//                             },
+//                     )
+//                 })
+//                 .collect()
+//         } else {
+//             verts
+//         }
+//     } else {
+//         verts
+//     }
+// }
 
 fn apply_size_to_verts(verts: Vec<Pos2>, size: DisplayOriented2D, shape_size: Pos2) -> Vec<Pos2> {
     verts
