@@ -113,9 +113,17 @@ impl ShroudLayerContainer {
             };
             apply_angle_to_verts(verts, angle_option)
         } else {
-            let verts = apply_angle_to_verts(verts, angle_option);
-            let verts = apply_post_angle_application_resize(verts, shape_size, angle_option);
-            apply_size_to_verts(verts, shroud_size, shape_size)
+            let are_width_and_height_scale_factors_equal =
+                shape_size.x / shroud_size.x.to_f32() == shape_size.y / shroud_size.y.to_f32();
+
+            if are_width_and_height_scale_factors_equal {
+                let verts = apply_size_to_verts(verts, shroud_size, shape_size);
+                apply_angle_to_verts(verts, angle_option)
+            } else {
+                let verts = apply_angle_to_verts(verts, angle_option);
+                let verts = apply_post_angle_application_resize(verts, shape_size, angle_option);
+                apply_size_to_verts(verts, shroud_size, shape_size)
+            }
         }
     }
 }
