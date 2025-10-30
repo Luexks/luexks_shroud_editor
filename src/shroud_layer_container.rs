@@ -64,6 +64,8 @@ impl ShroudLayerContainer {
             }
             _ => verts,
         };
+        // verts.iter_mut().for_each(|vert| { *vert = pos2(vert.x, -vert.y);});
+        let verts = verts.into_iter().map(|vert| pos2(vert.x, -vert.y)).collect::<Vec<Pos2>>();
         let avg_vert_pos = match shape_id {
             "SQUARE" => pos2(-5.0, 0.0),
             "COMMAND" | "CANNON" | "CANNON2" | "MISSILE_LAUNCHER" | "MISSILE_SHORT" => {
@@ -118,39 +120,7 @@ impl ShroudLayerContainer {
             };
             apply_angle_to_verts(verts, angle_option)
         } else {
-            // let mut verts = verts;
-            // if shape_id == "RIGHT_TRI" {
-                // verts = apply_angle_to_verts(verts, &Some(Angle::Degree(90.0)));
-            //     verts.iter_mut().for_each(|vert| { *vert = pos2(vert.x, -vert.y);});
-            // } else if shape_id == "RIGHT_TRI2L" {
-            //     verts.iter_mut().for_each(|vert| { *vert = pos2(vert.x, -vert.y);});
-            // } else if shape_id == "RIGHT_TRI2R" {
-            //     verts.iter_mut().for_each(|vert| { *vert = pos2(vert.x, -vert.y);});
-            // }
-            let verts = if [
-                "RIGHT_TRI",
-                "RIGHT_TRI2L",
-                "RIGHT_TRI2R",
-                "RIGHT_TRI_22_5L",
-                "RIGHT_TRI_22_5R",
-                "RIGHT_TRI_30L",
-                "RIGHT_TRI_30R",
-            ].contains(&shape_id) {
-                verts.into_iter().map(|vert| pos2(vert.x, -vert.y)).collect()
-            } else {
-                verts
-            };
             let verts = apply_angle_to_verts(verts, angle_option);
-            // let verts = if [
-            //     "RIGHT_TRI",
-            //     "RIGHT_TRI2L",
-            //     "RIGHT_TRI2R",
-            //     "RIGHT_TRI_22_5L",
-            //     "RIGHT_TRI_22_5R",
-            //     "RIGHT_TRI_30L",
-            //     "RIGHT_TRI_30R",
-            // ].contains(&shape_id) {
-            //     apply_angle_to_verts(verts, &Some(Angle::Degree(90.0)))
             apply_size_to_verts(verts, shroud_size, shape_size)
         }
     }
