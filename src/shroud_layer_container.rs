@@ -43,29 +43,26 @@ impl Default for ShroudLayerContainer {
 impl ShroudLayerContainer {
     pub fn get_shroud_layer_vertices(&self) -> Vec<Pos2> {
         let shape_id = self.shape_id.as_str();
-        let verts = self.vertices.clone();
-        let verts = match shape_id {
+        let mut verts = self.vertices.clone();
+        match shape_id {
             "CANNON" => {
-                vec![
-                    verts[6], verts[2], verts[3], verts[7], verts[4], verts[5], verts[0], verts[1],
-                ]
+                verts = [6, 2, 3, 7, 4, 5, 0, 1]
+                    .into_iter()
+                    .map(|i| verts[i])
+                    .collect();
             }
             "CANNON2" => {
-                vec![
-                    verts[0], verts[1], verts[6], verts[4], verts[5], verts[7], verts[2], verts[3],
-                ]
+                verts = [0, 1, 6, 4, 5, 7, 2, 3]
+                    .into_iter()
+                    .map(|i| verts[i])
+                    .collect();
             }
-            // "RIGHT_TRI" => apply_angle_to_verts(verts, &Some(Angle::Degree(45.0))),
-            // "RIGHT_TRI2L" | "RIGHT_TRI2R" | "RIGHT_TRI_22_5L" | "RIGHT_TRI_22_5R" | "RIGHT_TRI_30L" | "RIGHT_TRI_30R" => {
-            //     apply_angle_to_verts(verts, &Some(Angle::Degree(-90.0)))
-            // },
             "SENSOR" => {
-                vec![verts[4], verts[2], verts[3], verts[0], verts[1]]
+                verts = [4, 2, 3, 0, 1].into_iter().map(|i| verts[i]).collect();
             }
-            _ => verts,
-        };
-        // verts.iter_mut().for_each(|vert| { *vert = pos2(vert.x, -vert.y);});
-        let verts = verts.into_iter().map(|vert| pos2(vert.x, -vert.y)).collect::<Vec<Pos2>>();
+            _ => {}
+        }
+        verts.iter_mut().for_each(|vert| vert.y *= -1.0);
         let avg_vert_pos = match shape_id {
             "SQUARE" => pos2(-5.0, 0.0),
             "COMMAND" | "CANNON" | "CANNON2" | "MISSILE_LAUNCHER" | "MISSILE_SHORT" => {
@@ -77,10 +74,9 @@ impl ShroudLayerContainer {
                 }) / verts.len() as f32
             }
         };
-        let verts = verts
-            .iter()
-            .map(|vert| pos2(vert.x - avg_vert_pos.x, vert.y - avg_vert_pos.y))
-            .collect::<Vec<_>>();
+        verts
+            .iter_mut()
+            .for_each(|vert| *vert = pos2(vert.x - avg_vert_pos.x, vert.y - avg_vert_pos.y));
         let (min_x, max_x, min_y, max_y) = verts.iter().fold(
             (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
             |(min_x, max_x, min_y, max_y), vert| {
@@ -98,9 +94,9 @@ impl ShroudLayerContainer {
 
         if shape_id == "SQUARE" {
             let shroud_size = do2d_float_from(shroud_size.x.to_f32(), shroud_size.y.to_f32() * 2.0);
-            let verts = apply_size_to_verts(verts, shroud_size, shape_size);
-            let verts = if let Some(taper) = self.shroud_layer.taper {
-                if taper >= 0.0 {
+            apply_size_to_verts(&mut verts, shroud_size, shape_size);
+            if let Some(taper) = self.shroud_layer.taper {
+                verts = if taper >= 0.0 {
                     vec![
                         pos2(verts[0].x, verts[0].y * taper),
                         verts[1],
@@ -114,90 +110,35 @@ impl ShroudLayerContainer {
                         pos2(verts[1].x, verts[1].y * taper),
                         verts[3],
                     ]
-                }
-            } else {
-                verts
-            };
-            apply_angle_to_verts(verts, angle_option)
+                };
+            }
+            apply_angle_to_verts(&mut verts, angle_option);
         } else {
-            let verts = apply_angle_to_verts(verts, angle_option);
-            apply_size_to_verts(verts, shroud_size, shape_size)
+            apply_angle_to_verts(&mut verts, angle_option);
+            apply_size_to_verts(&mut verts, shroud_size, shape_size)
         }
+        verts
     }
 }
 
-fn apply_angle_to_verts(verts: Vec<Pos2>, angle_option: &Option<Angle>) -> Vec<Pos2> {
+fn apply_angle_to_verts(verts: &mut [Pos2], angle_option: &Option<Angle>) {
     if let Some(angle) = angle_option {
         let angle = -angle.as_radians().get_value();
         let sin_angle = angle.sin();
         let cos_angle = angle.cos();
-        verts
-            .iter()
-            .map(|vert| {
-                let new_x = vert.x * cos_angle - vert.y * sin_angle;
-                let new_y = vert.x * sin_angle + vert.y * cos_angle;
-                pos2(new_x, new_y)
-            })
-            .collect()
-    } else {
-        verts
+        verts.iter_mut().for_each(|vert| {
+            let new_x = vert.x * cos_angle - vert.y * sin_angle;
+            let new_y = vert.x * sin_angle + vert.y * cos_angle;
+            *vert = pos2(new_x, new_y);
+        });
     }
 }
 
-// fn apply_post_angle_application_resize(
-//     verts: Vec<Pos2>,
-//     shape_size: Pos2,
-//     angle_option: &Option<Angle>,
-// ) -> Vec<Pos2> {
-//     if angle_option.is_some() {
-//         let (min_x, max_x, min_y, max_y) = verts.iter().fold(
-//             (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
-//             |(min_x, max_x, min_y, max_y), vert| {
-//                 (
-//                     vert.x.min(min_x),
-//                     vert.x.max(max_x),
-//                     vert.y.min(min_y),
-//                     vert.y.max(max_y),
-//                 )
-//             },
-//         );
-//         let rotated_shape_size = pos2(-min_x + max_x, -min_y + max_y);
-//         if shape_size != rotated_shape_size {
-//             verts
-//                 .iter()
-//                 .map(|vert| {
-//                     pos2(
-//                         vert.x * shape_size.x
-//                             / if rotated_shape_size.x.abs() < f32::EPSILON {
-//                                 1.0
-//                             } else {
-//                                 rotated_shape_size.x
-//                             },
-//                         vert.y * shape_size.y
-//                             / if rotated_shape_size.y.abs() < f32::EPSILON {
-//                                 1.0
-//                             } else {
-//                                 rotated_shape_size.y
-//                             },
-//                     )
-//                 })
-//                 .collect()
-//         } else {
-//             verts
-//         }
-//     } else {
-//         verts
-//     }
-// }
-
-fn apply_size_to_verts(verts: Vec<Pos2>, size: DisplayOriented2D, shape_size: Pos2) -> Vec<Pos2> {
-    verts
-        .iter()
-        .map(|vert| {
-            pos2(
-                vert.x * size.x.to_f32() / shape_size.x,
-                vert.y * size.y.to_f32() / shape_size.y,
-            )
-        })
-        .collect()
+fn apply_size_to_verts(verts: &mut [Pos2], size: DisplayOriented2D, shape_size: Pos2) {
+    verts.iter_mut().for_each(|vert| {
+        *vert = pos2(
+            vert.x * size.x.to_f32() / shape_size.x,
+            vert.y * size.y.to_f32() / shape_size.y,
+        );
+    });
 }

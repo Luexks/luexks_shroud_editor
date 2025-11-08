@@ -100,6 +100,8 @@ impl eframe::App for ShroudEditor {
         self.hotkey_copy(ctx);
         self.hotkey_paste(ctx);
 
+        // println!("{:.1}", 1.0 / self.dt);
+
         ctx.request_repaint_after(Duration::from_secs_f32(1.0 / 60.0));
     }
 }
