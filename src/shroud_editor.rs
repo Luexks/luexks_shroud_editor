@@ -6,6 +6,7 @@ use crate::key_tracker::KeyTracker;
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
 use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
+use crate::shroud_editor::tools::ToolSettings;
 use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
 use crate::shroud_layer_container::ShroudLayerContainer;
 use crate::shroud_layer_interaction::ShroudLayerInteraction;
@@ -44,6 +45,7 @@ pub struct ShroudEditor {
     shape_search_show_vanilla: bool,
     shapes_import_text: String,
     just_imported_shapes_from_paste_box_message_option: Option<ShapesParseResult>,
+    tool_settings: ToolSettings,
 }
 
 impl Default for ShroudEditor {
@@ -81,6 +83,7 @@ impl Default for ShroudEditor {
             shape_search_show_vanilla: true,
             shapes_import_text: SHAPES_IMPORT_TEXT_DEFAULT.to_string(),
             just_imported_shapes_from_paste_box_message_option: None,
+            tool_settings: ToolSettings::default(),
         }
     }
 }
@@ -124,6 +127,7 @@ mod shroud_layer_dragging;
 mod shroud_layer_gizmos;
 mod shroud_settings;
 mod snap_to_grid;
+mod tools;
 mod viewport_controls;
 mod visual_panel;
 

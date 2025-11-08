@@ -57,6 +57,7 @@ impl ShroudEditor {
                                 self.fill_color_gradient_setting(ui);
                             });
                         self.block_settings(ui);
+                        self.tools(ui);
                         ui.heading("Shroud Layers");
                         if ui.button("Add Shroud Layer").clicked() {
                             self.add_shroud_layer()
