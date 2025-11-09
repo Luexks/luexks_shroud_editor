@@ -31,6 +31,8 @@ use crate::{
     shroud_layer_interaction::ShroudLayerInteraction,
 };
 
+type IsChanged = bool;
+
 impl ShroudEditor {
     pub fn left_panel(&mut self, ctx: &Context) {
         egui::SidePanel::left("side_panel")
@@ -136,14 +138,49 @@ impl ShroudEditor {
             .body_unindented(|ui| {
                 ui.horizontal(|ui| {
                     ui.label("Visible:");
-                    ui.checkbox(&mut self.block_container.visible, "");
+                    if ui.checkbox(&mut self.block_container.visible, "").clicked() {
+                        if self.block_container.use_non_turreted_offset {
+                            self.block_container.update_non_turreted_offset();
+                        }
+                    }
                 });
                 egui::Frame::new()
                     .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
                     .inner_margin(6.0)
                     .corner_radius(0.0)
                     .show(ui, |ui| {
-                        block_shape_combo_box(
+                        ui.horizontal(|ui| {
+                            ui.label("Use Auto (Non-Turreted) Offset:");
+                            if ui
+                                .checkbox(&mut self.block_container.use_non_turreted_offset, "")
+                                .clicked()
+                            {
+                                if self.block_container.use_non_turreted_offset {
+                                    self.block_container.update_non_turreted_offset();
+                                }
+                            }
+                        });
+                        ui.horizontal(|ui| {
+                            if self.block_container.use_non_turreted_offset {
+                                ui.label(format!(
+                                    "Offset: {:.2}, {:.2}",
+                                    self.block_container.offset.x, self.block_container.offset.y
+                                ));
+                            } else {
+                                ui.label("Offset:");
+                                ui.add(DragValue::new(&mut self.block_container.offset.x));
+                                ui.label(",");
+                                ui.add(DragValue::new(&mut self.block_container.offset.y));
+                            }
+                        });
+                        ui.label("Block offset is added to all shroud layer offsets on import and subtracted from all shroud layer offsets on export; no visual change while editing.");
+                    });
+                egui::Frame::new()
+                    .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
+                    .inner_margin(6.0)
+                    .corner_radius(0.0)
+                    .show(ui, |ui| {
+                        let is_shape_changed = block_shape_combo_box(
                             ui,
                             &mut self.block_container.block.shape,
                             &mut self.block_container.shape_id,
@@ -155,7 +192,12 @@ impl ShroudEditor {
                             &mut self.block_container.max_scale,
                             self.block_container.block.scale.unwrap(),
                         );
-                        self.block_scale_settings(ui);
+                        let is_scale_changed = self.block_scale_settings(ui);
+                        if self.block_container.use_non_turreted_offset
+                            && (is_shape_changed || is_scale_changed)
+                        {
+                            self.block_container.update_non_turreted_offset();
+                        }
                         Grid::new("").show(ui, |ui| {
                             ui.label("fillColor=");
                             block_color_settings(
@@ -245,6 +287,14 @@ impl ShroudEditor {
                             .iter()
                             .map(|shroud_layer_container| {
                                 let shroud_layer = shroud_layer_container.shroud_layer.clone();
+                                let pre_block_offset_offset = shroud_layer.offset.as_ref().unwrap();
+                                let post_block_offset_offset = do3d_float_from(
+                                    pre_block_offset_offset.x.to_f32()
+                                        - self.block_container.offset.x,
+                                    pre_block_offset_offset.y.to_f32()
+                                        - self.block_container.offset.y,
+                                    pre_block_offset_offset.z.to_f32(),
+                                );
                                 ShroudLayer {
                                     angle: if shroud_layer
                                         .angle
@@ -266,6 +316,7 @@ impl ShroudEditor {
                                     } else {
                                         shroud_layer.taper
                                     },
+                                    offset: Some(post_block_offset_offset),
                                     ..shroud_layer
                                 }
                             })
@@ -306,6 +357,19 @@ impl ShroudEditor {
                         match parse_shroud_text(&self.shroud_import_text, &self.loaded_shapes) {
                             Ok(imported_shroud) => {
                                 self.shroud = imported_shroud;
+                                self.shroud.iter_mut().for_each(|shroud_layer| {
+                                    let pre_block_offset_offset =
+                                        shroud_layer.shroud_layer.offset.as_ref().unwrap();
+                                    let post_block_offset_offset = do3d_float_from(
+                                        pre_block_offset_offset.x.to_f32()
+                                            + self.block_container.offset.x,
+                                        pre_block_offset_offset.y.to_f32()
+                                            + self.block_container.offset.y,
+                                        pre_block_offset_offset.z.to_f32(),
+                                    );
+                                    shroud_layer.shroud_layer.offset =
+                                        Some(post_block_offset_offset);
+                                });
                                 self.just_imported_shroud_from_paste_box_message_option =
                                     Some(ShroudParseResult::Success);
                             }
@@ -340,7 +404,8 @@ impl ShroudEditor {
             });
     }
 
-    fn block_scale_settings(&mut self, ui: &mut Ui) {
+    fn block_scale_settings(&mut self, ui: &mut Ui) -> IsChanged {
+        let mut is_changed = IsChanged::default();
         ui.horizontal(|ui| {
             ui.label("scale=");
             let mut scale = self.block_container.block.scale.unwrap();
@@ -358,8 +423,10 @@ impl ShroudEditor {
                         .unwrap()
                         .get_nth_scale_vertices(scale as usize - 1),
                 );
+                is_changed = true;
             }
         });
+        is_changed
     }
 
     fn import_shapes_from_paste_box(&mut self, ui: &mut Ui) {
@@ -453,7 +520,8 @@ fn block_shape_combo_box(
     search_buf: &mut String,
     max_scale: &mut u8,
     scale: u8,
-) {
+) -> IsChanged {
+    let mut is_shape_changed = IsChanged::default();
     ui.horizontal(|ui| {
         ui.label("shape=");
         Popup::from_toggle_button_response(&ui.button(shape_id.as_str()))
@@ -499,10 +567,12 @@ fn block_shape_combo_box(
                                         selectable_shape.get_nth_scale_vertices(scale as usize - 1),
                                     );
                                     *shape = selectable_shape.get_id();
+                                    is_shape_changed = true;
                                 }
                             }
                         }
                     });
             });
     });
+    is_shape_changed
 }

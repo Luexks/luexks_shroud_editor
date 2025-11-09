@@ -1,4 +1,5 @@
-use egui::{Pos2, Rgba};
+use egui::{Pos2, Rgba, pos2};
+use itertools::Itertools;
 use luexks_reassembly::{
     blocks::{block::Block, shroud_layer::ShroudLayerColor},
     shapes::shape_id::ShapeId,
@@ -23,6 +24,8 @@ pub struct BlockContainer {
     // pub search_buf: String,
     pub visible: bool,
     pub max_scale: u8,
+    pub use_non_turreted_offset: bool,
+    pub offset: Pos2,
 }
 
 impl Default for BlockContainer {
@@ -55,7 +58,7 @@ impl Default for BlockContainer {
         //     String::from_utf8_lossy(rgba_to_color_string(color_2)),
         //     String::from_utf8_lossy(rgba_to_color_string(line_color)),
         // );
-        BlockContainer {
+        let mut block_container = BlockContainer {
             block: Block {
                 shape: Some(ShapeId::Vanilla("SQUARE".to_string())),
                 scale: Some(1),
@@ -84,7 +87,11 @@ impl Default for BlockContainer {
             // search_buf: String::new(),
             visible: true,
             max_scale: 10,
-        }
+            use_non_turreted_offset: true,
+            offset: Pos2::default(),
+        };
+        block_container.update_non_turreted_offset();
+        block_container
     }
 }
 
@@ -95,5 +102,41 @@ impl BlockContainer {
             ShroudLayerColor::Color2 => self.color_2,
             ShroudLayerColor::LineColor => self.line_color,
         }
+    }
+
+    pub fn update_non_turreted_offset(&mut self) {
+        let avg_vert_pos = match &*self.shape_id {
+            "SQUARE" => pos2(-5.0, 0.0),
+            "COMMAND" | "CANNON" | "CANNON2" | "MISSILE_LAUNCHER" | "MISSILE_SHORT" => {
+                pos2(0.0, 0.0)
+            }
+            _ => {
+                self.vertices.iter().fold(Pos2::default(), |pos, vert| {
+                    pos2(pos.x + vert.x, pos.y + vert.y)
+                }) / self.vertices.len() as f32
+            }
+        };
+        let mut verts = self.vertices.clone();
+        verts
+            .iter_mut()
+            .for_each(|vert| *vert = pos2(vert.x - avg_vert_pos.x, vert.y - avg_vert_pos.y));
+
+        let min_vert_dist = verts
+            .iter()
+            .map(|vert| (vert.x.powi(2) + vert.y.powi(2)).sqrt())
+            .min_by(f32::total_cmp)
+            .unwrap();
+        let max_midpoint_dist = verts
+            .iter()
+            .zip(verts.iter().cycle().skip(1))
+            .map(|(vert_a, vert_b)| {
+                (((vert_a.x + vert_b.x) / 2.0).powi(2) + (vert_a.y + vert_b.y) / 2.0)
+                    .powi(2)
+                    .sqrt()
+            })
+            .max_by(f32::total_cmp)
+            .unwrap();
+        let icon_radius = min_vert_dist.min(max_midpoint_dist);
+        self.offset = pos2(icon_radius * -0.5, 0.0)
     }
 }

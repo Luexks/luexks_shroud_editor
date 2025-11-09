@@ -19,12 +19,14 @@ impl ShroudEditor {
             shroud_layer: if self.block_container.shape_id == "SQUARE" {
                 ShroudLayer {
                     size: Some(do2d_square_size_from_verts(&self.block_container.vertices)),
-                    offset: Some(do3d_float_from(-5.0, 0.0, 0.0)),
+                    // offset: Some(do3d_float_from(-self.block_container.offset.x, -self.block_container.offset.y, 0.0)),
+                    offset: Some(do3d_float_from(-5.0 * self.block_container.block.scale.unwrap() as f32, 0.0, 0.0)),
                     ..Default::default()
                 }
             } else {
                 ShroudLayer {
                     size: Some(do2d_size_from_verts(&self.block_container.vertices)),
+                    // offset: Some(do3d_float_from(-self.block_container.offset.x, -self.block_container.offset.y, 0.0)),
                     ..Default::default()
                 }
             },
