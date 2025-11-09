@@ -44,69 +44,81 @@ impl ShroudEditor {
                     .auto_shrink(false)
                     .scroll_bar_visibility(ScrollBarVisibility::VisibleWhenNeeded)
                     .show(ui, |ui| {
-                        CollapsingState::load_with_default_open(ctx, "file".into(), false)
-                            .show_header(ui, |ui| ui.heading("File"))
-                            .body_unindented(|ui| {
-                                self.export_shroud_to_clipboard_button(ui);
-                                self.import_shroud_from_paste_box(ui);
-                                self.import_shapes_from_paste_box(ui);
-                            });
-                        CollapsingState::load_with_default_open(ctx, "editor".into(), true)
-                            .show_header(ui, |ui| ui.heading("Editor Settings"))
-                            .body_unindented(|ui| {
-                                self.background_grid_settings(ui);
-                                self.angle_snap_settings(ui);
-                                self.fill_color_gradient_setting(ui);
-                            });
+                        self.file_settings(ctx, ui);
+                        self.editor_settings(ctx, ui);
                         self.block_settings(ui);
                         self.tools(ui);
-                        ui.heading("Shroud Layers");
-                        if ui.button("Add Shroud Layer").clicked() {
-                            self.add_shroud_layer()
-                        }
-                        ui.horizontal(|ui| {
-                            ui.label("Only Show Selected:");
-                            ui.checkbox(&mut self.only_show_selected_shroud_layers, "");
-                        });
-                        ui.horizontal(|ui| {
-                            if ui.button("Select All").clicked() {
-                                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                                    selection: (0..self.shroud.len()).collect(),
-                                };
-                            }
-                            if ui.button("Deselect All").clicked() {
-                                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                                    selection: Vec::new(),
-                                };
-                            }
-                        });
-                        ui.horizontal(|ui| {
-                            if ui.button("Expand Selection").clicked() {
-                                self.shroud_layer_interaction.selection().iter().for_each(
-                                    |index| {
-                                        let mut drop_down =
-                                            CollapsingState::load(ctx, index.to_string().into())
-                                                .unwrap();
-                                        drop_down.set_open(true);
-                                        drop_down.store(ctx);
-                                    },
-                                );
-                            }
-                            if ui.button("Collapse Selection").clicked() {
-                                self.shroud_layer_interaction.selection().iter().for_each(
-                                    |index| {
-                                        let mut drop_down =
-                                            CollapsingState::load(ctx, index.to_string().into())
-                                                .unwrap();
-                                        drop_down.set_open(false);
-                                        drop_down.store(ctx);
-                                    },
-                                );
-                            }
-                        });
+                        self.shroud_settings(ctx, ui);
                         self.shroud_list(ui);
                     });
             });
+    }
+
+    fn file_settings(&mut self, ctx: &Context, ui: &mut Ui) {
+        CollapsingState::load_with_default_open(ctx, "file".into(), false)
+            .show_header(ui, |ui| ui.heading("File"))
+            .body_unindented(|ui| {
+                self.export_shroud_to_clipboard_button(ui);
+                self.import_shroud_from_paste_box(ui);
+                self.import_shapes_from_paste_box(ui);
+            });
+    }
+
+    fn editor_settings(&mut self, ctx: &Context, ui: &mut Ui) {
+        CollapsingState::load_with_default_open(ctx, "editor".into(), true)
+            .show_header(ui, |ui| ui.heading("Editor Settings"))
+            .body_unindented(|ui| {
+                self.background_grid_settings(ui);
+                self.angle_snap_settings(ui);
+                self.fill_color_gradient_setting(ui);
+            });
+    }
+
+    fn shroud_settings(&mut self, ctx: &Context, ui: &mut Ui) {
+        ui.heading("Shroud Layers");
+        if ui.button("Add Shroud Layer").clicked() {
+            self.add_shroud_layer()
+        }
+        ui.horizontal(|ui| {
+            ui.label("Only Show Selected:");
+            ui.checkbox(&mut self.only_show_selected_shroud_layers, "");
+        });
+        ui.horizontal(|ui| {
+            if ui.button("Select All").clicked() {
+                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                    selection: (0..self.shroud.len()).collect(),
+                };
+            }
+            if ui.button("Deselect All").clicked() {
+                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                    selection: Vec::new(),
+                };
+            }
+        });
+        ui.horizontal(|ui| {
+            if ui.button("Expand Selection").clicked() {
+                self.shroud_layer_interaction
+                    .selection()
+                    .iter()
+                    .for_each(|index| {
+                        let mut drop_down =
+                            CollapsingState::load(ctx, index.to_string().into()).unwrap();
+                        drop_down.set_open(true);
+                        drop_down.store(ctx);
+                    });
+            }
+            if ui.button("Collapse Selection").clicked() {
+                self.shroud_layer_interaction
+                    .selection()
+                    .iter()
+                    .for_each(|index| {
+                        let mut drop_down =
+                            CollapsingState::load(ctx, index.to_string().into()).unwrap();
+                        drop_down.set_open(false);
+                        drop_down.store(ctx);
+                    });
+            }
+        });
     }
 
     fn background_grid_settings(&mut self, ui: &mut Ui) {
@@ -136,45 +148,8 @@ impl ShroudEditor {
         CollapsingState::load_with_default_open(ui.ctx(), "block".into(), true)
             .show_header(ui, |ui| ui.heading("Block Settings"))
             .body_unindented(|ui| {
-                ui.horizontal(|ui| {
-                    ui.label("Visible:");
-                    if ui.checkbox(&mut self.block_container.visible, "").clicked() {
-                        if self.block_container.use_non_turreted_offset {
-                            self.block_container.update_non_turreted_offset();
-                        }
-                    }
-                });
-                egui::Frame::new()
-                    .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
-                    .inner_margin(6.0)
-                    .corner_radius(0.0)
-                    .show(ui, |ui| {
-                        ui.horizontal(|ui| {
-                            ui.label("Use Auto (Non-Turreted) Offset:");
-                            if ui
-                                .checkbox(&mut self.block_container.use_non_turreted_offset, "")
-                                .clicked()
-                            {
-                                if self.block_container.use_non_turreted_offset {
-                                    self.block_container.update_non_turreted_offset();
-                                }
-                            }
-                        });
-                        ui.horizontal(|ui| {
-                            if self.block_container.use_non_turreted_offset {
-                                ui.label(format!(
-                                    "Offset: {:.2}, {:.2}",
-                                    self.block_container.offset.x, self.block_container.offset.y
-                                ));
-                            } else {
-                                ui.label("Offset:");
-                                ui.add(DragValue::new(&mut self.block_container.offset.x));
-                                ui.label(",");
-                                ui.add(DragValue::new(&mut self.block_container.offset.y));
-                            }
-                        });
-                        ui.label("Block offset is added to all shroud layer offsets on import and subtracted from all shroud layer offsets on export; no visual change while editing.");
-                    });
+                self.block_visibility_settings(ui);
+                self.block_offset_settings(ui);
                 egui::Frame::new()
                     .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
                     .inner_margin(6.0)
@@ -232,6 +207,51 @@ impl ShroudEditor {
 
                         ui.add_space(4.0);
                     });
+            });
+    }
+
+    fn block_visibility_settings(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            ui.label("Visible:");
+            if ui.checkbox(&mut self.block_container.visible, "").clicked() {
+                if self.block_container.use_non_turreted_offset {
+                    self.block_container.update_non_turreted_offset();
+                }
+            }
+        });
+    }
+
+    fn block_offset_settings(&mut self, ui: &mut Ui) {
+        egui::Frame::new()
+            .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
+            .inner_margin(6.0)
+            .corner_radius(0.0)
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label("Use Auto (Non-Turreted) Offset:");
+                    if ui
+                        .checkbox(&mut self.block_container.use_non_turreted_offset, "")
+                        .clicked()
+                    {
+                        if self.block_container.use_non_turreted_offset {
+                            self.block_container.update_non_turreted_offset();
+                        }
+                    }
+                });
+                ui.horizontal(|ui| {
+                    if self.block_container.use_non_turreted_offset {
+                        ui.label(format!(
+                            "Offset: {:.2}, {:.2}",
+                            self.block_container.offset.x, self.block_container.offset.y
+                        ));
+                    } else {
+                        ui.label("Offset:");
+                        ui.add(DragValue::new(&mut self.block_container.offset.x));
+                        ui.label(",");
+                        ui.add(DragValue::new(&mut self.block_container.offset.y));
+                    }
+                });
+                ui.label("Block offset is added to all shroud layer offsets on import and subtracted from all shroud layer offsets on export; no visual change while editing.");
             });
     }
 
