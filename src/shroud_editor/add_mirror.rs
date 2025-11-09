@@ -16,6 +16,9 @@ pub fn add_mirror(
     loaded_shapes: &Shapes,
     loaded_shapes_mirror_pairs: &[(usize, usize)],
 ) {
+    if shroud[index].mirror_index_option.is_some() {
+        return;
+    }
     shroud[index].mirror_index_option = Some(shroud.len());
 
     let offset = shroud[index].shroud_layer.offset.clone().unwrap();

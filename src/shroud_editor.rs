@@ -102,6 +102,7 @@ impl eframe::App for ShroudEditor {
 
         self.hotkey_copy(ctx);
         self.hotkey_paste(ctx);
+        self.hotkey_mirroring(ctx);
 
         // println!("{:.1}", 1.0 / self.dt);
 
@@ -114,6 +115,7 @@ mod delete_shroud_layers;
 mod delta_time;
 mod draw_grid;
 mod hotkey_copy_and_paste;
+mod hotkey_mirroring;
 mod hotkey_shroud_layer_deletion;
 mod left_panel;
 mod parse_shapes_text;

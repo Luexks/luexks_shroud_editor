@@ -25,7 +25,7 @@ impl ShroudEditor {
             // let start = ui.cursor().min.y;
             // println!("{}", start);
             // (0..self.shroud.len()).for_each(|index| {
-            for index in (0..self.shroud.len()) {
+            for index in 0..self.shroud.len() {
                 let is_selected = self
                     .shroud_layer_interaction
                     .is_shroud_layer_index_selected(index);
@@ -414,10 +414,7 @@ fn shroud_layer_mirror_settings(
             if ui.button("Delete Mirror").clicked() {
                 shroud[mirror_index].delete_next_frame = true;
             }
-        } else if ui.button("Add Mirror").clicked()
-            || (shroud_layer_interaction.selection().contains(&index)
-                && ui.input(|i| i.key_pressed(Key::F)))
-        {
+        } else if ui.button("Add Mirror").clicked() {
             add_mirror(
                 shroud,
                 index,
