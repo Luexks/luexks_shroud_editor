@@ -9,13 +9,15 @@ impl ShroudEditor {
                 .selection()
                 .iter()
                 .for_each(|shroud_layer_index| {
-                    add_mirror(
-                        &mut self.shroud,
-                        *shroud_layer_index,
-                        false,
-                        &self.loaded_shapes,
-                        &self.loaded_shapes_mirror_pairs,
-                    );
+                    if self.shroud[*shroud_layer_index].mirror_index_option.is_none() {
+                        add_mirror(
+                            &mut self.shroud,
+                            *shroud_layer_index,
+                            false,
+                            &self.loaded_shapes,
+                            &self.loaded_shapes_mirror_pairs,
+                        );
+                    }
                 });
         }
     }

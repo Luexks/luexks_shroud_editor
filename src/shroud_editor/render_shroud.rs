@@ -26,7 +26,7 @@ impl ShroudEditor {
             } else {
                 ShroudLayer {
                     size: Some(do2d_size_from_verts(&self.block_container.vertices)),
-                    // offset: Some(do3d_float_from(-self.block_container.offset.x, -self.block_container.offset.y, 0.0)),
+                    offset: Some(do3d_float_from(0.0, 0.0, 0.0)),
                     ..Default::default()
                 }
             },

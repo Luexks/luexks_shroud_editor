@@ -40,6 +40,9 @@ impl ShroudEditor {
         }
         if let ShroudLayerInteraction::Placing { selection } = &self.shroud_layer_interaction {
             selection.iter().for_each(|index| {
+                // dbg!(&self.shroud);
+                // dbg!(index);
+                // dbg!(selection);
                 let old_drag_pos = self.shroud[*index].drag_pos.unwrap();
                 self.shroud[*index].drag_pos =
                     Some(pos2(old_drag_pos.x - delta.x, old_drag_pos.y + delta.y));
