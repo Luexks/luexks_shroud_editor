@@ -9,7 +9,10 @@ impl ShroudEditor {
                 .selection()
                 .iter()
                 .for_each(|shroud_layer_index| {
-                    if self.shroud[*shroud_layer_index].mirror_index_option.is_none() {
+                    if self.shroud[*shroud_layer_index]
+                        .mirror_index_option
+                        .is_none()
+                    {
                         add_mirror(
                             &mut self.shroud,
                             *shroud_layer_index,

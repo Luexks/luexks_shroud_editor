@@ -60,8 +60,7 @@ impl ShroudEditor {
                     self.shroud_clipboard
                         .iter()
                         .fold(0, |count, shroud_layer_container| {
-                            if shroud_layer_container.mirror_index_option.is_some()
-                            {
+                            if shroud_layer_container.mirror_index_option.is_some() {
                                 count + 2
                             } else {
                                 count + 1
