@@ -1,7 +1,7 @@
 use std::f32::consts::TAU;
 
 use crate::{
-    shroud_editor::{ShroudEditor, shroud_settings::angle_knob_settings},
+    shroud_editor::{ShroudEditor, add_mirror::add_mirror, shroud_settings::angle_knob_settings},
     shroud_layer_container::ShroudLayerContainer,
     shroud_layer_interaction::ShroudLayerInteraction,
 };
@@ -89,71 +89,12 @@ impl ShroudEditor {
 
     fn radial_tool(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
+            let distance = self.tool_settings.radial_by_distance;
+            let count = self.tool_settings.radial_by_count;
+            let angle = self.tool_settings.radial_by_angle;
+            self.radial_button(ui, distance, count, angle);
             let distance = &mut self.tool_settings.radial_by_distance;
             let count = &mut self.tool_settings.radial_by_count;
-            let angle = self.tool_settings.radial_by_angle;
-            if ui.button("Radial of").clicked() {
-                let selection = self.shroud_layer_interaction.selection();
-                if !selection.is_empty() {
-                    let new_selection_len = *count * selection.len();
-                    let centre = self.shroud[selection[0]]
-                        .shroud_layer
-                        .offset
-                        .clone()
-                        .unwrap();
-                    selection.iter().for_each(|shroud_layer_index| {
-                        (0..*count).for_each(|i| {
-                            let original_shroud_layer_container = &self.shroud[*shroud_layer_index];
-                            let old_offset = original_shroud_layer_container
-                                .shroud_layer
-                                .offset
-                                .as_ref()
-                                .unwrap();
-                            let distance_from_centre =
-                                ((old_offset.x.to_f32() - centre.x.to_f32()).powi(2)
-                                    + (old_offset.y.to_f32() - centre.y.to_f32()).powi(2))
-                                .sqrt();
-                            let new_offset = do3d_float_from(
-                                (distance_from_centre + *distance)
-                                    * (TAU / *count as f32 * i as f32 + angle.to_radians()).cos()
-                                    + centre.x.to_f32(),
-                                -(distance_from_centre + *distance)
-                                    * (TAU / *count as f32 * i as f32 + angle.to_radians()).sin()
-                                    + centre.y.to_f32(),
-                                old_offset.z.to_f32(),
-                            );
-                            let new_angle = Angle::Radian(
-                                original_shroud_layer_container
-                                    .shroud_layer
-                                    .angle
-                                    .as_ref()
-                                    .unwrap()
-                                    .as_radians()
-                                    .get_value()
-                                    + TAU / *count as f32 * i as f32
-                                    + angle.to_radians(),
-                            );
-                            let radial_shroud_layer_container = ShroudLayerContainer {
-                                shroud_layer: ShroudLayer {
-                                    offset: Some(new_offset),
-                                    angle: Some(new_angle),
-                                    ..original_shroud_layer_container.shroud_layer.clone()
-                                },
-                                ..original_shroud_layer_container.clone()
-                            };
-                            self.shroud.push(radial_shroud_layer_container);
-                        });
-                    });
-                    let sorted_selection = selection.iter().copied().sorted().collect::<Vec<_>>();
-                    sorted_selection.iter().rev().for_each(|i| {
-                        self.shroud.remove(*i);
-                    });
-                    self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                        selection: (self.shroud.len() - new_selection_len..self.shroud.len())
-                            .collect(),
-                    }
-                }
-            }
             ui.add(DragValue::new(count).range(2..=360));
             let angle = &mut self.tool_settings.radial_by_angle;
             ui.label("by");
@@ -167,6 +108,96 @@ impl ShroudEditor {
             ui.add(DragValue::new(angle).speed(angle_speed));
             *angle = angle_knob_settings(ui, *angle, self.angle_snap, self.angle_snap_enabled);
         });
+    }
+
+    fn radial_button(&mut self, ui: &mut Ui, distance: f32, count: usize, angle: f32) {
+        if ui.button("Radial of").clicked() {
+            let selection = self.shroud_layer_interaction.selection();
+            if selection.is_empty() {
+                return;
+            }
+            let mut new_selection_len = count * selection.len();
+            let centre = self.shroud[selection[0]]
+                .shroud_layer
+                .offset
+                .clone()
+                .unwrap();
+            let mut old_mirror_indexes = Vec::new();
+            selection.iter().for_each(|shroud_layer_index| {
+                if let Some(old_mirror_index) = self.shroud[*shroud_layer_index].mirror_index_option
+                {
+                    old_mirror_indexes.push(old_mirror_index);
+                }
+                (0..count).for_each(|i| {
+                    let original_shroud_layer_container = &self.shroud[*shroud_layer_index];
+                    let old_offset = original_shroud_layer_container
+                        .shroud_layer
+                        .offset
+                        .as_ref()
+                        .unwrap();
+                    let distance_from_centre = ((old_offset.x.to_f32() - centre.x.to_f32())
+                        .powi(2)
+                        + (old_offset.y.to_f32() - centre.y.to_f32()).powi(2))
+                    .sqrt();
+                    let new_offset = do3d_float_from(
+                        (distance_from_centre + distance)
+                            * (TAU / count as f32 * i as f32 + angle.to_radians()).cos()
+                            + centre.x.to_f32(),
+                        -(distance_from_centre + distance)
+                            * (TAU / count as f32 * i as f32 + angle.to_radians()).sin()
+                            + centre.y.to_f32(),
+                        old_offset.z.to_f32(),
+                    );
+                    let new_angle = Angle::Radian(
+                        original_shroud_layer_container
+                            .shroud_layer
+                            .angle
+                            .as_ref()
+                            .unwrap()
+                            .as_radians()
+                            .get_value()
+                            + TAU / count as f32 * i as f32
+                            + angle.to_radians(),
+                    );
+                    let radial_shroud_layer_container = ShroudLayerContainer {
+                        shroud_layer: ShroudLayer {
+                            offset: Some(new_offset),
+                            angle: Some(new_angle),
+                            ..original_shroud_layer_container.shroud_layer.clone()
+                        },
+                        mirror_index_option: None,
+                        ..original_shroud_layer_container.clone()
+                    };
+                    self.shroud.push(radial_shroud_layer_container);
+                    if self.shroud[*shroud_layer_index]
+                        .mirror_index_option
+                        .is_some()
+                    {
+                        let last = self.shroud.len() - 1;
+                        add_mirror(
+                            &mut self.shroud,
+                            last,
+                            false,
+                            &self.loaded_shapes,
+                            &self.loaded_shapes_mirror_pairs,
+                        );
+                        new_selection_len += 1;
+                    }
+                });
+            });
+            let sorted_selection = selection
+                .iter()
+                .copied()
+                .chain(old_mirror_indexes)
+                .sorted()
+                .collect::<Vec<_>>();
+            sorted_selection.iter().rev().for_each(|i| {
+                self.shroud.remove(*i);
+            });
+            self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                selection: (self.shroud.len() - new_selection_len..self.shroud.len()).collect(),
+            }
+        }
     }
 
     fn move_tool(&mut self, ui: &mut Ui) {
