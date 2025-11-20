@@ -38,7 +38,7 @@ impl ShroudEditor {
         to_be_deleted_indexes.iter().for_each(|index| {
             if let Some(widowed_mirror_index) = self.shroud[*index].mirror_index_option {
                 self.shroud[widowed_mirror_index].mirror_index_option = None;
-                self.shroud[widowed_mirror_index].drag_pos = None;
+                self.shroud[widowed_mirror_index].drag_pos_option = None;
             }
 
             let mut drop_down = CollapsingState::load(ctx, index.to_string().into()).unwrap();

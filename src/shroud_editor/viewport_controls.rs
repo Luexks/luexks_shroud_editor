@@ -28,8 +28,8 @@ impl ShroudEditor {
         if let ShroudLayerInteraction::Dragging { selection, .. } = &self.shroud_layer_interaction {
             selection.iter().for_each(|index| {
                 // let old_offset = self.shroud[*index].shroud_layer.offset.clone().unwrap();
-                let old_drag_pos = self.shroud[*index].drag_pos.unwrap();
-                self.shroud[*index].drag_pos =
+                let old_drag_pos = self.shroud[*index].drag_pos_option.unwrap();
+                self.shroud[*index].drag_pos_option =
                     Some(pos2(old_drag_pos.x - delta.x, old_drag_pos.y + delta.y));
                 // self.shroud[*index].shroud_layer.offset = Some(do3d_float_from(
                 //     old_offset.x.to_f32() - delta.x,
@@ -43,8 +43,8 @@ impl ShroudEditor {
                 // dbg!(&self.shroud);
                 // dbg!(index);
                 // dbg!(selection);
-                let old_drag_pos = self.shroud[*index].drag_pos.unwrap();
-                self.shroud[*index].drag_pos =
+                let old_drag_pos = self.shroud[*index].drag_pos_option.unwrap();
+                self.shroud[*index].drag_pos_option =
                     Some(pos2(old_drag_pos.x - delta.x, old_drag_pos.y + delta.y));
             });
         }

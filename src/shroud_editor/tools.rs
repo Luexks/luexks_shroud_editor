@@ -116,7 +116,7 @@ impl ShroudEditor {
             if selection.is_empty() {
                 return;
             }
-            let mut new_selection_len = count * selection.len();
+            let new_selection_len = count * selection.len();
             let centre = self.shroud[selection[0]]
                 .shroud_layer
                 .offset
@@ -125,6 +125,7 @@ impl ShroudEditor {
             let mut old_mirror_indexes = Vec::new();
             selection.iter().for_each(|shroud_layer_index| {
                 if let Some(old_mirror_index) = self.shroud[*shroud_layer_index].mirror_index_option
+                    && !selection.contains(&old_mirror_index)
                 {
                     old_mirror_indexes.push(old_mirror_index);
                 }
@@ -139,15 +140,64 @@ impl ShroudEditor {
                         .powi(2)
                         + (old_offset.y.to_f32() - centre.y.to_f32()).powi(2))
                     .sqrt();
-                    let new_offset = do3d_float_from(
+                    let new_drag_pos = pos2(
                         (distance_from_centre + distance)
                             * (TAU / count as f32 * i as f32 + angle.to_radians()).cos()
                             + centre.x.to_f32(),
                         -(distance_from_centre + distance)
                             * (TAU / count as f32 * i as f32 + angle.to_radians()).sin()
                             + centre.y.to_f32(),
-                        old_offset.z.to_f32(),
                     );
+                    // let x_from_centre = old_offset.x.to_f32() - centre.x.to_f32();
+                    // let y_from_centre = old_offset.y.to_f32() - centre.y.to_f32();
+                    // let angle_from_centre = (old_offset.x.to_f32() - centre.x.to_f32())
+                    //     .atan2(old_offset.y.to_f32() - centre.y.to_f32());
+                    // let new_drag_pos = pos2(
+                    //     (x_from_centre + distance)
+                    //         * (TAU / count as f32 * i as f32 + angle.to_radians()).cos()
+                    //         + centre.x.to_f32(),
+                    //     -(y_from_centre + distance)
+                    //         * (TAU / count as f32 * i as f32 + angle.to_radians()).sin()
+                    //         + centre.y.to_f32(),
+                    // );
+                    // let new_drag_pos = pos2(
+                    //     distance
+                    //         * (TAU / count as f32 * i as f32 + angle.to_radians()).cos()
+                    //     + x_from_centre
+                    //         * (TAU / count as f32 * i as f32 + angle.to_radians()).sin()
+                    //         + centre.x.to_f32(),
+                    //     -(y_from_centre + distance)
+                    //         * (TAU / count as f32 * i as f32 + angle.to_radians()).sin()
+                    //     + y_from_centre
+                    //         * (TAU / count as f32 * i as f32 + angle.to_radians()).cos()
+                    //         + centre.y.to_f32(),
+                    // );
+                    // let new_drag_pos = pos2(
+                    //     distance
+                    //         * (TAU / count as f32 * i as f32 + angle.to_radians()).cos()
+                    //     + distance_from_centre
+                    //         * (TAU / count as f32 * i as f32 + angle_from_centre.to_radians()).cos()
+                    //         + centre.x.to_f32(),
+                    //     -distance
+                    //         * (TAU / count as f32 * i as f32 + angle.to_radians()).sin()
+                    //     + -distance_from_centre
+                    //         * (TAU / count as f32 * i as f32 + angle_from_centre.to_radians()).sin()
+                    //         + centre.y.to_f32(),
+                    // );
+                    // let new_drag_pos = pos2(
+                    //     (distance + distance_from_centre)
+                    //         * (TAU / count as f32 * i as f32
+                    //             + (angle.to_radians() + angle_from_centre))
+                    //             .cos()
+                    //         + centre.x.to_f32(),
+                    //     -(distance + distance_from_centre)
+                    //         * (TAU / count as f32 * i as f32
+                    //             + (angle.to_radians() + angle_from_centre))
+                    //             .sin()
+                    //         + centre.y.to_f32(),
+                    // );
+                    let new_offset =
+                        do3d_float_from(new_drag_pos.x, new_drag_pos.y, old_offset.z.to_f32());
                     let new_angle = Angle::Radian(
                         original_shroud_layer_container
                             .shroud_layer
@@ -165,24 +215,10 @@ impl ShroudEditor {
                             angle: Some(new_angle),
                             ..original_shroud_layer_container.shroud_layer.clone()
                         },
-                        mirror_index_option: None,
+                        drag_pos_option: Some(new_drag_pos),
                         ..original_shroud_layer_container.clone()
                     };
                     self.shroud.push(radial_shroud_layer_container);
-                    if self.shroud[*shroud_layer_index]
-                        .mirror_index_option
-                        .is_some()
-                    {
-                        let last = self.shroud.len() - 1;
-                        add_mirror(
-                            &mut self.shroud,
-                            last,
-                            false,
-                            &self.loaded_shapes,
-                            &self.loaded_shapes_mirror_pairs,
-                        );
-                        new_selection_len += 1;
-                    }
                 });
             });
             let sorted_selection = selection
@@ -194,9 +230,30 @@ impl ShroudEditor {
             sorted_selection.iter().rev().for_each(|i| {
                 self.shroud.remove(*i);
             });
+            // let mut mirror_count = 0;
             self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
                 selection: (self.shroud.len() - new_selection_len..self.shroud.len()).collect(),
-            }
+            };
+            (self.shroud.len() - new_selection_len..self.shroud.len()).for_each(
+                |shroud_layer_index| {
+                    if self.shroud[shroud_layer_index]
+                        .mirror_index_option
+                        .is_some()
+                    {
+                        add_mirror(
+                            &mut self.shroud,
+                            shroud_layer_index,
+                            true,
+                            &self.loaded_shapes,
+                            &self.loaded_shapes_mirror_pairs,
+                        );
+                        // mirror_count += 1;
+                    }
+                },
+            );
+            // self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+            //     selection: (self.shroud.len() - new_selection_len - mirror_count..self.shroud.len()).collect(),
+            // };
         }
     }
 

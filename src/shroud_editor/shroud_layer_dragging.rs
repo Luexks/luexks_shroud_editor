@@ -27,15 +27,15 @@ pub fn shroud_layer_dragging(
             .offset
             .clone()
             .unwrap();
-        if shroud[*selected_index].drag_pos.is_none() {
-            shroud[*selected_index].drag_pos =
+        if shroud[*selected_index].drag_pos_option.is_none() {
+            shroud[*selected_index].drag_pos_option =
                 Some(pos2(old_offset.x.to_f32(), old_offset.y.to_f32()));
         }
         let (x, y) = (
-            delta.x + shroud[*selected_index].drag_pos.unwrap().x,
-            -delta.y + shroud[*selected_index].drag_pos.unwrap().y,
+            delta.x + shroud[*selected_index].drag_pos_option.unwrap().x,
+            -delta.y + shroud[*selected_index].drag_pos_option.unwrap().y,
         );
-        shroud[*selected_index].drag_pos = Some(pos2(x, y));
+        shroud[*selected_index].drag_pos_option = Some(pos2(x, y));
         shroud[*selected_index].shroud_layer.offset = Some(DisplayOriented3D {
             x: don_float_from(x),
             y: don_float_from(y),
@@ -58,7 +58,7 @@ pub fn shroud_layer_dragging(
     });
     if response.drag_stopped() {
         selection.iter().for_each(|selected_index| {
-            shroud[*selected_index].drag_pos = None;
+            shroud[*selected_index].drag_pos_option = None;
         });
         *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
             selection: shroud_layer_interaction.selection(),

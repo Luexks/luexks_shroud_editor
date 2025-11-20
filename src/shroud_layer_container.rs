@@ -18,7 +18,7 @@ pub struct ShroudLayerContainer {
     pub vertices: Vec<Pos2>,
     pub shape_id: String,
     pub delete_next_frame: bool,
-    pub drag_pos: Option<Pos2>,
+    pub drag_pos_option: Option<Pos2>,
     pub mirror_index_option: Option<usize>,
 }
 
@@ -34,7 +34,7 @@ impl Default for ShroudLayerContainer {
             vertices: DEFAULT_SQUARE.into(),
             shape_id: "SQUARE".to_string(),
             delete_next_frame: false,
-            drag_pos: None,
+            drag_pos_option: None,
             mirror_index_option: None,
         }
     }
