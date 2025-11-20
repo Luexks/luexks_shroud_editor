@@ -189,6 +189,21 @@ impl ShroudEditor {
                             offset.z.to_f32(),
                         );
                         self.shroud[*shroud_layer_index].shroud_layer.offset = Some(new_offset);
+                        if let Some(mirror_index) =
+                            self.shroud[*shroud_layer_index].mirror_index_option
+                        {
+                            let offset = self.shroud[*shroud_layer_index]
+                                .shroud_layer
+                                .offset
+                                .as_ref()
+                                .unwrap();
+                            let new_mirror_offset = do3d_float_from(
+                                offset.x.to_f32(),
+                                -offset.y.to_f32(),
+                                offset.z.to_f32(),
+                            );
+                            self.shroud[mirror_index].shroud_layer.offset = Some(new_mirror_offset);
+                        }
                     });
             }
             let angle = &mut self.tool_settings.move_selection_by_angle;
