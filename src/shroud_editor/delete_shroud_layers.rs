@@ -1,6 +1,6 @@
 use egui::{Context, collapsing_header::CollapsingState};
 
-use crate::shroud_editor::ShroudEditor;
+use crate::{shroud_editor::ShroudEditor, shroud_layer_interaction::ShroudLayerInteraction};
 
 impl ShroudEditor {
     pub fn delete_shroud_layers(&mut self, ctx: &Context) {
@@ -36,10 +36,10 @@ impl ShroudEditor {
             })
             .collect::<Vec<_>>();
         to_be_deleted_indexes.iter().for_each(|index| {
-            if let Some(widowed_mirror_index) = self.shroud[*index].mirror_index_option {
-                self.shroud[widowed_mirror_index].mirror_index_option = None;
-                self.shroud[widowed_mirror_index].drag_pos_option = None;
-            }
+            // if let Some(widowed_mirror_index) = self.shroud[*index].mirror_index_option {
+            //     self.shroud[widowed_mirror_index].mirror_index_option = None;
+            //     self.shroud[widowed_mirror_index].drag_pos_option = None;
+            // }
 
             let mut drop_down = CollapsingState::load(ctx, index.to_string().into()).unwrap();
             drop_down.set_open(true);
@@ -51,6 +51,13 @@ impl ShroudEditor {
                     && mirror_index > *index
                 {
                     shroud_layer_container.mirror_index_option = Some(mirror_index - 1);
+                }
+            });
+            self.shroud_layer_interaction.selection().iter().copied().enumerate().for_each(|(index_in_selection_list, selected_index)| {
+                if selected_index > *index {
+                    let mut new_selection = self.shroud_layer_interaction.selection().clone();
+                    new_selection[index_in_selection_list] -= 1;
+                    self.shroud_layer_interaction = ShroudLayerInteraction::Inaction { selection: new_selection };
                 }
             });
         });

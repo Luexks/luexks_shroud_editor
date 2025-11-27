@@ -280,8 +280,7 @@ fn select_deselect_and_delete_buttons(
                 *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
                     selection: shroud_layer_interaction
                         .selection()
-                        .iter()
-                        .copied()
+                        .into_iter()
                         .chain(std::iter::once(index))
                         .collect(),
                 };
@@ -290,14 +289,20 @@ fn select_deselect_and_delete_buttons(
             *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
                 selection: shroud_layer_interaction
                     .selection()
-                    .iter()
-                    .copied()
+                    .into_iter()
                     .filter(|selection_index| *selection_index != index)
                     .collect(),
             };
         }
         if ui.button("Delete (Double Click)").double_clicked() {
             shroud_layer_container.delete_next_frame = true;
+            *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                selection: shroud_layer_interaction
+                    .selection()
+                    .into_iter()
+                    .filter(|selection_index| *selection_index != index)
+                    .collect(),
+            };
         }
     });
 }
@@ -391,8 +396,7 @@ fn shroud_layer_mirror_settings(
                     *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
                         selection: shroud_layer_interaction
                             .selection()
-                            .iter()
-                            .copied()
+                            .into_iter()
                             .chain(std::iter::once(mirror_index))
                             .collect(),
                     };
@@ -401,8 +405,7 @@ fn shroud_layer_mirror_settings(
                 *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
                     selection: shroud_layer_interaction
                         .selection()
-                        .iter()
-                        .copied()
+                        .into_iter()
                         .filter(|selection_index| *selection_index != mirror_index)
                         .collect(),
                 };
@@ -413,6 +416,13 @@ fn shroud_layer_mirror_settings(
             }
             if ui.button("Delete Mirror").clicked() {
                 shroud[mirror_index].delete_next_frame = true;
+                *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                    selection: shroud_layer_interaction
+                        .selection()
+                        .into_iter()
+                        .filter(|selection_index| *selection_index != mirror_index)
+                        .collect(),
+                };
             }
         } else if ui.button("Add Mirror").clicked() {
             add_mirror(
