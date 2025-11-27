@@ -71,6 +71,27 @@ impl ShroudEditor {
                 self.background_grid_settings(ui);
                 self.angle_snap_settings(ui);
                 self.fill_color_gradient_setting(ui);
+                self.binding_config(ctx, ui);
+            });
+    }
+
+    fn binding_config(&mut self, ctx: &Context, ui: &mut Ui) {
+        CollapsingState::load_with_default_open(ctx, "bindings".into(), true)
+            .show_header(ui, |ui| ui.label("Bindings"))
+            .body_unindented(|ui| {
+                ui.label(
+                    r#"This will be a binding section in the future, but for now:
+    WASD move
+    Scroll zoom
+    click: select
+    shift + click: multiselect
+    drag: drag
+    shift + drag: multiselect drag
+    c: copy
+    v: paste
+    f: add mirror to selection
+    r: delete selection"#,
+                );
             });
     }
 
