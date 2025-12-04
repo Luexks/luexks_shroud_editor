@@ -1,11 +1,6 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea,
-    Slider, TextBuffer, TextEdit, Ui,
-    collapsing_header::CollapsingState,
-    color_picker::{Alpha, color_edit_button_rgba},
-    scroll_area::ScrollBarVisibility,
-    vec2,
+    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui, collapsing_header::CollapsingState, color_picker::{Alpha, color_edit_button_rgba}, pos2, scroll_area::ScrollBarVisibility, vec2
 };
 use egui_extras::syntax_highlighting::{CodeTheme, highlight};
 use luexks_reassembly::{
@@ -27,8 +22,8 @@ use crate::{
         parse_shapes_text::{ShapesParseResult, parse_shapes_text},
         parse_shroud_text::{ShroudParseResult, parse_shroud_text},
     },
+    shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
     shroud_layer_container::ShroudLayerContainer,
-    shroud_layer_interaction::ShroudLayerInteraction,
 };
 
 type IsChanged = bool;
@@ -106,19 +101,19 @@ impl ShroudEditor {
         });
         ui.horizontal(|ui| {
             if ui.button("Select All").clicked() {
-                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                self.shroud_interaction = ShroudInteraction::Inaction {
                     selection: (0..self.shroud.len()).collect(),
                 };
             }
             if ui.button("Deselect All").clicked() {
-                self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                self.shroud_interaction = ShroudInteraction::Inaction {
                     selection: Vec::new(),
                 };
             }
         });
         ui.horizontal(|ui| {
             if ui.button("Expand Selection").clicked() {
-                self.shroud_layer_interaction
+                self.shroud_interaction
                     .selection()
                     .iter()
                     .for_each(|index| {
@@ -129,7 +124,7 @@ impl ShroudEditor {
                     });
             }
             if ui.button("Collapse Selection").clicked() {
-                self.shroud_layer_interaction
+                self.shroud_interaction
                     .selection()
                     .iter()
                     .for_each(|index| {
@@ -300,6 +295,7 @@ impl ShroudEditor {
     }
 
     fn add_shroud_layer(&mut self) {
+        let last = self.shroud.len();
         let new_shroud_offset =
             do3d_float_from(self.world_mouse_pos.x, -self.world_mouse_pos.y, 0.01);
         self.shroud.push(ShroudLayerContainer {
@@ -312,8 +308,17 @@ impl ShroudEditor {
             },
             ..Default::default()
         });
-        self.shroud_layer_interaction = ShroudLayerInteraction::Placing {
-            selection: vec![self.shroud.len() - 1],
+        let world_mouse_pos = self.world_mouse_pos;
+        let drag_pos = pos2(world_mouse_pos.x, -world_mouse_pos.y);
+        self.shroud_interaction = ShroudInteraction::Placing {
+            selection: MovingShroudSelection(
+                [MovingShroudLayerInteraction {
+                    idx: last,
+                    drag_pos: drag_pos,
+                }]
+                .into(),
+            ),
+            main_idx: last,
         };
     }
 

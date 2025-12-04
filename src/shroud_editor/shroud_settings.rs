@@ -13,8 +13,8 @@ use crate::{
     shroud_editor::{
         ShroudEditor, add_mirror::add_mirror, shape_combo_box::shroud_layer_shape_combo_box,
     },
+    shroud_interaction::ShroudInteraction,
     shroud_layer_container::ShroudLayerContainer,
-    shroud_layer_interaction::ShroudLayerInteraction,
 };
 
 impl ShroudEditor {
@@ -27,14 +27,14 @@ impl ShroudEditor {
             // (0..self.shroud.len()).for_each(|index| {
             for index in 0..self.shroud.len() {
                 let is_selected = self
-                    .shroud_layer_interaction
+                    .shroud_interaction
                     .is_shroud_layer_index_selected(index);
                 if !self.only_show_selected_shroud_layers || is_selected {
                     shroud_layer_settings(
                         is_selected,
                         ui,
                         index,
-                        &mut self.shroud_layer_interaction,
+                        &mut self.shroud_interaction,
                         self.grid_snap_enabled,
                         self.grid_size,
                         self.angle_snap,
@@ -64,7 +64,7 @@ fn shroud_layer_settings(
     is_selected: bool,
     ui: &mut Ui,
     index: usize,
-    shroud_layer_interaction: &mut ShroudLayerInteraction,
+    shroud_interaction: &mut ShroudInteraction,
     grid_snap_enabled: bool,
     grid_size: f32,
     angle_snap: f32,
@@ -101,7 +101,7 @@ fn shroud_layer_settings(
                             ui,
                             index,
                             &mut shroud[index],
-                            shroud_layer_interaction,
+                            shroud_interaction,
                         );
                     })
                     .body_unindented(|ui| {
@@ -126,7 +126,7 @@ fn shroud_layer_settings(
                                 ui,
                                 shroud,
                                 index,
-                                shroud_layer_interaction,
+                                shroud_interaction,
                                 loaded_shapes,
                                 loaded_shapes_mirror_pairs,
                             );
@@ -272,13 +272,13 @@ fn select_deselect_and_delete_buttons(
     ui: &mut Ui,
     index: usize,
     shroud_layer_container: &mut ShroudLayerContainer,
-    shroud_layer_interaction: &mut ShroudLayerInteraction,
+    shroud_interaction: &mut ShroudInteraction,
 ) {
     ui.horizontal(|ui| {
-        if !shroud_layer_interaction.selection().contains(&index) {
+        if !shroud_interaction.selection().contains(&index) {
             if ui.button("Select").clicked() {
-                *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                    selection: shroud_layer_interaction
+                *shroud_interaction = ShroudInteraction::Inaction {
+                    selection: shroud_interaction
                         .selection()
                         .into_iter()
                         .chain(std::iter::once(index))
@@ -286,8 +286,8 @@ fn select_deselect_and_delete_buttons(
                 };
             }
         } else if ui.button("Deselect").clicked() {
-            *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                selection: shroud_layer_interaction
+            *shroud_interaction = ShroudInteraction::Inaction {
+                selection: shroud_interaction
                     .selection()
                     .into_iter()
                     .filter(|selection_index| *selection_index != index)
@@ -296,8 +296,8 @@ fn select_deselect_and_delete_buttons(
         }
         if ui.button("Delete (Double Click)").double_clicked() {
             shroud_layer_container.delete_next_frame = true;
-            *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                selection: shroud_layer_interaction
+            *shroud_interaction = ShroudInteraction::Inaction {
+                selection: shroud_interaction
                     .selection()
                     .into_iter()
                     .filter(|selection_index| *selection_index != index)
@@ -385,16 +385,16 @@ fn shroud_layer_mirror_settings(
     ui: &mut Ui,
     shroud: &mut Vec<ShroudLayerContainer>,
     index: usize,
-    shroud_layer_interaction: &mut ShroudLayerInteraction,
+    shroud_interaction: &mut ShroudInteraction,
     loaded_shapes: &Shapes,
     loaded_shapes_mirror_pairs: &[(usize, usize)],
 ) {
     ui.horizontal(|ui| {
         if let Some(mirror_index) = shroud[index].mirror_index_option {
-            if !shroud_layer_interaction.selection().contains(&mirror_index) {
+            if !shroud_interaction.selection().contains(&mirror_index) {
                 if ui.button("Select Mirror").clicked() {
-                    *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                        selection: shroud_layer_interaction
+                    *shroud_interaction = ShroudInteraction::Inaction {
+                        selection: shroud_interaction
                             .selection()
                             .into_iter()
                             .chain(std::iter::once(mirror_index))
@@ -402,8 +402,8 @@ fn shroud_layer_mirror_settings(
                     };
                 }
             } else if ui.button("Deselect Mirror").clicked() {
-                *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                    selection: shroud_layer_interaction
+                *shroud_interaction = ShroudInteraction::Inaction {
+                    selection: shroud_interaction
                         .selection()
                         .into_iter()
                         .filter(|selection_index| *selection_index != mirror_index)
@@ -416,8 +416,8 @@ fn shroud_layer_mirror_settings(
             }
             if ui.button("Delete Mirror").clicked() {
                 shroud[mirror_index].delete_next_frame = true;
-                *shroud_layer_interaction = ShroudLayerInteraction::Inaction {
-                    selection: shroud_layer_interaction
+                *shroud_interaction = ShroudInteraction::Inaction {
+                    selection: shroud_interaction
                         .selection()
                         .into_iter()
                         .filter(|selection_index| *selection_index != mirror_index)

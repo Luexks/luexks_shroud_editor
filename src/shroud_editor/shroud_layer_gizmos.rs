@@ -5,7 +5,7 @@ use crate::shroud_editor::{ShroudEditor, shroud_settings::angle_knob_settings};
 
 impl ShroudEditor {
     pub fn shroud_layer_gizmos(&mut self, ui: &mut Ui, rect: Rect) {
-        self.shroud_layer_interaction
+        self.shroud_interaction
             .selection()
             .iter()
             .for_each(|index| {

@@ -7,7 +7,7 @@ use crate::{
 
 impl ShroudEditor {
     pub fn is_shroud_layer_index_selected(&self, index: usize) -> bool {
-        self.shroud_layer_interaction
+        self.shroud_interaction
             .is_shroud_layer_index_selected(index)
     }
 

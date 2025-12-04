@@ -5,7 +5,7 @@ use crate::shroud_editor::{ShroudEditor, add_mirror::add_mirror};
 impl ShroudEditor {
     pub fn hotkey_mirroring(&mut self, ctx: &Context) {
         if ctx.input(|i| i.key_pressed(Key::F)) {
-            self.shroud_layer_interaction
+            self.shroud_interaction
                 .selection()
                 .iter()
                 .for_each(|shroud_layer_index| {

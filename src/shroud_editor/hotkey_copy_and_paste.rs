@@ -2,8 +2,8 @@ use egui::{Context, Key, pos2};
 
 use crate::{
     shroud_editor::{ShroudEditor, add_mirror::add_mirror},
+    shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
     shroud_layer_container::ShroudLayerContainer,
-    shroud_layer_interaction::ShroudLayerInteraction,
 };
 
 impl ShroudEditor {
@@ -11,7 +11,7 @@ impl ShroudEditor {
         let hotkey_pressed = ctx.input(|i| i.key_pressed(Key::C));
         if hotkey_pressed {
             self.shroud_clipboard = self
-                .shroud_layer_interaction
+                .shroud_interaction
                 .selection()
                 .iter()
                 .map(|index| self.shroud[*index].clone())
@@ -19,7 +19,7 @@ impl ShroudEditor {
         }
     }
     pub fn hotkey_paste(&mut self, ctx: &Context) {
-        if let ShroudLayerInteraction::Placing { .. } = self.shroud_layer_interaction {
+        if let ShroudInteraction::Placing { .. } = self.shroud_interaction {
         } else {
             let hotkey_pressed = ctx.input(|i| i.key_pressed(Key::V));
             if hotkey_pressed {
@@ -41,7 +41,6 @@ impl ShroudEditor {
                             old_offset.y.to_f32() - avg_pos.y - self.world_mouse_pos.y,
                         );
                         let new_shroud_layer_container = ShroudLayerContainer {
-                            drag_pos_option: Some(drag_pos),
                             ..shroud_layer_container.clone()
                         };
                         self.shroud.push(new_shroud_layer_container);
@@ -66,10 +65,20 @@ impl ShroudEditor {
                                 count + 1
                             }
                         });
-                self.shroud_layer_interaction = ShroudLayerInteraction::Placing {
-                    selection: (self.shroud.len() - clipboard_count_plus_mirrors
-                        ..self.shroud.len())
-                        .collect(),
+                self.shroud_interaction = ShroudInteraction::Placing {
+                    main_idx: 0,
+                    selection: MovingShroudSelection(
+                        (self.shroud.len() - clipboard_count_plus_mirrors..self.shroud.len())
+                            .map(|idx| {
+                                let world_mouse_pos = self.world_mouse_pos;
+                                let drag_pos = pos2(world_mouse_pos.x, -world_mouse_pos.y);
+                                MovingShroudLayerInteraction {
+                                    idx: idx,
+                                    drag_pos: drag_pos,
+                                }
+                            })
+                            .collect(),
+                    ),
                 }
             }
         }

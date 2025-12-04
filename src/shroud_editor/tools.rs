@@ -2,8 +2,8 @@ use std::f32::consts::TAU;
 
 use crate::{
     shroud_editor::{ShroudEditor, add_mirror::add_mirror, shroud_settings::angle_knob_settings},
+    shroud_interaction::ShroudInteraction,
     shroud_layer_container::ShroudLayerContainer,
-    shroud_layer_interaction::ShroudLayerInteraction,
 };
 use egui::{DragValue, Ui, collapsing_header::CollapsingState, pos2};
 use itertools::{Itertools, sorted};
@@ -56,7 +56,7 @@ impl ShroudEditor {
                 .button("Set to default proportions with size multiplier")
                 .clicked()
             {
-                self.shroud_layer_interaction
+                self.shroud_interaction
                     .selection()
                     .iter()
                     .for_each(|shroud_layer_index| {
@@ -112,7 +112,7 @@ impl ShroudEditor {
 
     fn radial_button(&mut self, ui: &mut Ui, distance: f32, count: usize, angle: f32) {
         if ui.button("Radial of").clicked() {
-            let selection = self.shroud_layer_interaction.selection();
+            let selection = self.shroud_interaction.selection();
             if selection.is_empty() {
                 return;
             }
@@ -215,7 +215,6 @@ impl ShroudEditor {
                             angle: Some(new_angle),
                             ..original_shroud_layer_container.shroud_layer.clone()
                         },
-                        drag_pos_option: Some(new_drag_pos),
                         ..original_shroud_layer_container.clone()
                     };
                     self.shroud.push(radial_shroud_layer_container);
@@ -231,7 +230,7 @@ impl ShroudEditor {
                 self.shroud.remove(*i);
             });
             // let mut mirror_count = 0;
-            self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+            self.shroud_interaction = ShroudInteraction::Inaction {
                 selection: (self.shroud.len() - new_selection_len..self.shroud.len()).collect(),
             };
             (self.shroud.len() - new_selection_len..self.shroud.len()).for_each(
@@ -251,7 +250,7 @@ impl ShroudEditor {
                     }
                 },
             );
-            // self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+            // self.shroud_interaction = ShroudInteraction::Inaction {
             //     selection: (self.shroud.len() - new_selection_len - mirror_count..self.shroud.len()).collect(),
             // };
         }
@@ -262,7 +261,7 @@ impl ShroudEditor {
             let distance = &mut self.tool_settings.move_selection_by_distance;
             let angle = self.tool_settings.move_selection_by_angle;
             if ui.button("Move by").clicked() {
-                self.shroud_layer_interaction
+                self.shroud_interaction
                     .selection()
                     .iter()
                     .for_each(|shroud_layer_index| {

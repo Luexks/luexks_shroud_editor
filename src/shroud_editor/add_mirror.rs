@@ -44,11 +44,11 @@ pub fn add_mirror(
             ..shroud[index].shroud_layer.clone()
         },
         mirror_index_option: Some(index),
-        drag_pos_option: if should_mirror_be_selected {
-            shroud[index].drag_pos_option
-        } else {
-            None
-        },
+        // drag_pos_option: if should_mirror_be_selected {
+        //     shroud[index].drag_pos_option
+        // } else {
+        //     None
+        // },
         shape_id,
         vertices,
         ..shroud[index].clone()

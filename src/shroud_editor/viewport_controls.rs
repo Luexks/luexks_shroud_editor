@@ -2,7 +2,10 @@ use std::f32::consts::SQRT_2;
 
 use egui::{Key, Pos2, Rect, Ui, pos2};
 
-use crate::{shroud_editor::ShroudEditor, shroud_layer_interaction::ShroudLayerInteraction};
+use crate::{
+    shroud_editor::ShroudEditor,
+    shroud_interaction::{MovingShroudLayerInteraction, ShroudInteraction},
+};
 
 impl ShroudEditor {
     pub fn pan_controls(&mut self) {
@@ -25,28 +28,33 @@ impl ShroudEditor {
         }
         self.pan = pos2(self.pan.x + delta.x, self.pan.y + delta.y);
 
-        if let ShroudLayerInteraction::Dragging { selection, .. } = &self.shroud_layer_interaction {
-            selection.iter().for_each(|index| {
-                // let old_offset = self.shroud[*index].shroud_layer.offset.clone().unwrap();
-                let old_drag_pos = self.shroud[*index].drag_pos_option.unwrap();
-                self.shroud[*index].drag_pos_option =
-                    Some(pos2(old_drag_pos.x - delta.x, old_drag_pos.y + delta.y));
-                // self.shroud[*index].shroud_layer.offset = Some(do3d_float_from(
-                //     old_offset.x.to_f32() - delta.x,
-                //     old_offset.y.to_f32() - delta.y,
-                //     old_offset.z.to_f32(),
-                // ));
-            });
+        if let ShroudInteraction::Dragging {
+            main_idx,
+            selection,
+        } = &mut self.shroud_interaction
+        {
+            selection.0.iter_mut().for_each(
+                |MovingShroudLayerInteraction {
+                     idx: index,
+                     drag_pos,
+                 }| {
+                    *drag_pos = pos2(drag_pos.x - delta.x, drag_pos.y + delta.y);
+                },
+            );
         }
-        if let ShroudLayerInteraction::Placing { selection } = &self.shroud_layer_interaction {
-            selection.iter().for_each(|index| {
-                // dbg!(&self.shroud);
-                // dbg!(index);
-                // dbg!(selection);
-                let old_drag_pos = self.shroud[*index].drag_pos_option.unwrap();
-                self.shroud[*index].drag_pos_option =
-                    Some(pos2(old_drag_pos.x - delta.x, old_drag_pos.y + delta.y));
-            });
+        if let ShroudInteraction::Placing {
+            main_idx,
+            selection,
+        } = &mut self.shroud_interaction
+        {
+            selection.0.iter_mut().for_each(
+                |MovingShroudLayerInteraction {
+                     idx: index,
+                     drag_pos,
+                 }| {
+                    *drag_pos = pos2(drag_pos.x - delta.x, drag_pos.y + delta.y);
+                },
+            );
         }
     }
 

@@ -8,8 +8,8 @@ use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
 use crate::shroud_editor::tools::ToolSettings;
 use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
+use crate::shroud_interaction::ShroudInteraction;
 use crate::shroud_layer_container::ShroudLayerContainer;
-use crate::shroud_layer_interaction::ShroudLayerInteraction;
 use egui::Pos2;
 use luexks_reassembly::shapes::shapes::Shapes;
 use parse_vanilla_shapes::get_vanilla_shapes;
@@ -18,8 +18,8 @@ const FILL_COLOR_GRADIENT_TIME: f32 = 4.0;
 
 pub struct ShroudEditor {
     pub block_container: BlockContainer,
-    shroud: Vec<ShroudLayerContainer>,
-    pub shroud_layer_interaction: ShroudLayerInteraction,
+    pub shroud: Vec<ShroudLayerContainer>,
+    pub shroud_interaction: ShroudInteraction,
     zoom: f32,
     grid_size: f32,
     grid_visible: bool,
@@ -55,7 +55,7 @@ impl Default for ShroudEditor {
         Self {
             block_container: Default::default(),
             shroud: Vec::default(),
-            shroud_layer_interaction: ShroudLayerInteraction::Inaction {
+            shroud_interaction: ShroudInteraction::Inaction {
                 selection: Vec::new(),
             },
             zoom: 1.0,
@@ -125,8 +125,8 @@ mod position_conversion;
 mod render_shroud;
 mod shape_combo_box;
 mod shroud_interaction_checks;
-mod shroud_layer_dragging;
 mod shroud_layer_gizmos;
+mod shroud_layer_moving;
 mod shroud_settings;
 mod snap_to_grid;
 mod tools;

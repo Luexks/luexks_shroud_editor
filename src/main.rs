@@ -17,8 +17,8 @@ mod restructure_vertices;
 mod selection_type;
 mod shapes_import_text_default;
 mod shroud_import_text_default;
+mod shroud_interaction;
 mod shroud_layer_container;
-mod shroud_layer_interaction;
 mod size_from_verts;
 mod styles;
 

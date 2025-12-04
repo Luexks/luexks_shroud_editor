@@ -1,8 +1,8 @@
 use egui::{Context, Frame};
 
 use crate::{
-    shroud_editor::{ShroudEditor, shroud_layer_dragging::shroud_layer_dragging},
-    shroud_layer_interaction::ShroudLayerInteraction,
+    shroud_editor::{ShroudEditor, shroud_layer_moving::shroud_layer_moving},
+    shroud_interaction::ShroudInteraction,
 };
 
 impl ShroudEditor {
@@ -26,44 +26,56 @@ impl ShroudEditor {
 
                 self.render_shroud(mouse_pos, ui, rect);
 
-                if let ShroudLayerInteraction::Placing { .. } = &self.shroud_layer_interaction {
+                if let ShroudInteraction::Placing { .. } = &self.shroud_interaction {
                 } else {
                     self.shroud_layer_gizmos(ui, rect);
                 }
 
                 self.zoom(ui, rect);
 
-                self.shroud_layer_interaction_update(ui, ctx, &response, &rect);
-
-                if let ShroudLayerInteraction::Dragging {
-                    drag_start_pos: _,
-                    selection,
-                } = self.shroud_layer_interaction.clone()
-                {
-                    shroud_layer_dragging(
-                        ui,
-                        &response,
-                        &selection,
-                        &mut self.shroud,
-                        self.zoom,
-                        self.grid_size,
-                        self.grid_snap_enabled,
-                        &mut self.shroud_layer_interaction,
-                    );
+                self.shroud_interaction_update(ui, ctx, &response, &rect);
+                // Todo: fix drag stopped not working when mouse is on a gizmo.
+                if response.drag_stopped() {
+                    self.shroud_interaction = ShroudInteraction::Inaction {
+                        selection: self.shroud_interaction.selection(),
+                    };
                 }
-                if let ShroudLayerInteraction::Placing { selection } =
-                    self.shroud_layer_interaction.clone()
+
+                if let ShroudInteraction::Dragging {
+                    main_idx,
+                    mut selection,
+                } = self.shroud_interaction.clone()
                 {
-                    shroud_layer_dragging(
+                    shroud_layer_moving(
                         ui,
-                        &response,
-                        &selection,
+                        &mut selection,
                         &mut self.shroud,
                         self.zoom,
                         self.grid_size,
                         self.grid_snap_enabled,
-                        &mut self.shroud_layer_interaction,
                     );
+                    self.shroud_interaction = ShroudInteraction::Dragging {
+                        main_idx,
+                        selection,
+                    }
+                }
+                if let ShroudInteraction::Placing {
+                    main_idx,
+                    mut selection,
+                } = self.shroud_interaction.clone()
+                {
+                    shroud_layer_moving(
+                        ui,
+                        &mut selection,
+                        &mut self.shroud,
+                        self.zoom,
+                        self.grid_size,
+                        self.grid_snap_enabled,
+                    );
+                    self.shroud_interaction = ShroudInteraction::Dragging {
+                        main_idx,
+                        selection,
+                    }
                 }
             });
     }

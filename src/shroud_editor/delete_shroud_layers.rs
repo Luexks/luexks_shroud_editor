@@ -1,6 +1,6 @@
 use egui::{Context, collapsing_header::CollapsingState};
 
-use crate::{shroud_editor::ShroudEditor, shroud_layer_interaction::ShroudLayerInteraction};
+use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 
 impl ShroudEditor {
     pub fn delete_shroud_layers(&mut self, ctx: &Context) {
@@ -21,7 +21,6 @@ impl ShroudEditor {
             .iter()
             .for_each(|widowed_mirror_index| {
                 self.shroud[*widowed_mirror_index].mirror_index_option = None;
-                self.shroud[*widowed_mirror_index].drag_pos_option = None;
             });
 
         let to_be_deleted_indexes = self
@@ -49,16 +48,16 @@ impl ShroudEditor {
                     shroud_layer_container.mirror_index_option = Some(mirror_index - 1);
                 }
             });
-            self.shroud_layer_interaction
+            self.shroud_interaction
                 .selection()
                 .iter()
                 .copied()
                 .enumerate()
                 .for_each(|(index_in_selection_list, selected_index)| {
                     if selected_index > *index {
-                        let mut new_selection = self.shroud_layer_interaction.selection().clone();
+                        let mut new_selection = self.shroud_interaction.selection().clone();
                         new_selection[index_in_selection_list] -= 1;
-                        self.shroud_layer_interaction = ShroudLayerInteraction::Inaction {
+                        self.shroud_interaction = ShroudInteraction::Inaction {
                             selection: new_selection,
                         };
                     }
