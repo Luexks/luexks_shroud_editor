@@ -1,6 +1,12 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui, collapsing_header::CollapsingState, color_picker::{Alpha, color_edit_button_rgba}, pos2, scroll_area::ScrollBarVisibility, vec2
+    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea,
+    Slider, TextBuffer, TextEdit, Ui,
+    collapsing_header::CollapsingState,
+    color_picker::{Alpha, color_edit_button_rgba},
+    pos2,
+    scroll_area::ScrollBarVisibility,
+    vec2,
 };
 use egui_extras::syntax_highlighting::{CodeTheme, highlight};
 use luexks_reassembly::{
