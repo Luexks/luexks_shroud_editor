@@ -341,24 +341,26 @@ pub fn angle_knob_settings(
     angle_snap: f32,
     angle_snap_enabled: bool,
 ) -> f32 {
-    let original_angle = 360.0 - angle + 90.0;
-    let mut angle = original_angle;
-    // println!("Before{}", angle);
+    let original_knob_angle = 360.0 - angle + 90.0;
+    let mut knob_angle = original_knob_angle;
     ui.add(
-        Knob::new(&mut angle, 0.0, 450.0, KnobStyle::Wiper)
+        Knob::new(&mut knob_angle, 0.0, 720.0, KnobStyle::Wiper)
             .with_size(20.0)
-            .with_sweep_range(0.5, 1.25)
+            .with_sweep_range(0.5, 2.0)
             .with_background_arc(false),
     );
-    if angle_snap_enabled && original_angle != angle {
-        angle = (angle / angle_snap).round() * angle_snap;
+    if angle_snap_enabled && original_knob_angle != knob_angle {
+        knob_angle = (knob_angle / angle_snap).round() * angle_snap;
     }
-    // println!(" After{}", angle);
-    if angle < 90.0 {
-        angle = 360.0 + angle;
+    if knob_angle < 90.0 {
+        knob_angle = 360.0 + knob_angle;
     }
-    let angle = (angle - 90.0) % 360.0;
-    if angle < 0.0 { angle } else { 360.0 - angle }
+    let mut angle = (knob_angle - 90.0) % 360.0;
+    if angle != 0.0 {
+        angle = 360.0 - angle;
+    }
+    println!("{}\t{}", original_knob_angle, angle);
+    angle
     // (angle - 90.0).rem_euclid(360.0)
 
     // let pre_knob_angle = 360.0 - angle + 90.0;
