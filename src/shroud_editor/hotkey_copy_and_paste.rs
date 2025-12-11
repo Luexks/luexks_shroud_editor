@@ -20,7 +20,7 @@ impl ShroudEditor {
         if let ShroudInteraction::Placing { .. } = self.shroud_interaction {
         } else {
             let hotkey_pressed = ctx.input(|i| i.key_pressed(Key::V));
-            if hotkey_pressed {
+            if hotkey_pressed && !self.shroud_clipboard.is_empty() {
                 let clipboard_count = self.shroud_clipboard.len();
                 let avg_pos = self.shroud_clipboard.iter().fold(
                     pos2(0.0, 0.0),
