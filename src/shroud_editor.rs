@@ -21,7 +21,7 @@ pub struct ShroudEditor {
     pub shroud: Vec<ShroudLayerContainer>,
     pub shroud_interaction: ShroudInteraction,
     zoom: f32,
-    grid_size: f32,
+    pub(crate) grid_size: f32,
     grid_visible: bool,
     grid_snap_enabled: bool,
     angle_snap: f32,
@@ -128,7 +128,6 @@ mod shroud_interaction_checks;
 mod shroud_layer_gizmos;
 mod shroud_layer_moving;
 mod shroud_settings;
-mod snap_to_grid;
 mod tools;
 mod viewport_controls;
 mod visual_panel;

@@ -1,6 +1,6 @@
 use std::f32::consts::SQRT_2;
 
-use egui::{Key, Pos2, Rect, Ui, pos2};
+use egui::{Key, Pos2, Rect, Ui, pos2, vec2};
 
 use crate::{
     shroud_editor::ShroudEditor,
@@ -29,32 +29,18 @@ impl ShroudEditor {
         self.pan = pos2(self.pan.x + delta.x, self.pan.y + delta.y);
 
         if let ShroudInteraction::Dragging {
-            main_idx,
-            selection,
+            drag_pos,
+            ..
         } = &mut self.shroud_interaction
         {
-            selection.0.iter_mut().for_each(
-                |MovingShroudLayerInteraction {
-                     idx: index,
-                     drag_pos,
-                 }| {
-                    *drag_pos = pos2(drag_pos.x - delta.x, drag_pos.y + delta.y);
-                },
-            );
+            *drag_pos += vec2(-delta.x, delta.y);
         }
         if let ShroudInteraction::Placing {
-            main_idx,
-            selection,
+            drag_pos,
+            ..
         } = &mut self.shroud_interaction
         {
-            selection.0.iter_mut().for_each(
-                |MovingShroudLayerInteraction {
-                     idx: index,
-                     drag_pos,
-                 }| {
-                    *drag_pos = pos2(drag_pos.x - delta.x, drag_pos.y + delta.y);
-                },
-            );
+            *drag_pos += vec2(-delta.x, delta.y);
         }
     }
 

@@ -1,12 +1,6 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea,
-    Slider, TextBuffer, TextEdit, Ui,
-    collapsing_header::CollapsingState,
-    color_picker::{Alpha, color_edit_button_rgba},
-    pos2,
-    scroll_area::ScrollBarVisibility,
-    vec2,
+    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui, Vec2, collapsing_header::CollapsingState, color_picker::{Alpha, color_edit_button_rgba}, pos2, scroll_area::ScrollBarVisibility, vec2
 };
 use egui_extras::syntax_highlighting::{CodeTheme, highlight};
 use luexks_reassembly::{
@@ -21,15 +15,11 @@ use luexks_reassembly::{
 use parse_vanilla_shapes::VANILLA_SHAPE_COUNT;
 
 use crate::{
-    color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option},
-    restructure_vertices::restructure_vertices,
-    shroud_editor::{
+    color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option}, invert_y::invert_y_of_pos2, restructure_vertices::restructure_vertices, shroud_editor::{
         FILL_COLOR_GRADIENT_TIME, ShroudEditor,
         parse_shapes_text::{ShapesParseResult, parse_shapes_text},
         parse_shroud_text::{ShroudParseResult, parse_shroud_text},
-    },
-    shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
-    shroud_layer_container::ShroudLayerContainer,
+    }, shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction}, shroud_layer_container::ShroudLayerContainer
 };
 
 type IsChanged = bool;
@@ -314,17 +304,17 @@ impl ShroudEditor {
             },
             ..Default::default()
         });
-        let world_mouse_pos = self.world_mouse_pos;
-        let drag_pos = pos2(world_mouse_pos.x, -world_mouse_pos.y);
+        let drag_pos = invert_y_of_pos2(self.world_mouse_pos);
         self.shroud_interaction = ShroudInteraction::Placing {
             selection: MovingShroudSelection(
                 [MovingShroudLayerInteraction {
                     idx: last,
-                    drag_pos: drag_pos,
+                    relative_pos: Vec2::default(),
                 }]
                 .into(),
             ),
-            main_idx: last,
+            drag_pos,
+            potentially_snapped_drag_pos: drag_pos,
         };
     }
 

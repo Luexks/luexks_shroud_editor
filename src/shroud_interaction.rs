@@ -1,7 +1,7 @@
-use egui::{Context, Pos2, Rect, Response, Ui, pos2};
+use egui::{Context, Pos2, Rect, Response, Ui, Vec2, pos2};
 use itertools::Itertools;
 
-use crate::shroud_editor::ShroudEditor;
+use crate::{pos_and_display_oriented_number_conversion::do3d_to_pos2, shroud_editor::ShroudEditor, snap_to_grid::snap_to_grid};
 
 #[derive(Clone)]
 pub struct MovingShroudSelection(pub Vec<MovingShroudLayerInteraction>);
@@ -13,8 +13,8 @@ impl MovingShroudSelection {
             .into_iter()
             .map(
                 |MovingShroudLayerInteraction {
-                     idx: idx,
-                     drag_pos: _,
+                     idx,
+                     relative_pos: _,
                  }| idx,
             )
             .collect()
@@ -24,7 +24,7 @@ impl MovingShroudSelection {
 #[derive(Clone)]
 pub struct MovingShroudLayerInteraction {
     pub idx: usize,
-    pub drag_pos: Pos2,
+    pub relative_pos: Vec2,
 }
 
 #[derive(Clone)]
@@ -33,11 +33,13 @@ pub enum ShroudInteraction {
         selection: Vec<usize>,
     },
     Dragging {
-        main_idx: usize,
+        drag_pos: Pos2,
+        potentially_snapped_drag_pos: Pos2,
         selection: MovingShroudSelection,
     },
     Placing {
-        main_idx: usize,
+        drag_pos: Pos2,
+        potentially_snapped_drag_pos: Pos2,
         selection: MovingShroudSelection,
     },
 }
@@ -115,24 +117,24 @@ impl ShroudEditor {
                     }
                 }
 
-                if response.drag_started() && !self.shroud_interaction.selection().is_empty() {
+                if response.drag_started() && !self.shroud_interaction.selection().is_empty() && let Some(dragged_shroud_layer_idx) = self.get_shroud_that_would_be_selected_index_option(mouse_pos, *rect) {
+                    let drag_pos = do3d_to_pos2(self.shroud[dragged_shroud_layer_idx].shroud_layer.offset.as_ref().unwrap());
                     self.shroud_interaction = ShroudInteraction::Dragging {
+                        drag_pos,
+                        // potentially_snapped_drag_pos: snap_to_grid(self.grid_size , drag_pos),
+                        potentially_snapped_drag_pos: drag_pos,
                         selection: MovingShroudSelection(
                             self.shroud_interaction
                                 .selection()
                                 .iter()
                                 .map(|idx| {
-                                    let drag_pos =
-                                        self.shroud[*idx].shroud_layer.offset.as_ref().unwrap();
-                                    let drag_pos = pos2(drag_pos.x.to_f32(), drag_pos.y.to_f32());
                                     MovingShroudLayerInteraction {
                                         idx: *idx,
-                                        drag_pos: drag_pos,
+                                        relative_pos: drag_pos - do3d_to_pos2(self.shroud[*idx].shroud_layer.offset.as_ref().unwrap()),
                                     }
                                 })
                                 .collect(),
                         ),
-                        main_idx: 0,
                     }
                 }
             }

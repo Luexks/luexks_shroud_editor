@@ -21,6 +21,9 @@ mod shroud_interaction;
 mod shroud_layer_container;
 mod size_from_verts;
 mod styles;
+mod pos_and_display_oriented_number_conversion;
+mod snap_to_grid;
+mod invert_y;
 
 pub const DEFAULT_SQUARE: [Pos2; 4] = [
     Pos2::new(5.0, -5.0),

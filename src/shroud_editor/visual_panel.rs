@@ -51,43 +51,41 @@ impl ShroudEditor {
 
     fn dragging_logic(&mut self, ui: &mut egui::Ui) {
         if let ShroudInteraction::Dragging {
-            main_idx,
-            mut selection,
-        } = self.shroud_interaction.clone()
+            selection,
+            drag_pos,
+            potentially_snapped_drag_pos: potentially_snapped_drag_pos,
+        } = &mut self.shroud_interaction
         {
             shroud_layer_moving(
                 ui,
-                &mut selection,
+                drag_pos,
+                potentially_snapped_drag_pos,
+                selection,
                 &mut self.shroud,
                 self.zoom,
                 self.grid_size,
                 self.grid_snap_enabled,
             );
-            self.shroud_interaction = ShroudInteraction::Dragging {
-                main_idx,
-                selection,
-            }
         }
     }
 
     fn placing_logic(&mut self, ui: &mut egui::Ui) {
         if let ShroudInteraction::Placing {
-            main_idx,
-            mut selection,
-        } = self.shroud_interaction.clone()
+            selection,
+            drag_pos,
+            potentially_snapped_drag_pos: potentially_snapped_drag_pos,
+        } = &mut self.shroud_interaction
         {
             shroud_layer_moving(
                 ui,
-                &mut selection,
+                drag_pos,
+                potentially_snapped_drag_pos,
+                selection,
                 &mut self.shroud,
                 self.zoom,
                 self.grid_size,
                 self.grid_snap_enabled,
             );
-            self.shroud_interaction = ShroudInteraction::Dragging {
-                main_idx,
-                selection,
-            }
         }
     }
 }

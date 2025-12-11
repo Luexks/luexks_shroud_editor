@@ -1,16 +1,16 @@
-use egui::{Response, Ui, pos2};
+use egui::{Pos2, Response, Ui, pos2, vec2};
 use luexks_reassembly::utility::display_oriented_math::{
     DisplayOriented3D, do3d_float_from, don_float_from,
 };
 
 use crate::{
-    shroud_editor::snap_to_grid::snap_to_grid,
-    shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
-    shroud_layer_container::ShroudLayerContainer,
+    pos_and_display_oriented_number_conversion::pos2_to_do3d, shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection}, shroud_layer_container::ShroudLayerContainer, snap_to_grid::snap_to_grid
 };
 
 pub fn shroud_layer_moving(
     ui: &mut Ui,
+    drag_pos: &mut Pos2,
+    potentially_snapped_drag_pos: &mut Pos2,
     selection: &mut MovingShroudSelection,
     shroud: &mut [ShroudLayerContainer],
     zoom: f32,
@@ -18,10 +18,16 @@ pub fn shroud_layer_moving(
     grid_snap_enabled: bool,
 ) {
     let delta = ui.input(|i| i.pointer.delta()) / zoom;
+    *drag_pos += vec2(delta.x, -delta.y);
+    *potentially_snapped_drag_pos = if grid_snap_enabled {
+        snap_to_grid(grid_size, *drag_pos)
+    } else {
+        *drag_pos
+    };
     selection.0.iter_mut().for_each(
         |MovingShroudLayerInteraction {
              idx: selected_index,
-             drag_pos,
+             relative_pos,
          }| {
             let old_offset = shroud
                 .get(*selected_index)
@@ -30,25 +36,15 @@ pub fn shroud_layer_moving(
                 .offset
                 .clone()
                 .unwrap();
-            // if shroud[*selected_index].drag_pos_option.is_none() {
-            //     shroud[*selected_index].drag_pos_option =
-            //         Some(pos2(old_offset.x.to_f32(), old_offset.y.to_f32()));
+            shroud[*selected_index].shroud_layer.offset = Some(pos2_to_do3d(&(*potentially_snapped_drag_pos - *relative_pos), old_offset.z.to_f32()));
+            // if grid_snap_enabled {
+            //     let snapped_offset = snap_to_grid(grid_size, pos2(x, y));
+            //     shroud[*selected_index].shroud_layer.offset = Some(DisplayOriented3D {
+            //         x: don_float_from(snapped_offset.x),
+            //         y: don_float_from(snapped_offset.y),
+            //         z: old_offset.z,
+            //     });
             // }
-            let (x, y) = (delta.x + drag_pos.x, -delta.y + drag_pos.y);
-            *drag_pos = pos2(x, y);
-            shroud[*selected_index].shroud_layer.offset = Some(DisplayOriented3D {
-                x: don_float_from(x),
-                y: don_float_from(y),
-                z: old_offset.z.clone(),
-            });
-            if grid_snap_enabled {
-                let snapped_offset = snap_to_grid(grid_size, pos2(x, y));
-                shroud[*selected_index].shroud_layer.offset = Some(DisplayOriented3D {
-                    x: don_float_from(snapped_offset.x),
-                    y: don_float_from(snapped_offset.y),
-                    z: old_offset.z,
-                });
-            }
             if let Some(mirrored_index) = shroud[*selected_index].mirror_index_option {
                 let offset = shroud[*selected_index].shroud_layer.offset.clone().unwrap();
                 let mirrored_offset =
