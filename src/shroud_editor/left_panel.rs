@@ -324,6 +324,8 @@ impl ShroudEditor {
                 }]
                 .into(),
             ),
+            drag_pos: drag_pos,
+            position_change: Pos2::default(),
             main_idx: last,
         };
     }

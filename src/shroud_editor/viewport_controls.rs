@@ -1,6 +1,6 @@
 use std::f32::consts::SQRT_2;
 
-use egui::{Key, Pos2, Rect, Ui, pos2};
+use egui::{Key, Pos2, Rect, Ui, Vec2, pos2};
 
 use crate::{
     shroud_editor::ShroudEditor,
@@ -10,7 +10,7 @@ use crate::{
 impl ShroudEditor {
     pub fn pan_controls(&mut self) {
         let speed: f32 = 1000.0 * self.dt as f32 / self.zoom;
-        let mut delta = Pos2::default();
+        let mut delta = Vec2::default();
         if self.key_tracker.is_held(Key::W) {
             delta.y += speed;
         }
@@ -31,30 +31,36 @@ impl ShroudEditor {
         if let ShroudInteraction::Dragging {
             main_idx,
             selection,
+            drag_pos,
+            position_change,
         } = &mut self.shroud_interaction
         {
-            selection.0.iter_mut().for_each(
-                |MovingShroudLayerInteraction {
-                     idx: index,
-                     drag_pos,
-                 }| {
-                    *drag_pos = pos2(drag_pos.x - delta.x, drag_pos.y + delta.y);
-                },
-            );
+            // selection.0.iter_mut().for_each(
+            //     |MovingShroudLayerInteraction {
+            //          idx: index,
+            //          drag_pos,
+            //      }| {
+            //         *drag_pos = pos2(drag_pos.x - delta.x, drag_pos.y + delta.y);
+            //     },
+            // );
+            *drag_pos += delta;
         }
         if let ShroudInteraction::Placing {
             main_idx,
             selection,
+            drag_pos,
+            position_change,
         } = &mut self.shroud_interaction
         {
-            selection.0.iter_mut().for_each(
-                |MovingShroudLayerInteraction {
-                     idx: index,
-                     drag_pos,
-                 }| {
-                    *drag_pos = pos2(drag_pos.x - delta.x, drag_pos.y + delta.y);
-                },
-            );
+            // selection.0.iter_mut().for_each(
+            //     |MovingShroudLayerInteraction {
+            //          idx: index,
+            //          drag_pos,
+            //      }| {
+            //         *drag_pos = pos2(drag_pos.x - delta.x, drag_pos.y + delta.y);
+            //     },
+            // );
+            *drag_pos += delta;
         }
     }
 

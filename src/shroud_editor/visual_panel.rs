@@ -1,4 +1,4 @@
-use egui::{Context, Frame};
+use egui::{Context, Frame, Pos2};
 
 use crate::{
     shroud_editor::{ShroudEditor, shroud_layer_moving::shroud_layer_moving},
@@ -52,42 +52,38 @@ impl ShroudEditor {
     fn dragging_logic(&mut self, ui: &mut egui::Ui) {
         if let ShroudInteraction::Dragging {
             main_idx,
-            mut selection,
-        } = self.shroud_interaction.clone()
+            selection, drag_pos, position_change } = &mut self.shroud_interaction
         {
             shroud_layer_moving(
                 ui,
-                &mut selection,
+                selection,
                 &mut self.shroud,
                 self.zoom,
                 self.grid_size,
                 self.grid_snap_enabled,
-            );
-            self.shroud_interaction = ShroudInteraction::Dragging {
+                drag_pos,
+                position_change,
                 main_idx,
-                selection,
-            }
+            );
         }
     }
 
     fn placing_logic(&mut self, ui: &mut egui::Ui) {
         if let ShroudInteraction::Placing {
             main_idx,
-            mut selection,
-        } = self.shroud_interaction.clone()
+            selection, drag_pos, position_change } = &mut self.shroud_interaction
         {
             shroud_layer_moving(
                 ui,
-                &mut selection,
+                selection,
                 &mut self.shroud,
                 self.zoom,
                 self.grid_size,
                 self.grid_snap_enabled,
-            );
-            self.shroud_interaction = ShroudInteraction::Dragging {
+                drag_pos,
+                position_change,
                 main_idx,
-                selection,
-            }
+            );
         }
     }
 }

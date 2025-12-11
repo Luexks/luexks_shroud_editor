@@ -1,9 +1,7 @@
-use egui::{Context, Key, pos2};
+use egui::{Context, Key, Pos2, pos2};
 
 use crate::{
-    shroud_editor::{ShroudEditor, add_mirror::add_mirror},
-    shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
-    shroud_layer_container::ShroudLayerContainer,
+    pos_and_display_oriented_number_conversion::do3d_to_pos2, shroud_editor::{ShroudEditor, add_mirror::add_mirror}, shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction}, shroud_layer_container::ShroudLayerContainer
 };
 
 impl ShroudEditor {
@@ -79,6 +77,8 @@ impl ShroudEditor {
                             })
                             .collect(),
                     ),
+                    drag_pos: do3d_to_pos2(self.shroud[self.shroud.len() - clipboard_count_plus_mirrors].shroud_layer.offset.as_ref().unwrap()),
+                    position_change: Pos2::default(),
                 }
             }
         }
