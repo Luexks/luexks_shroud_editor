@@ -97,8 +97,8 @@ impl eframe::App for ShroudEditor {
         self.left_panel(ctx);
         self.visual_panel(ctx);
 
-        self.delete_shroud_layers(ctx);
         self.hotkey_shroud_layer_deletion(ctx);
+        self.delete_shroud_layers(ctx);
 
         self.hotkey_copy(ctx);
         self.hotkey_paste(ctx);

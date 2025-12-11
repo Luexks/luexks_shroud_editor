@@ -1,4 +1,5 @@
 use egui::{Context, collapsing_header::CollapsingState};
+use itertools::Itertools;
 
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 
@@ -34,6 +35,8 @@ impl ShroudEditor {
                     None
                 }
             })
+            .sorted()
+            .rev()
             .collect::<Vec<_>>();
         to_be_deleted_indexes.iter().for_each(|index| {
             let mut drop_down = CollapsingState::load(ctx, index.to_string().into()).unwrap();
