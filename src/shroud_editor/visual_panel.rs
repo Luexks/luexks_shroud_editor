@@ -20,6 +20,15 @@ impl ShroudEditor {
                     self.world_mouse_pos = self.screen_pos_to_world_pos(mouse_pos, rect);
                 }
 
+                self.zoom(ui, rect);
+
+                self.shroud_interaction_update(ui, ctx, &response, &rect);
+
+                self.selection_release_logic(ctx, ui);
+
+                self.dragging_logic(ui);
+                self.placing_logic(ui);
+
                 if self.grid_visible {
                     self.draw_grid(ui, rect);
                 }
@@ -29,15 +38,6 @@ impl ShroudEditor {
                 if let ShroudInteraction::Inaction { .. } = &self.shroud_interaction {
                     self.shroud_layer_gizmos(ui, rect);
                 }
-
-                self.zoom(ui, rect);
-
-                self.shroud_interaction_update(ui, ctx, &response, &rect);
-
-                self.selection_release_logic(ctx, ui);
-
-                self.dragging_logic(ui);
-                self.placing_logic(ui);
             });
     }
 
