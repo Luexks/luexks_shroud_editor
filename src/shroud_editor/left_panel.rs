@@ -86,8 +86,7 @@ impl ShroudEditor {
     Scroll zoom
     click: select
     shift + click: multiselect
-    drag: drag
-    shift + drag: multiselect drag
+    drag: drag selection
     c: copy
     v: paste
     f: add mirror to selection

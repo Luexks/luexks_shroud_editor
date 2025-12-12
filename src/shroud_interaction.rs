@@ -107,7 +107,11 @@ impl ShroudEditor {
                                         .collect(),
                                 };
                             }
-                        } else {
+                        } else if !self
+                            .shroud_interaction
+                            .selection()
+                            .contains(&shroud_that_would_be_selected_index)
+                        {
                             self.shroud_interaction = ShroudInteraction::Inaction {
                                 selection: vec![shroud_that_would_be_selected_index],
                             };
