@@ -3,6 +3,7 @@ use std::time::Duration;
 
 use crate::block_container::BlockContainer;
 use crate::key_tracker::KeyTracker;
+use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
 use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
@@ -131,19 +132,3 @@ mod shroud_settings;
 mod tools;
 mod viewport_controls;
 mod visual_panel;
-
-#[rustfmt::skip]
-fn get_loaded_shapes_mirror_pairs(loaded_shapes: &Shapes) -> Vec<(usize, usize)> {
-    let l1 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI2L").unwrap();
-    let r1 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI2R").unwrap();
-    let l2 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI_22_5L").unwrap();
-    let r2 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI_22_5R").unwrap();
-    let l3 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI_30L").unwrap();
-    let r3 = loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap().get_name() == "RIGHT_TRI_30R").unwrap();
-    let loaded_shapes_mirror_pairs = vec![
-        (l1, r1),
-        (l2, r2),
-        (l3, r3),
-    ];
-    loaded_shapes_mirror_pairs
-}

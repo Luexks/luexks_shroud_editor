@@ -24,7 +24,7 @@ use crate::{
     invert_y::invert_y_of_pos2,
     restructure_vertices::restructure_vertices,
     shroud_editor::{
-        FILL_COLOR_GRADIENT_TIME, ShroudEditor,
+        FILL_COLOR_GRADIENT_TIME, ShroudEditor, get_loaded_shapes_mirror_pairs,
         parse_shapes_text::{ShapesParseResult, parse_shapes_text},
         parse_shroud_text::{ShroudParseResult, parse_shroud_text},
     },
@@ -489,8 +489,7 @@ impl ShroudEditor {
                     let response = ui.button("Import");
                     if response.clicked() {
                         match parse_shapes_text(&self.shapes_import_text) {
-                            Ok(imported_shapes) => {
-                                // dbg!(&imported_shapes);
+                            Ok((imported_shapes, mirror_pairs)) => {
                                 self.loaded_shapes = Shapes(
                                     self.loaded_shapes.0[0..VANILLA_SHAPE_COUNT]
                                         .iter()
@@ -498,6 +497,8 @@ impl ShroudEditor {
                                         .chain(imported_shapes.0)
                                         .collect(),
                                 );
+                                self.loaded_shapes_mirror_pairs = get_loaded_shapes_mirror_pairs(&self.loaded_shapes);
+                                self.loaded_shapes_mirror_pairs.extend(mirror_pairs);
                                 self.just_imported_shapes_from_paste_box_message_option =
                                     Some(ShapesParseResult::Success);
                             }
