@@ -1,5 +1,4 @@
 use egui::{Context, collapsing_header::CollapsingState};
-use itertools::Itertools;
 
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 
@@ -35,7 +34,6 @@ impl ShroudEditor {
                     None
                 }
             })
-            .sorted()
             .rev()
             .collect::<Vec<_>>();
         to_be_deleted_indexes.iter().for_each(|index| {
@@ -45,10 +43,10 @@ impl ShroudEditor {
 
             self.shroud.remove(*index);
             self.shroud.iter_mut().for_each(|shroud_layer_container| {
-                if let Some(mirror_index) = shroud_layer_container.mirror_index_option
-                    && mirror_index > *index
+                if let Some(mirror_index) = &mut shroud_layer_container.mirror_index_option
+                    && *mirror_index > *index
                 {
-                    shroud_layer_container.mirror_index_option = Some(mirror_index - 1);
+                    *mirror_index -= 1;
                 }
             });
             self.shroud_interaction
