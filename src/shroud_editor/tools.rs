@@ -6,7 +6,7 @@ use crate::{
     shroud_layer_container::ShroudLayerContainer,
 };
 use egui::{DragValue, Ui, collapsing_header::CollapsingState, pos2};
-use itertools::{Itertools, sorted};
+use itertools::Itertools;
 use luexks_reassembly::{
     blocks::shroud_layer::ShroudLayer,
     utility::{

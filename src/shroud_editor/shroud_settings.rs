@@ -1,4 +1,4 @@
-use egui::{Color32, DragValue, Grid, Key, Stroke, Ui, collapsing_header::CollapsingState};
+use egui::{Color32, DragValue, Grid, Stroke, Ui, collapsing_header::CollapsingState};
 use egui_knob::{Knob, KnobStyle};
 use luexks_reassembly::{
     blocks::shroud_layer::ShroudLayerColor,
@@ -353,13 +353,13 @@ pub fn angle_knob_settings(
         knob_angle = (knob_angle / angle_snap).round() * angle_snap;
     }
     if knob_angle < 90.0 {
-        knob_angle = 360.0 + knob_angle;
+        knob_angle += 360.0;
     }
     let mut angle = (knob_angle - 90.0) % 360.0;
     if angle != 0.0 {
         angle = 360.0 - angle;
     }
-    println!("{}\t{}", original_knob_angle, angle);
+    // println!("{}\t{}", original_knob_angle, angle);
     angle
     // (angle - 90.0).rem_euclid(360.0)
 

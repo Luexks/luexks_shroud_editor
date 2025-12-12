@@ -1,10 +1,11 @@
-use egui::{Pos2, Response, Ui, pos2, vec2};
-use luexks_reassembly::utility::display_oriented_math::{
-    DisplayOriented3D, do3d_float_from, don_float_from,
-};
+use egui::{Pos2, Ui, vec2};
+use luexks_reassembly::utility::display_oriented_math::do3d_float_from;
 
 use crate::{
-    pos_and_display_oriented_number_conversion::pos2_to_do3d, shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection}, shroud_layer_container::ShroudLayerContainer, snap_to_grid::snap_to_grid
+    pos_and_display_oriented_number_conversion::pos2_to_do3d,
+    shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection},
+    shroud_layer_container::ShroudLayerContainer,
+    snap_to_grid::snap_to_grid,
 };
 
 pub fn shroud_layer_moving(
@@ -36,7 +37,10 @@ pub fn shroud_layer_moving(
                 .offset
                 .clone()
                 .unwrap();
-            shroud[*selected_index].shroud_layer.offset = Some(pos2_to_do3d(&(*potentially_snapped_drag_pos - *relative_pos), old_offset.z.to_f32()));
+            shroud[*selected_index].shroud_layer.offset = Some(pos2_to_do3d(
+                &(*potentially_snapped_drag_pos - *relative_pos),
+                old_offset.z.to_f32(),
+            ));
             // if grid_snap_enabled {
             //     let snapped_offset = snap_to_grid(grid_size, pos2(x, y));
             //     shroud[*selected_index].shroud_layer.offset = Some(DisplayOriented3D {

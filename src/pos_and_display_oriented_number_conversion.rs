@@ -1,6 +1,7 @@
 use egui::{Pos2, pos2};
-use luexks_reassembly::utility::display_oriented_math::{DisplayOriented2D, DisplayOriented3D, do2d_float_from, do3d_float_from};
-
+use luexks_reassembly::utility::display_oriented_math::{
+    DisplayOriented2D, DisplayOriented3D, do2d_float_from, do3d_float_from,
+};
 
 pub fn do2d_to_pos2(position: &DisplayOriented2D) -> Pos2 {
     pos2(position.x.to_f32(), position.y.to_f32())

@@ -12,7 +12,7 @@ use crate::{
 pub fn add_mirror(
     shroud: &mut Vec<ShroudLayerContainer>,
     index: usize,
-    should_mirror_be_selected: bool,
+    _should_mirror_be_selected: bool,
     loaded_shapes: &Shapes,
     loaded_shapes_mirror_pairs: &[(usize, usize)],
 ) {

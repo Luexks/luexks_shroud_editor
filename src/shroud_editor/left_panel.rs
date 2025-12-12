@@ -1,6 +1,11 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui, Vec2, collapsing_header::CollapsingState, color_picker::{Alpha, color_edit_button_rgba}, pos2, scroll_area::ScrollBarVisibility, vec2
+    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea,
+    Slider, TextBuffer, TextEdit, Ui, Vec2,
+    collapsing_header::CollapsingState,
+    color_picker::{Alpha, color_edit_button_rgba},
+    scroll_area::ScrollBarVisibility,
+    vec2,
 };
 use egui_extras::syntax_highlighting::{CodeTheme, highlight};
 use luexks_reassembly::{
@@ -15,11 +20,16 @@ use luexks_reassembly::{
 use parse_vanilla_shapes::VANILLA_SHAPE_COUNT;
 
 use crate::{
-    color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option}, invert_y::invert_y_of_pos2, restructure_vertices::restructure_vertices, shroud_editor::{
+    color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option},
+    invert_y::invert_y_of_pos2,
+    restructure_vertices::restructure_vertices,
+    shroud_editor::{
         FILL_COLOR_GRADIENT_TIME, ShroudEditor,
         parse_shapes_text::{ShapesParseResult, parse_shapes_text},
         parse_shroud_text::{ShroudParseResult, parse_shroud_text},
-    }, shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction}, shroud_layer_container::ShroudLayerContainer
+    },
+    shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
+    shroud_layer_container::ShroudLayerContainer,
 };
 
 type IsChanged = bool;
@@ -225,10 +235,10 @@ impl ShroudEditor {
     fn block_visibility_settings(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
             ui.label("Visible:");
-            if ui.checkbox(&mut self.block_container.visible, "").clicked() {
-                if self.block_container.use_non_turreted_offset {
-                    self.block_container.update_non_turreted_offset();
-                }
+            if ui.checkbox(&mut self.block_container.visible, "").clicked()
+                && self.block_container.use_non_turreted_offset
+            {
+                self.block_container.update_non_turreted_offset();
             }
         });
     }
@@ -243,11 +253,8 @@ impl ShroudEditor {
                     ui.label("Use Auto (Non-Turreted) Offset:");
                     if ui
                         .checkbox(&mut self.block_container.use_non_turreted_offset, "")
-                        .clicked()
-                    {
-                        if self.block_container.use_non_turreted_offset {
+                        .clicked() && self.block_container.use_non_turreted_offset {
                             self.block_container.update_non_turreted_offset();
-                        }
                     }
                 });
                 ui.horizontal(|ui| {

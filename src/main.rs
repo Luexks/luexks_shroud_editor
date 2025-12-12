@@ -10,7 +10,9 @@ mod block_container;
 mod color_type_conversion;
 mod fonts;
 mod gui;
+mod invert_y;
 mod key_tracker;
+mod pos_and_display_oriented_number_conversion;
 mod pos_in_polygon;
 mod render_polygon;
 mod restructure_vertices;
@@ -20,10 +22,8 @@ mod shroud_import_text_default;
 mod shroud_interaction;
 mod shroud_layer_container;
 mod size_from_verts;
-mod styles;
-mod pos_and_display_oriented_number_conversion;
 mod snap_to_grid;
-mod invert_y;
+mod styles;
 
 pub const DEFAULT_SQUARE: [Pos2; 4] = [
     Pos2::new(5.0, -5.0),

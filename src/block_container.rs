@@ -1,5 +1,4 @@
 use egui::{Pos2, Rgba, pos2};
-use itertools::Itertools;
 use luexks_reassembly::{
     blocks::{block::Block, shroud_layer::ShroudLayerColor},
     shapes::shape_id::ShapeId,

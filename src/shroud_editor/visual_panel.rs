@@ -53,7 +53,7 @@ impl ShroudEditor {
         if let ShroudInteraction::Dragging {
             selection,
             drag_pos,
-            potentially_snapped_drag_pos: potentially_snapped_drag_pos,
+            potentially_snapped_drag_pos,
         } = &mut self.shroud_interaction
         {
             shroud_layer_moving(
@@ -73,7 +73,7 @@ impl ShroudEditor {
         if let ShroudInteraction::Placing {
             selection,
             drag_pos,
-            potentially_snapped_drag_pos: potentially_snapped_drag_pos,
+            potentially_snapped_drag_pos,
         } = &mut self.shroud_interaction
         {
             shroud_layer_moving(
