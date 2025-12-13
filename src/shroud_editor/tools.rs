@@ -18,6 +18,8 @@ use luexks_reassembly::{
 pub struct ToolSettings {
     move_selection_by_distance: f32,
     move_selection_by_angle: f32,
+    move_selection_by_x: f32,
+    move_selection_by_y: f32,
     radial_by_distance: f32,
     radial_by_count: usize,
     radial_by_angle: f32,
@@ -29,6 +31,8 @@ impl Default for ToolSettings {
         ToolSettings {
             move_selection_by_distance: 10.0,
             move_selection_by_angle: 0.0,
+            move_selection_by_x: 10.0,
+            move_selection_by_y: 10.0,
             radial_by_distance: 10.0,
             radial_by_count: 3,
             radial_by_angle: 0.0,
@@ -43,6 +47,8 @@ impl ShroudEditor {
             .show_header(ui, |ui| ui.heading("Tools"))
             .body_unindented(|ui| {
                 self.move_tool(ui);
+                ui.separator();
+                self.move_by_x_y_tool(ui);
                 ui.separator();
                 self.radial_tool(ui);
                 ui.separator();
@@ -310,6 +316,50 @@ impl ShroudEditor {
             };
             ui.add(DragValue::new(angle).speed(angle_speed));
             *angle = angle_knob_settings(ui, *angle, self.angle_snap, self.angle_snap_enabled);
+        });
+    }
+
+    fn move_by_x_y_tool(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            let x = &mut self.tool_settings.move_selection_by_x;
+            let y = &mut self.tool_settings.move_selection_by_y;
+            if ui.button("Move by").clicked() {
+                self.shroud_interaction
+                    .selection()
+                    .iter()
+                    .for_each(|shroud_layer_index| {
+                        let offset = self.shroud[*shroud_layer_index]
+                            .shroud_layer
+                            .offset
+                            .as_ref()
+                            .unwrap();
+                        let new_offset = do3d_float_from(
+                            offset.x.to_f32() + *x,
+                            offset.y.to_f32() + *y,
+                            offset.z.to_f32(),
+                        );
+                        self.shroud[*shroud_layer_index].shroud_layer.offset = Some(new_offset);
+                        if let Some(mirror_index) =
+                            self.shroud[*shroud_layer_index].mirror_index_option
+                        {
+                            let offset = self.shroud[*shroud_layer_index]
+                                .shroud_layer
+                                .offset
+                                .as_ref()
+                                .unwrap();
+                            let new_mirror_offset = do3d_float_from(
+                                offset.x.to_f32(),
+                                -offset.y.to_f32(),
+                                offset.z.to_f32(),
+                            );
+                            self.shroud[mirror_index].shroud_layer.offset = Some(new_mirror_offset);
+                        }
+                    });
+            }
+            ui.label("X:");
+            ui.add(DragValue::new(x));
+            ui.label("Y:");
+            ui.add(DragValue::new(y));
         });
     }
 }
