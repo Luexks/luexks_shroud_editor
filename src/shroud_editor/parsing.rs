@@ -6,10 +6,10 @@ use nom::{
         streaming::tag_no_case,
         take_until,
     },
-    character::complete::digit1,
-    combinator::{complete, map, opt, peek, recognize, value},
+    combinator::{complete, map, opt, peek, value},
     error::{Error, ParseError},
     multi::{many0, many1},
+    number::complete::float,
     sequence::{delimited, pair, preceded, separated_pair, terminated},
 };
 use std::f32::{self, consts::PI};
@@ -17,19 +17,7 @@ use std::f32::{self, consts::PI};
 use nom::character::char;
 
 pub fn parse_number(input: &str) -> IResult<&str, f32> {
-    alt((
-        map(
-            recognize((
-                opt(complete(char::<&str, Error<&str>>('-'))),
-                digit1,
-                opt(complete(char('.'))),
-                opt(complete(digit1)),
-            )),
-            |s| s.parse::<f32>().unwrap(),
-        ),
-        map(tag_no_case("pi"), |_| PI),
-    ))
-    .parse(input)
+    alt((float, map(tag_no_case("pi"), |_| PI))).parse(input)
 }
 
 #[derive(Clone, Copy, Debug)]

@@ -1,3 +1,5 @@
+use std::num::ParseIntError;
+
 use luexks_reassembly::{
     shapes::{
         scale::Scale, shape::Shape, shape_id::ShapeId, shapes::Shapes, vertex::Vertex,
@@ -10,8 +12,8 @@ use nom::{
     branch::alt,
     bytes::{complete::tag, take_until},
     character::complete::digit1,
-    combinator::{complete, map},
-    error::ParseError,
+    combinator::{complete, map, map_res},
+    error::{FromExternalError, ParseError},
     multi::{many0, many1},
     sequence::{delimited, preceded, separated_pair},
 };
@@ -58,6 +60,15 @@ pub enum ShapesParseResult {
 
     #[error("For shape {0}, its mirror_of shape with ID {1} is another mirror :(")]
     MirrorOfIsAMirror(String, String),
+
+    #[error("Parse error for the number {0}. Maybe it's out of range or something :(")]
+    NumberParse(String),
+}
+
+impl FromExternalError<&str, ParseIntError> for ShapesParseResult {
+    fn from_external_error(input: &str, _kind: nom::error::ErrorKind, _e: ParseIntError) -> Self {
+        ShapesParseResult::NumberParse(input.to_string())
+    }
 }
 
 impl<'a> ParseError<&'a str> for ShapesParseResult {
@@ -82,7 +93,12 @@ pub fn parse_shapes_text(input: &str) -> Result<(Shapes, MirrorPairs), ShapesPar
 fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesParseResult> {
     let (remainder, mut shapes) = preceded(ws_around(tag("{")), many1(ws_around(shape)))
         .parse(input)
-        .map_err(|_| nom::Err::Error(ShapesParseResult::Shapes(input.to_string())))?;
+        .map_err(|e| match e {
+            nom::Err::Error(ShapesParseResult::Debug(_)) => {
+                nom::Err::Error(ShapesParseResult::Shapes("".to_string()))
+            }
+            _ => e,
+        })?;
     let mut mirror_pairs = MirrorPairs::new();
     for shape_idx in 0..shapes.len() {
         if let Shape::Mirror { id, mirror_of, .. } = &shapes[shape_idx] {
@@ -133,7 +149,7 @@ enum ScalesOrMirrorOf {
 }
 
 fn shape(input: &str) -> IResult<&str, Shape, ShapesParseResult> {
-    let (remainder, (id, scales_or_mirror_of, _)) = brackets_around((
+    let (remainder, (id_str, scales_or_mirror_of, _)) = brackets_around((
         ws_around(digit1),
         alt((
             brackets_around(map(many1(ws_around(scale)), |scales| {
@@ -146,16 +162,23 @@ fn shape(input: &str) -> IResult<&str, Shape, ShapesParseResult> {
                         tag("mirror_of"),
                         whitespace_and_equals,
                     ),
-                    digit1,
+                    map_res(digit1, str::parse::<u32>),
                 ),
-                |mirror_of| ScalesOrMirrorOf::MirrorOf(mirror_of.parse::<u32>().unwrap()),
+                |mirror_of| ScalesOrMirrorOf::MirrorOf(mirror_of),
             ),
         )),
         ws,
     ))
     .parse(input)
     .map_err(|_| nom::Err::Error(ShapesParseResult::Shape(input.to_string())))?;
-    let id = ShapeId::Number(id.parse::<u32>().unwrap());
+    let id = match id_str.parse::<u32>() {
+        Ok(id) => ShapeId::Number(id),
+        Err(..) => {
+            return Err(nom::Err::Error(ShapesParseResult::NumberParse(
+                id_str.to_string(),
+            )));
+        }
+    };
     match scales_or_mirror_of {
         ScalesOrMirrorOf::Scales(scales) => Ok((remainder, Shape::Standard { scales, id })),
         ScalesOrMirrorOf::MirrorOf(mirror_of) => Ok((
