@@ -60,7 +60,8 @@ impl ShroudEditor {
                     .selection()
                     .iter()
                     .for_each(|shroud_layer_index| {
-                        let verts = &self.shroud[*shroud_layer_index].vertices;
+                        let shroud_layer = &mut self.shroud[*shroud_layer_index];
+                        let verts = &shroud_layer.vertices;
                         let (min_x, max_x, min_y, max_y) = verts.iter().fold(
                             (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
                             |(min_x, max_x, min_y, max_y), vert| {
@@ -77,8 +78,14 @@ impl ShroudEditor {
                             shape_size.0 * self.tool_settings.default_proportions_scale,
                             shape_size.1 * self.tool_settings.default_proportions_scale,
                         );
-                        self.shroud[*shroud_layer_index].shroud_layer.size =
-                            Some(scaled_default_proportion_size);
+                        if let Some(mirror_index) = shroud_layer.mirror_index_option {
+                            shroud_layer.shroud_layer.size =
+                                Some(scaled_default_proportion_size.clone());
+                            self.shroud[mirror_index].shroud_layer.size =
+                                Some(scaled_default_proportion_size);
+                        } else {
+                            shroud_layer.shroud_layer.size = Some(scaled_default_proportion_size);
+                        }
                     });
             }
             ui.add(DragValue::new(
