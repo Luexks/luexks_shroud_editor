@@ -508,6 +508,9 @@ impl ShroudEditor {
                                         shroud_layer.vertices = restructure_vertices(self.loaded_shapes.0[shape_idx].get_first_scale_vertices());
                                     }
                                 });
+                                if let Some(shape_idx) = self.loaded_shapes.0.iter().position(|shape| shape.get_id().unwrap() == *self.block_container.block.shape.as_ref().unwrap()) {
+                                    self.block_container.vertices = restructure_vertices(self.loaded_shapes.0[shape_idx].get_first_scale_vertices());
+                                }
                                 self.just_imported_shapes_from_paste_box_message_option =
                                     Some(ShapesParseResult::Success);
                             }
