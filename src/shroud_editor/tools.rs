@@ -39,7 +39,7 @@ impl Default for ToolSettings {
 
 impl ShroudEditor {
     pub fn tools(&mut self, ui: &mut Ui) {
-        CollapsingState::load_with_default_open(ui.ctx(), "tools".into(), true)
+        CollapsingState::load_with_default_open(ui.ctx(), "tools".into(), false)
             .show_header(ui, |ui| ui.heading("Tools"))
             .body_unindented(|ui| {
                 self.move_tool(ui);

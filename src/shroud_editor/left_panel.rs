@@ -66,7 +66,7 @@ impl ShroudEditor {
     }
 
     fn editor_settings(&mut self, ctx: &Context, ui: &mut Ui) {
-        CollapsingState::load_with_default_open(ctx, "editor".into(), true)
+        CollapsingState::load_with_default_open(ctx, "editor".into(), false)
             .show_header(ui, |ui| ui.heading("Editor Settings"))
             .body_unindented(|ui| {
                 self.background_grid_settings(ui);
@@ -99,6 +99,9 @@ impl ShroudEditor {
         ui.heading("Shroud Layers");
         if ui.button("Add Shroud Layer").clicked() {
             self.add_shroud_layer()
+        }
+        if self.shroud.is_empty() {
+            return;
         }
         ui.horizontal(|ui| {
             ui.label("Only Show Selected:");
@@ -166,7 +169,7 @@ impl ShroudEditor {
     }
 
     fn block_settings(&mut self, ui: &mut Ui) {
-        CollapsingState::load_with_default_open(ui.ctx(), "block".into(), true)
+        CollapsingState::load_with_default_open(ui.ctx(), "block".into(), false)
             .show_header(ui, |ui| ui.heading("Block Settings"))
             .body_unindented(|ui| {
                 self.block_visibility_settings(ui);
