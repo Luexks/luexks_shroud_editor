@@ -403,8 +403,8 @@ impl ShroudEditor {
             })
             .body(|ui| {
                 ui.horizontal(|ui| {
-                    let response = ui.button("Import");
-                    if response.clicked() {
+                    let response = ui.button("Import (Double Click)");
+                    if response.double_clicked() {
                         match parse_shroud_text(&self.shroud_import_text, &self.loaded_shapes) {
                             Ok(imported_shroud) => {
                                 self.shroud = imported_shroud;
