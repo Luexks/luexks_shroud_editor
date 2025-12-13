@@ -138,11 +138,7 @@ impl ShroudEditor {
             Rect::from_two_pos(height_gizmo_pos_top_left, height_gizmo_pos_bottom_right);
         ui.scope_builder(UiBuilder::new().max_rect(gizmo_rect), |ui| {
             egui::Frame::new().fill(Color32::BLACK).show(ui, |ui| {
-                let xy_speed = if grid_snap_enabled {
-                    grid_size / 2.0
-                } else {
-                    0.05
-                };
+                let xy_speed = self.get_xy_speed();
                 ui.add(DragValue::new(&mut height).speed(xy_speed));
             });
         });
@@ -187,11 +183,7 @@ impl ShroudEditor {
         let gizmo_rect = Rect::from_two_pos(width_gizmo_pos_top_left, width_gizmo_pos_bottom_right);
         ui.scope_builder(UiBuilder::new().max_rect(gizmo_rect), |ui| {
             egui::Frame::new().fill(Color32::BLACK).show(ui, |ui| {
-                let xy_speed = if grid_snap_enabled {
-                    grid_size / 2.0
-                } else {
-                    0.05
-                };
+                let xy_speed = self.get_xy_speed();
                 ui.add(DragValue::new(&mut width).speed(xy_speed));
             });
         });
