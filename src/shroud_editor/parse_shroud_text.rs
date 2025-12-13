@@ -55,6 +55,9 @@ pub enum ShroudParseResult {
 
     #[error("Failed to parse taper: `{0}` :(")]
     Taper(String),
+
+    #[error("Parse error for the number {0}. It's probably out of range :(")]
+    NumberParse(String),
 }
 
 #[rustfmt::skip]
@@ -104,7 +107,7 @@ pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Ve
                 ("shape", variable_value_data) => {
                     if let Some(shape_data) = variable_value_data.first() {
                         if shape_data.chars().all(|c| c.is_ascii_digit()) {
-                            let shape_name = shape_data.parse::<u32>().unwrap();
+                            let shape_name = shape_data.parse::<u32>().map_err(|_| ShroudParseResult::NumberParse(shape_data.to_string()))?;
                             let shape_name_string = shape_name.to_string();
                             if let Some(matched_shape) = match_shape(loaded_shapes, &shape_name_string) {
                                 shroud_layer_container.shroud_layer.shape = Some(ShapeId::Number(shape_name));

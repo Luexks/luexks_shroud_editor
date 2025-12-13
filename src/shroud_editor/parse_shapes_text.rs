@@ -61,7 +61,7 @@ pub enum ShapesParseResult {
     #[error("For shape {0}, its mirror_of shape with ID {1} is another mirror :(")]
     MirrorOfIsAMirror(String, String),
 
-    #[error("Parse error for the number {0}. Maybe it's out of range or something :(")]
+    #[error("Parse error for the number {0}. It's probably out of range :(")]
     NumberParse(String),
 }
 
