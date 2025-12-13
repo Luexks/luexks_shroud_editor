@@ -24,6 +24,10 @@ pub struct ToolSettings {
     scale_by_scale_factor: f32,
     scale_by_about_x: f32,
     scale_by_about_y: f32,
+    scale_by_2_x_scale_factor: f32,
+    scale_by_2_y_scale_factor: f32,
+    scale_by_2_about_x: f32,
+    scale_by_2_about_y: f32,
     radial_by_distance: f32,
     radial_by_count: usize,
     radial_by_angle: f32,
@@ -41,6 +45,10 @@ impl Default for ToolSettings {
             scale_by_scale_factor: 1.0,
             scale_by_about_x: 0.0,
             scale_by_about_y: 0.0,
+            scale_by_2_x_scale_factor: 1.0,
+            scale_by_2_y_scale_factor: 1.0,
+            scale_by_2_about_x: 0.0,
+            scale_by_2_about_y: 0.0,
             radial_by_distance: 10.0,
             radial_by_count: 3,
             radial_by_angle: 0.0,
@@ -59,6 +67,8 @@ impl ShroudEditor {
                 self.move_by_x_y_z_tool(ui);
                 ui.separator();
                 self.scale_by(ui);
+                ui.separator();
+                self.scale_by_2(ui);
                 ui.separator();
                 self.radial_tool(ui);
                 ui.separator();
@@ -383,7 +393,7 @@ impl ShroudEditor {
             let scale_factor = &mut self.tool_settings.scale_by_scale_factor;
             let about_x = &mut self.tool_settings.scale_by_about_x;
             let about_y = &mut self.tool_settings.scale_by_about_y;
-            if ui.button("Scale by scale factor").clicked() {
+            if ui.button("Scale by").clicked() {
                 self.shroud_interaction
                     .selection()
                     .iter()
@@ -428,7 +438,73 @@ impl ShroudEditor {
                         }
                     });
             }
+            ui.label("scale factor:");
             ui.add(DragValue::new(scale_factor).speed(xy_speed));
+            ui.label("about X:");
+            ui.add(DragValue::new(about_x).speed(xy_speed));
+            ui.label("Y:");
+            ui.add(DragValue::new(about_y).speed(xy_speed));
+        });
+    }
+
+    fn scale_by_2(&mut self, ui: &mut Ui) {
+        let xy_speed = self.get_xy_speed();
+        let x_scale_factor = &mut self.tool_settings.scale_by_2_x_scale_factor;
+        let y_scale_factor = &mut self.tool_settings.scale_by_2_y_scale_factor;
+        let about_x = &mut self.tool_settings.scale_by_2_about_x;
+        let about_y = &mut self.tool_settings.scale_by_2_about_y;
+        ui.horizontal(|ui| {
+            if ui.button("Scale by").clicked() {
+                self.shroud_interaction
+                    .selection()
+                    .iter()
+                    .for_each(|shroud_layer_index| {
+                        let offset = self.shroud[*shroud_layer_index]
+                            .shroud_layer
+                            .offset
+                            .as_ref()
+                            .unwrap();
+                        let new_offset = do3d_float_from(
+                            *x_scale_factor * (offset.x.to_f32() - *about_x) + *about_x,
+                            *y_scale_factor * (offset.y.to_f32() - *about_y) + *about_y,
+                            offset.z.to_f32(),
+                        );
+                        self.shroud[*shroud_layer_index].shroud_layer.offset = Some(new_offset);
+                        let size = self.shroud[*shroud_layer_index]
+                            .shroud_layer
+                            .size
+                            .as_ref()
+                            .unwrap();
+                        let new_size = do2d_float_from(
+                            size.x.to_f32() * *x_scale_factor,
+                            size.y.to_f32() * *y_scale_factor,
+                        );
+                        self.shroud[*shroud_layer_index].shroud_layer.size = Some(new_size);
+                        if let Some(mirror_index) =
+                            self.shroud[*shroud_layer_index].mirror_index_option
+                        {
+                            let offset = self.shroud[*shroud_layer_index]
+                                .shroud_layer
+                                .offset
+                                .as_ref()
+                                .unwrap();
+                            let new_mirror_offset = do3d_float_from(
+                                offset.x.to_f32(),
+                                -offset.y.to_f32(),
+                                offset.z.to_f32(),
+                            );
+                            self.shroud[mirror_index].shroud_layer.offset = Some(new_mirror_offset);
+                            self.shroud[mirror_index].shroud_layer.size =
+                                self.shroud[*shroud_layer_index].shroud_layer.size.clone();
+                        }
+                    });
+            }
+            ui.label("X scale factor:");
+            ui.add(DragValue::new(x_scale_factor).speed(xy_speed));
+            ui.label("Y scale factor:");
+            ui.add(DragValue::new(y_scale_factor).speed(xy_speed));
+        });
+        ui.horizontal(|ui| {
             ui.label("about X:");
             ui.add(DragValue::new(about_x).speed(xy_speed));
             ui.label("Y:");

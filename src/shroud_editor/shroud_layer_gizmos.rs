@@ -30,8 +30,6 @@ impl ShroudEditor {
                         gizmo_pos_bottom_right,
                         gizmo_size,
                         *index,
-                        self.grid_size,
-                        self.grid_snap_enabled,
                     );
                 }
             });
@@ -86,8 +84,6 @@ impl ShroudEditor {
         gizmo_pos_bottom_right: Pos2,
         gizmo_size: f32,
         index: usize,
-        grid_size: f32,
-        grid_snap_enabled: bool,
     ) {
         let size = self.shroud[index].shroud_layer.size.clone().unwrap();
         let mut width = size.x.to_f32();
