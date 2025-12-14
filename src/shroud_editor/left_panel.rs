@@ -361,7 +361,7 @@ impl ShroudEditor {
                                         shroud_layer.angle.clone()
                                     },
                                     taper: if shroud_layer_container.shape_id != "SQUARE"
-                                        && shroud_layer.taper.unwrap() == 1.0
+                                        || shroud_layer.taper.unwrap() == 1.0
                                     {
                                         None
                                     } else {
