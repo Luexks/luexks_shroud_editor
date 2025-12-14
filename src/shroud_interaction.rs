@@ -21,6 +21,18 @@ impl MovingShroudSelection {
             )
             .collect()
     }
+
+    // fn get_indexes_mut(&mut self) -> &mut Vec<usize> {
+    //     self.0
+    //         .into_iter()
+    //         .map(
+    //             |MovingShroudLayerInteraction {
+    //                  idx,
+    //                  relative_pos: _,
+    //              }| idx,
+    //         )
+    //         .collect()
+    // }
 }
 
 #[derive(Clone)]
@@ -54,6 +66,13 @@ impl ShroudInteraction {
             ShroudInteraction::Placing { selection, .. } => selection.get_indexes(),
         }
     }
+    pub fn inaction_selection_mut_option(&mut self) -> Option<&mut Vec<usize>> {
+        match self {
+            ShroudInteraction::Inaction { selection } => Some(selection),
+            ShroudInteraction::Dragging { selection: _, .. } => None,
+            ShroudInteraction::Placing { selection: _, .. } => None,
+        }
+    }
     pub fn is_shroud_layer_index_selected(&self, index: usize) -> bool {
         match self {
             ShroudInteraction::Inaction { selection } => selection.iter().contains(&index),
@@ -77,8 +96,6 @@ impl ShroudEditor {
     ) {
         let mouse_pos = response.interact_pointer_pos();
         if let Some(mouse_pos) = mouse_pos {
-            // if response.clicked() {
-            // if ui.input(|i| i.pointer.primary_released()) {
             if let ShroudInteraction::Placing { .. } = &self.shroud_interaction {
                 if ui.input(|i| i.pointer.primary_clicked()) {
                     self.shroud_interaction = ShroudInteraction::Inaction {
@@ -87,33 +104,43 @@ impl ShroudEditor {
                 }
             } else {
                 if ui.input(|i| i.pointer.primary_pressed()) {
-                    if let Some(shroud_that_would_be_selected_index) =
+                    if let Some(shroud_layer_that_would_be_selected_index) =
                         self.get_shroud_that_would_be_selected_index_option(mouse_pos, *rect)
                     {
-                        // self.shroud_interaction = ShroudInteraction::Inaction { selection: self.shroud_interaction.selection().iter().chain(std::iter::once(&shroud_that_would_be_selected_index)).map(|index| *index).collect() }
                         if ctx.input(|i| i.modifiers.shift) {
-                            if !self
-                                .shroud_interaction
-                                .selection()
-                                .contains(&shroud_that_would_be_selected_index)
+                            if let Some(selection_index_of_shroud_layer_that_would_be_selected_index) =
+                                self.shroud_interaction.selection().into_iter().position(
+                                    |selected_shroud_layer_index| {
+                                        selected_shroud_layer_index
+                                            == shroud_layer_that_would_be_selected_index
+                                    },
+                                )
                             {
+                                if let Some(selection) =
+                                    self.shroud_interaction.inaction_selection_mut_option()
+                                {
+                                    selection.remove(
+                                        selection_index_of_shroud_layer_that_would_be_selected_index,
+                                    );
+                                }
+                            } else {
                                 self.shroud_interaction = ShroudInteraction::Inaction {
                                     selection: self
                                         .shroud_interaction
                                         .selection()
                                         .iter()
                                         .copied()
-                                        .chain(std::iter::once(shroud_that_would_be_selected_index))
+                                        .chain(std::iter::once(shroud_layer_that_would_be_selected_index))
                                         .collect(),
                                 };
                             }
                         } else if !self
                             .shroud_interaction
                             .selection()
-                            .contains(&shroud_that_would_be_selected_index)
+                            .contains(&shroud_layer_that_would_be_selected_index)
                         {
                             self.shroud_interaction = ShroudInteraction::Inaction {
-                                selection: vec![shroud_that_would_be_selected_index],
+                                selection: vec![shroud_layer_that_would_be_selected_index],
                             };
                         }
                     } else {
