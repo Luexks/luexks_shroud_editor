@@ -146,19 +146,19 @@ fn shroud_layer_settings(
                                 0.05
                             };
                             ui.horizontal(|ui| {
-                                let offset = shroud[index].shroud_layer.offset.clone().unwrap();
-                                let mut x = offset.x.to_f32();
-                                let mut y = offset.y.to_f32();
-                                let mut z = offset.z.to_f32();
-                                let original_offset = (x, y, z);
+                                let offset = shroud[index].shroud_layer.offset.as_mut().unwrap();
+                                let x = offset.x.to_f32_mut();
+                                let y = offset.y.to_f32_mut();
+                                let z = offset.z.to_f32_mut();
+                                let original_offset = (*x, *y, *z);
                                 ui.label("offset={");
-                                ui.add(DragValue::new(&mut x).speed(xy_speed));
+                                ui.add(DragValue::new(x).speed(xy_speed));
                                 ui.label(",");
-                                ui.add(DragValue::new(&mut y).speed(xy_speed));
+                                ui.add(DragValue::new(y).speed(xy_speed));
                                 ui.label(",");
-                                ui.add(DragValue::new(&mut z).speed(0.005));
+                                ui.add(DragValue::new(z).speed(0.005));
                                 ui.label("}");
-                                shroud[index].shroud_layer.offset = Some(do3d_float_from(x, y, z));
+                                let (x, y, z) = (*x, *y, *z);
                                 if original_offset != (x, y, z)
                                     && let Some(mirror_index) = shroud[index].mirror_index_option
                                 {
@@ -167,29 +167,21 @@ fn shroud_layer_settings(
                                 }
                             });
                             ui.horizontal(|ui| {
-                                let size = shroud[index].shroud_layer.size.clone().unwrap();
-                                let mut width = size.x.to_f32();
-                                let mut height = size.y.to_f32();
-                                let original_size = (width, height);
+                                let size = shroud[index].shroud_layer.size.as_mut().unwrap();
+                                let width = size.x.to_f32_mut();
+                                let height = size.y.to_f32_mut();
+                                let original_size = (*width, *height);
                                 ui.label("size={");
-                                ui.add(DragValue::new(&mut width).speed(xy_speed));
+                                ui.add(DragValue::new(width).speed(xy_speed));
                                 ui.label(",");
-                                ui.add(DragValue::new(&mut height).speed(xy_speed));
+                                ui.add(DragValue::new(height).speed(xy_speed));
                                 ui.label("}");
-                                shroud[index].shroud_layer.size =
-                                    Some(do2d_float_from(width, height));
+                                let (width, height) = (*width, *height);
                                 if original_size != (width, height)
                                     && let Some(mirror_index) = shroud[index].mirror_index_option
                                 {
                                     shroud[mirror_index].shroud_layer.size =
                                         Some(do2d_float_from(width, height));
-                                    // if shroud[index].shape_id == "SQUARE" {
-                                    //     shroud[mirror_index].shroud_layer.size =
-                                    //         Some(do2d_float_from(width, -height));
-                                    // } else {
-                                    //     shroud[mirror_index].shroud_layer.size =
-                                    //         Some(do2d_float_from(width, height));
-                                    // }
                                 }
                             });
                             ui.horizontal(|ui| {
@@ -203,27 +195,30 @@ fn shroud_layer_settings(
                             });
 
                             let shroud_layer_container = &mut shroud[index];
-                            let mut color_1 =
-                                shroud_layer_container.shroud_layer.color_1.clone().unwrap();
-                            let mut color_2 =
-                                shroud_layer_container.shroud_layer.color_2.clone().unwrap();
+                            let mut color_1 = shroud_layer_container
+                                .shroud_layer
+                                .color_1
+                                .as_mut()
+                                .unwrap();
+                            let mut color_2 = shroud_layer_container
+                                .shroud_layer
+                                .color_2
+                                .as_mut()
+                                .unwrap();
                             let mut line_color = shroud_layer_container
                                 .shroud_layer
                                 .line_color
-                                .clone()
+                                .as_mut()
                                 .unwrap();
-                            let original_color_1 = color_1.clone();
-                            let original_color_2 = color_2.clone();
-                            let original_line_color = line_color.clone();
+                            let original_color_1 = *color_1;
+                            let original_color_2 = *color_2;
+                            let original_line_color = *line_color;
                             Grid::new(index.to_string()).show(ui, |ui| {
                                 shroud_color_setting(ui, &mut color_1, "tri_color_id=");
                                 shroud_color_setting(ui, &mut color_2, "tri_color1_id=");
                                 shroud_color_setting(ui, &mut line_color, "line_color_id=");
                             });
-                            shroud_layer_container.shroud_layer.color_1 = Some(color_1.clone());
-                            shroud_layer_container.shroud_layer.color_2 = Some(color_2.clone());
-                            shroud_layer_container.shroud_layer.line_color =
-                                Some(line_color.clone());
+                            let (color_1, color_2, line_color) = (*color_1, *color_2, *line_color);
                             if let Some(mirror_index) = shroud[index].mirror_index_option {
                                 if original_color_1 != color_1 {
                                     shroud[mirror_index].shroud_layer.color_1 = Some(color_1);

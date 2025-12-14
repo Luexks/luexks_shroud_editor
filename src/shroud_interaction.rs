@@ -108,14 +108,14 @@ impl ShroudEditor {
                         self.get_shroud_that_would_be_selected_index_option(mouse_pos, *rect)
                     {
                         if ctx.input(|i| i.modifiers.shift) {
-                            if let Some(selection_index_of_shroud_layer_that_would_be_selected_index) =
-                                self.shroud_interaction.selection().into_iter().position(
-                                    |selected_shroud_layer_index| {
-                                        selected_shroud_layer_index
-                                            == shroud_layer_that_would_be_selected_index
-                                    },
-                                )
-                            {
+                            if let Some(
+                                selection_index_of_shroud_layer_that_would_be_selected_index,
+                            ) = self.shroud_interaction.selection().into_iter().position(
+                                |selected_shroud_layer_index| {
+                                    selected_shroud_layer_index
+                                        == shroud_layer_that_would_be_selected_index
+                                },
+                            ) {
                                 if let Some(selection) =
                                     self.shroud_interaction.inaction_selection_mut_option()
                                 {
@@ -130,7 +130,9 @@ impl ShroudEditor {
                                         .selection()
                                         .iter()
                                         .copied()
-                                        .chain(std::iter::once(shroud_layer_that_would_be_selected_index))
+                                        .chain(std::iter::once(
+                                            shroud_layer_that_would_be_selected_index,
+                                        ))
                                         .collect(),
                                 };
                             }
