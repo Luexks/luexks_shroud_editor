@@ -25,6 +25,7 @@ impl ShroudEditor {
         } else {
             let hotkey_pressed = ctx.input(|i| i.key_pressed(Key::V));
             if hotkey_pressed && !self.shroud_clipboard.is_empty() {
+                let mut to_be_selected_indexes = Vec::new();
                 self.shroud_clipboard
                     .iter()
                     .for_each(|shroud_layer_container| {
@@ -33,6 +34,7 @@ impl ShroudEditor {
                         };
                         self.shroud.push(new_shroud_layer_container);
                         let last = self.shroud.len() - 1;
+                        to_be_selected_indexes.push(last);
                         if let Some(_mirror_index) = self.shroud[last].mirror_index_option {
                             add_mirror(
                                 &mut self.shroud,
@@ -43,16 +45,6 @@ impl ShroudEditor {
                             );
                         }
                     });
-                let clipboard_count_plus_mirrors =
-                    self.shroud_clipboard
-                        .iter()
-                        .fold(0, |count, shroud_layer_container| {
-                            if shroud_layer_container.mirror_index_option.is_some() {
-                                count + 2
-                            } else {
-                                count + 1
-                            }
-                        });
                 let world_mouse_pos_inverted_y = invert_y_of_pos2(self.world_mouse_pos);
                 let drag_pos = do3d_to_pos2(
                     self.shroud_clipboard[0]
@@ -64,7 +56,8 @@ impl ShroudEditor {
                 .to_vec2();
                 self.shroud_interaction = ShroudInteraction::Placing {
                     selection: MovingShroudSelection(
-                        (self.shroud.len() - clipboard_count_plus_mirrors..self.shroud.len())
+                        to_be_selected_indexes
+                            .into_iter()
                             .map(|idx| MovingShroudLayerInteraction {
                                 idx,
                                 relative_pos: -do3d_to_pos2(
