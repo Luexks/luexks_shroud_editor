@@ -120,21 +120,21 @@ impl BlockContainer {
             .iter_mut()
             .for_each(|vert| *vert = pos2(vert.x - avg_vert_pos.x, vert.y - avg_vert_pos.y));
 
-        let min_vert_dist = verts
+        let max_vert_dist = verts
             .iter()
             .map(|vert| (vert.x.powi(2) + vert.y.powi(2)).sqrt())
-            .min_by(f32::total_cmp)
+            .max_by(f32::total_cmp)
             .unwrap();
-        let max_midpoint_dist = verts
+        let min_midpoint_dist = verts
             .iter()
             .zip(verts.iter().cycle().skip(1))
             .map(|(vert_a, vert_b)| {
                 (((vert_a.x - vert_b.x) / 2.0).powi(2) + ((vert_a.y - vert_b.y) / 2.0).powi(2))
                     .sqrt()
             })
-            .max_by(f32::total_cmp)
+            .min_by(f32::total_cmp)
             .unwrap();
-        let icon_radius = min_vert_dist.min(max_midpoint_dist);
+        let icon_radius = max_vert_dist.min(min_midpoint_dist);
         self.offset = pos2(icon_radius * -0.5, 0.0)
     }
 }
