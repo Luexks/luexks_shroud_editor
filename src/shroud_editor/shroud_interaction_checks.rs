@@ -1,4 +1,5 @@
 use egui::{Pos2, Rect};
+use itertools::Itertools;
 
 use crate::{
     pos_in_polygon::is_pos_in_polygon, shroud_editor::ShroudEditor,
@@ -42,29 +43,31 @@ impl ShroudEditor {
         mouse_pos: Pos2,
         rect: Rect,
     ) -> Option<usize> {
-        let mut dragged_on_shroud_layer_data: Vec<(usize, f32)> = Vec::default();
+        let selection = self.shroud_interaction.selection();
         self.shroud
             .iter()
             .enumerate()
-            .for_each(|(index, shroud_layer_container)| {
-                if self.is_shroud_hovered(Some(mouse_pos), shroud_layer_container, rect) {
-                    dragged_on_shroud_layer_data.push((
-                        index,
-                        shroud_layer_container
-                            .shroud_layer
-                            .offset
-                            .clone()
-                            .unwrap()
-                            .z
-                            .to_f32(),
-                    ));
-                }
-            });
-        dragged_on_shroud_layer_data.sort_by(|(_, z1), (_, z2)| z2.partial_cmp(z1).unwrap());
-        if let Some((index, _)) = dragged_on_shroud_layer_data.first() {
-            Some(*index)
-        } else {
-            None
-        }
+            .filter(|(_, shroud_layer_container)| {
+                self.is_shroud_hovered(Some(mouse_pos), shroud_layer_container, rect)
+            })
+            .map(|(index, shroud_layer_container)| {
+                (
+                    index,
+                    selection.contains(&index),
+                    shroud_layer_container
+                        .shroud_layer
+                        .offset
+                        .clone()
+                        .unwrap()
+                        .z
+                        .to_f32(),
+                )
+            })
+            .max_by(|(_, selected_1, z1), (_, selected_2, z2)| {
+                z1.partial_cmp(z2)
+                    .unwrap()
+                    .then_with(|| selected_2.partial_cmp(selected_1).unwrap())
+            })
+            .map(|(index, _, _)| index)
     }
 }
