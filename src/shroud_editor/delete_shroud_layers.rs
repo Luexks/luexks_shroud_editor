@@ -37,9 +37,10 @@ impl ShroudEditor {
             .rev()
             .collect::<Vec<_>>();
         to_be_deleted_indexes.iter().for_each(|index| {
-            let mut drop_down = CollapsingState::load(ctx, index.to_string().into()).unwrap();
-            drop_down.set_open(true);
-            drop_down.store(ctx);
+            if let Some(mut drop_down) = CollapsingState::load(ctx, index.to_string().into()) {
+                drop_down.set_open(true);
+                drop_down.store(ctx);
+            }
 
             self.shroud.remove(*index);
             self.shroud.iter_mut().for_each(|shroud_layer_container| {
