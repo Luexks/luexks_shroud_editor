@@ -129,8 +129,7 @@ impl BlockContainer {
             .iter()
             .zip(verts.iter().cycle().skip(1))
             .map(|(vert_a, vert_b)| {
-                (((vert_a.x + vert_b.x) / 2.0).powi(2) + (vert_a.y + vert_b.y) / 2.0)
-                    .powi(2)
+                (((vert_a.x - vert_b.x) / 2.0).powi(2) + ((vert_a.y - vert_b.y) / 2.0).powi(2))
                     .sqrt()
             })
             .max_by(f32::total_cmp)
