@@ -423,6 +423,9 @@ impl ShroudEditor {
                                 });
                                 self.just_imported_shroud_from_paste_box_message_option =
                                     Some(ShroudParseResult::Success);
+                                self.shroud_interaction = ShroudInteraction::Inaction {
+                                    selection: Vec::new(),
+                                };
                             }
                             Err(err) => {
                                 self.just_imported_shroud_from_paste_box_message_option = Some(err);
