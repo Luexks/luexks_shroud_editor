@@ -1,5 +1,4 @@
 use egui::{Pos2, Rect};
-use itertools::Itertools;
 
 use crate::{
     pos_in_polygon::is_pos_in_polygon, shroud_editor::ShroudEditor,

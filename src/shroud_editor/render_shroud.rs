@@ -62,8 +62,8 @@ impl ShroudEditor {
                             rect,
                             shroud_layer_container.get_shroud_layer_vertices(),
                             offset.clone(),
-                            shroud_layer_container.shroud_layer.color_1.clone().unwrap(),
-                            shroud_layer_container.shroud_layer.color_2.clone().unwrap(),
+                            shroud_layer_container.shroud_layer.color_1.unwrap(),
+                            shroud_layer_container.shroud_layer.color_2.unwrap(),
                             &shroud_layer_container.shape_id,
                         );
                     }
@@ -94,7 +94,7 @@ impl ShroudEditor {
                                     rect,
                                     shroud_layer_container.get_shroud_layer_vertices(),
                                     shroud_layer_container.shroud_layer.offset.clone().unwrap(),
-                                    shroud_layer_container.shroud_layer.line_color.clone().unwrap(),
+                                    shroud_layer_container.shroud_layer.line_color.unwrap(),
                                     selection_type_option.clone(),
                                 );
                             });
@@ -110,8 +110,8 @@ impl ShroudEditor {
                             rect,
                             shroud_layer_container.get_shroud_layer_vertices(),
                             offset.clone(),
-                            shroud_layer_container.shroud_layer.color_1.clone().unwrap(),
-                            shroud_layer_container.shroud_layer.color_2.clone().unwrap(),
+                            shroud_layer_container.shroud_layer.color_1.unwrap(),
+                            shroud_layer_container.shroud_layer.color_2.unwrap(),
                             &shroud_layer_container.shape_id,
                         );
                     }
@@ -139,7 +139,7 @@ impl ShroudEditor {
                             rect,
                             shroud_layer_container.get_shroud_layer_vertices(),
                             shroud_layer_container.shroud_layer.offset.clone().unwrap(),
-                            shroud_layer_container.shroud_layer.line_color.clone().unwrap(),
+                            shroud_layer_container.shroud_layer.line_color.unwrap(),
                             selection_type_option.clone(),
                         );
                     }

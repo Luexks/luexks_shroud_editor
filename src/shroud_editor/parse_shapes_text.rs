@@ -114,8 +114,8 @@ fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesParseResult
                     shapes[shape_idx] = Shape::Standard {
                         id: id.clone(),
                         scales: scales
-                            .to_vec()
-                            .into_iter()
+                            .iter()
+                            .cloned()
                             .map(|scale| Scale {
                                 verts: scale.verts.mirror(),
                                 ..scale
@@ -164,7 +164,7 @@ fn shape(input: &str) -> IResult<&str, Shape, ShapesParseResult> {
                     ),
                     map_res(digit1, str::parse::<u32>),
                 ),
-                |mirror_of| ScalesOrMirrorOf::MirrorOf(mirror_of),
+                ScalesOrMirrorOf::MirrorOf,
             ),
         )),
         ws,

@@ -195,17 +195,17 @@ fn shroud_layer_settings(
                             });
 
                             let shroud_layer_container = &mut shroud[index];
-                            let mut color_1 = shroud_layer_container
+                            let color_1 = shroud_layer_container
                                 .shroud_layer
                                 .color_1
                                 .as_mut()
                                 .unwrap();
-                            let mut color_2 = shroud_layer_container
+                            let color_2 = shroud_layer_container
                                 .shroud_layer
                                 .color_2
                                 .as_mut()
                                 .unwrap();
-                            let mut line_color = shroud_layer_container
+                            let line_color = shroud_layer_container
                                 .shroud_layer
                                 .line_color
                                 .as_mut()
@@ -214,9 +214,9 @@ fn shroud_layer_settings(
                             let original_color_2 = *color_2;
                             let original_line_color = *line_color;
                             Grid::new(index.to_string()).show(ui, |ui| {
-                                shroud_color_setting(ui, &mut color_1, "tri_color_id=");
-                                shroud_color_setting(ui, &mut color_2, "tri_color1_id=");
-                                shroud_color_setting(ui, &mut line_color, "line_color_id=");
+                                shroud_color_setting(ui, color_1, "tri_color_id=");
+                                shroud_color_setting(ui, color_2, "tri_color1_id=");
+                                shroud_color_setting(ui, line_color, "line_color_id=");
                             });
                             let (color_1, color_2, line_color) = (*color_1, *color_2, *line_color);
                             if let Some(mirror_index) = shroud[index].mirror_index_option {
