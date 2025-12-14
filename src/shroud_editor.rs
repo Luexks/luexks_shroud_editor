@@ -74,7 +74,7 @@ impl Default for ShroudEditor {
             fill_color_gradient_delta_enabled: true,
             last_frame_time: 0.0,
             dt: 0.0,
-            only_show_selected_shroud_layers: false,
+            only_show_selected_shroud_layers: true,
             world_mouse_pos: Pos2::default(),
             shroud_clipboard: Vec::new(),
             loaded_shapes_mirror_pairs,
