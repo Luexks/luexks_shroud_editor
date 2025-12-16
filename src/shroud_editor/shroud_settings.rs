@@ -30,22 +30,7 @@ impl ShroudEditor {
                     .shroud_interaction
                     .is_shroud_layer_index_selected(index);
                 if !self.only_show_selected_shroud_layers || is_selected {
-                    shroud_layer_settings(
-                        is_selected,
-                        ui,
-                        index,
-                        &mut self.shroud_interaction,
-                        self.grid_snap_enabled,
-                        self.grid_size,
-                        self.angle_snap,
-                        self.angle_snap_enabled,
-                        &mut self.shroud,
-                        &self.loaded_shapes,
-                        &self.loaded_shapes_mirror_pairs,
-                        &mut self.shape_search_show_vanilla,
-                        &mut self.shape_search_buf,
-                    );
-                    // }
+                    self.shroud_layer_settings(is_selected, ui, index);
                 }
                 // });
                 // let top_of_shroud_layer_settings_y = ui.cursor().min.y;
@@ -58,61 +43,51 @@ impl ShroudEditor {
 
         ui.add_space(4.0);
     }
-}
 
-fn shroud_layer_settings(
-    is_selected: bool,
-    ui: &mut Ui,
-    index: usize,
-    shroud_interaction: &mut ShroudInteraction,
-    grid_snap_enabled: bool,
-    grid_size: f32,
-    angle_snap: f32,
-    angle_snap_enabled: bool,
-    shroud: &mut Vec<ShroudLayerContainer>,
-    loaded_shapes: &Shapes,
-    loaded_shapes_mirror_pairs: &[(usize, usize)],
-    show_vanilla: &mut bool,
-    shape_search_buf: &mut String,
-) {
-    // let start_y = ui.cursor().min.y;
-    ui.vertical(|ui| {
-        egui::Frame::new()
-            .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
-            .inner_margin(6.0)
-            .corner_radius(4.0)
-            .stroke(Stroke::new(
-                1.0,
-                if is_selected {
-                    Color32::BLACK
-                } else {
-                    Color32::TRANSPARENT
-                },
-            ))
-            .show(ui, |ui| {
-                // let response = ui.label("h");
-                // let visible_rect = ui.clip_rect();
-                // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
-                // let start_y = ui.cursor().min.y;
-                ui.spacing_mut().item_spacing.y = 2.0;
-                CollapsingState::load_with_default_open(ui.ctx(), index.to_string().into(), true)
+    fn shroud_layer_settings(&mut self, is_selected: bool, ui: &mut Ui, index: usize) {
+        // let start_y = ui.cursor().min.y;
+        ui.vertical(|ui| {
+            egui::Frame::new()
+                .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
+                .inner_margin(6.0)
+                .corner_radius(4.0)
+                .stroke(Stroke::new(
+                    1.0,
+                    if is_selected {
+                        Color32::BLACK
+                    } else {
+                        Color32::TRANSPARENT
+                    },
+                ))
+                .show(ui, |ui| {
+                    // let response = ui.label("h");
+                    // let visible_rect = ui.clip_rect();
+                    // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
+                    // let start_y = ui.cursor().min.y;
+                    ui.spacing_mut().item_spacing.y = 2.0;
+                    CollapsingState::load_with_default_open(
+                        ui.ctx(),
+                        index.to_string().into(),
+                        true,
+                    )
                     .show_header(ui, |ui| {
                         select_deselect_and_delete_buttons(
                             ui,
                             index,
-                            &mut shroud[index],
-                            shroud_interaction,
+                            &mut self.shroud[index],
+                            &mut self.shroud_interaction,
                         );
                     })
                     .body_unindented(|ui| {
                         let top_of_shroud_layer_settings_y = ui.cursor().min.y;
-                        let shroud_layer_settings_height = if shroud[index].shape_id == "SQUARE" {
-                            207.0
-                            // 222.0
-                        } else {
-                            187.0
-                            // 202.0
-                        };
+                        let shroud_layer_settings_height =
+                            if self.shroud[index].shape_id == "SQUARE" {
+                                207.0
+                                // 222.0
+                            } else {
+                                187.0
+                                // 202.0
+                            };
                         let window_bottom_y = ui.clip_rect().max.y;
                         // println!("{}\t{}", top_of_shroud_layer_settings_y, window_bottom_y);
                         let shroud_layer_settings_are_off_screen =
@@ -124,29 +99,30 @@ fn shroud_layer_settings(
                         } else {
                             shroud_layer_mirror_settings(
                                 ui,
-                                shroud,
+                                &mut self.shroud,
                                 index,
-                                shroud_interaction,
-                                loaded_shapes,
-                                loaded_shapes_mirror_pairs,
+                                &mut self.shroud_interaction,
+                                &self.loaded_shapes,
+                                &self.loaded_shapes_mirror_pairs,
                             );
                             shroud_layer_shape_combo_box(
                                 ui,
-                                shroud,
+                                &mut self.shroud,
                                 index,
-                                loaded_shapes,
-                                loaded_shapes_mirror_pairs,
-                                show_vanilla,
-                                shape_search_buf,
+                                &self.loaded_shapes,
+                                &self.loaded_shapes_mirror_pairs,
+                                &mut self.shape_search_show_vanilla,
+                                &mut self.shape_search_buf,
                             );
 
-                            let xy_speed = if grid_snap_enabled {
-                                grid_size / 2.0
+                            let xy_speed = if self.grid_snap_enabled {
+                                self.grid_size / 2.0
                             } else {
                                 0.05
                             };
                             ui.horizontal(|ui| {
-                                let offset = shroud[index].shroud_layer.offset.as_mut().unwrap();
+                                let offset =
+                                    self.shroud[index].shroud_layer.offset.as_mut().unwrap();
                                 let x = offset.x.to_f32_mut();
                                 let y = offset.y.to_f32_mut();
                                 let z = offset.z.to_f32_mut();
@@ -160,14 +136,15 @@ fn shroud_layer_settings(
                                 ui.label("}");
                                 let (x, y, z) = (*x, *y, *z);
                                 if original_offset != (x, y, z)
-                                    && let Some(mirror_index) = shroud[index].mirror_index_option
+                                    && let Some(mirror_index) =
+                                        self.shroud[index].mirror_index_option
                                 {
-                                    shroud[mirror_index].shroud_layer.offset =
+                                    self.shroud[mirror_index].shroud_layer.offset =
                                         Some(do3d_float_from(x, -y, z));
                                 }
                             });
                             ui.horizontal(|ui| {
-                                let size = shroud[index].shroud_layer.size.as_mut().unwrap();
+                                let size = self.shroud[index].shroud_layer.size.as_mut().unwrap();
                                 let width = size.x.to_f32_mut();
                                 let height = size.y.to_f32_mut();
                                 let original_size = (*width, *height);
@@ -178,23 +155,24 @@ fn shroud_layer_settings(
                                 ui.label("}");
                                 let (width, height) = (*width, *height);
                                 if original_size != (width, height)
-                                    && let Some(mirror_index) = shroud[index].mirror_index_option
+                                    && let Some(mirror_index) =
+                                        self.shroud[index].mirror_index_option
                                 {
-                                    shroud[mirror_index].shroud_layer.size =
+                                    self.shroud[mirror_index].shroud_layer.size =
                                         Some(do2d_float_from(width, height));
                                 }
                             });
                             ui.horizontal(|ui| {
                                 full_angle_settings(
                                     ui,
-                                    shroud,
+                                    &mut self.shroud,
                                     index,
-                                    angle_snap,
-                                    angle_snap_enabled,
+                                    self.angle_snap,
+                                    self.angle_snap_enabled,
                                 );
                             });
 
-                            let shroud_layer_container = &mut shroud[index];
+                            let shroud_layer_container = &mut self.shroud[index];
                             let color_1 = shroud_layer_container
                                 .shroud_layer
                                 .color_1
@@ -219,40 +197,43 @@ fn shroud_layer_settings(
                                 shroud_color_setting(ui, line_color, "line_color_id=");
                             });
                             let (color_1, color_2, line_color) = (*color_1, *color_2, *line_color);
-                            if let Some(mirror_index) = shroud[index].mirror_index_option {
+                            if let Some(mirror_index) = self.shroud[index].mirror_index_option {
                                 if original_color_1 != color_1 {
-                                    shroud[mirror_index].shroud_layer.color_1 = Some(color_1);
+                                    self.shroud[mirror_index].shroud_layer.color_1 = Some(color_1);
                                 }
                                 if original_color_2 != color_2 {
-                                    shroud[mirror_index].shroud_layer.color_2 = Some(color_2);
+                                    self.shroud[mirror_index].shroud_layer.color_2 = Some(color_2);
                                 }
                                 if original_line_color != line_color {
-                                    shroud[mirror_index].shroud_layer.line_color = Some(line_color);
+                                    self.shroud[mirror_index].shroud_layer.line_color =
+                                        Some(line_color);
                                 }
                             }
 
-                            if shroud[index].shape_id == "SQUARE" {
+                            if self.shroud[index].shape_id == "SQUARE" {
                                 ui.horizontal(|ui| {
-                                    let mut taper = shroud[index].shroud_layer.taper.unwrap_or(1.0);
+                                    let mut taper =
+                                        self.shroud[index].shroud_layer.taper.unwrap_or(1.0);
                                     let original_taper = taper;
                                     ui.label("taper=");
                                     ui.add(DragValue::new(&mut taper).speed(0.025));
-                                    shroud[index].shroud_layer.taper = Some(taper);
+                                    self.shroud[index].shroud_layer.taper = Some(taper);
                                     if original_taper != taper
                                         && let Some(mirror_index) =
-                                            shroud[index].mirror_index_option
+                                            self.shroud[index].mirror_index_option
                                     {
-                                        shroud[mirror_index].shroud_layer.taper = Some(taper);
+                                        self.shroud[mirror_index].shroud_layer.taper = Some(taper);
                                     }
                                 });
                             }
                         }
                     });
-            });
-    });
-    // }
-    // let end_y = ui.cursor().min.y;
-    // println!("Height: {}", end_y - start_y);
+                });
+        });
+        // }
+        // let end_y = ui.cursor().min.y;
+        // println!("Height: {}", end_y - start_y);
+    }
 }
 
 fn shroud_color_setting(ui: &mut Ui, color: &mut ShroudLayerColor, text: &str) {

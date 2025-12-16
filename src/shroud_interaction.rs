@@ -84,6 +84,28 @@ impl ShroudInteraction {
             }
         }
     }
+
+    pub fn is_selection_contiguous(&self) -> bool {
+        let mut selection = self.selection();
+        if selection.is_empty() {
+            return false;
+        }
+        if selection.len() == 1 {
+            return true;
+        }
+        selection.sort();
+        selection.windows(2).all(|w| w[0] + 1 == w[1])
+    }
+}
+
+pub fn is_sorted_selection_contiguous(selection: &[usize]) -> bool {
+    if selection.is_empty() {
+        return false;
+    }
+    if selection.len() == 1 {
+        return true;
+    }
+    selection.windows(2).all(|w| w[0] + 1 == w[1])
 }
 
 impl ShroudEditor {

@@ -136,6 +136,7 @@ impl ShroudEditor {
                     });
             }
         });
+        self.shroud_layer_reordering_buttons(ui);
     }
 
     fn select_all_excluding_mirrors_button(&mut self, ui: &mut Ui) {

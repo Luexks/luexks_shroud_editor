@@ -7,6 +7,7 @@ use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
 use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
+use crate::shroud_editor::shroud_layer_reordering::ShroudLayerReorderingMessageData;
 use crate::shroud_editor::tools::ToolSettings;
 use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
 use crate::shroud_interaction::ShroudInteraction;
@@ -47,6 +48,7 @@ pub struct ShroudEditor {
     shapes_import_text: String,
     just_imported_shapes_from_paste_box_message_option: Option<ShapesParseResult>,
     tool_settings: ToolSettings,
+    shroud_layer_reordering_message_data_option: Option<ShroudLayerReorderingMessageData>,
 }
 
 impl Default for ShroudEditor {
@@ -85,6 +87,7 @@ impl Default for ShroudEditor {
             shapes_import_text: SHAPES_IMPORT_TEXT_DEFAULT.to_string(),
             just_imported_shapes_from_paste_box_message_option: None,
             tool_settings: ToolSettings::default(),
+            shroud_layer_reordering_message_data_option: None,
         }
     }
 }
@@ -128,6 +131,7 @@ mod shape_combo_box;
 mod shroud_interaction_checks;
 mod shroud_layer_gizmos;
 mod shroud_layer_moving;
+mod shroud_layer_reordering;
 mod shroud_settings;
 mod tools;
 mod viewport_controls;
