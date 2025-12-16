@@ -108,17 +108,10 @@ impl ShroudEditor {
             ui.checkbox(&mut self.only_show_selected_shroud_layers, "");
         });
         ui.horizontal(|ui| {
-            if ui.button("Select All").clicked() {
-                self.shroud_interaction = ShroudInteraction::Inaction {
-                    selection: (0..self.shroud.len()).collect(),
-                };
-            }
-            if ui.button("Deselect All").clicked() {
-                self.shroud_interaction = ShroudInteraction::Inaction {
-                    selection: Vec::new(),
-                };
-            }
+            self.select_all_excluding_mirrors_button(ui);
+            self.deselect_all_button(ui);
         });
+        self.select_all_including_mirrors_button(ui);
         ui.horizontal(|ui| {
             if ui.button("Expand Selection").clicked() {
                 self.shroud_interaction
@@ -143,6 +136,43 @@ impl ShroudEditor {
                     });
             }
         });
+    }
+
+    fn select_all_excluding_mirrors_button(&mut self, ui: &mut Ui) {
+        if ui.button("Select All").clicked() {
+            self.shroud_interaction = ShroudInteraction::Inaction {
+                selection: (0..self.shroud.len())
+                    .fold(
+                        (Vec::new(), Vec::new()),
+                        |(mut selection, mut mirrors), idx| {
+                            if !mirrors.contains(&idx) {
+                                selection.push(idx);
+                                if let Some(mirror_idx) = self.shroud[idx].mirror_index_option {
+                                    mirrors.push(mirror_idx);
+                                }
+                            }
+                            (selection, mirrors)
+                        },
+                    )
+                    .0,
+            };
+        }
+    }
+
+    fn deselect_all_button(&mut self, ui: &mut Ui) {
+        if ui.button("Deselect All").clicked() {
+            self.shroud_interaction = ShroudInteraction::Inaction {
+                selection: Vec::new(),
+            };
+        }
+    }
+
+    fn select_all_including_mirrors_button(&mut self, ui: &mut Ui) {
+        if ui.button("Select All (Including Mirrors)").clicked() {
+            self.shroud_interaction = ShroudInteraction::Inaction {
+                selection: (0..self.shroud.len()).collect(),
+            };
+        }
     }
 
     fn background_grid_settings(&mut self, ui: &mut Ui) {
