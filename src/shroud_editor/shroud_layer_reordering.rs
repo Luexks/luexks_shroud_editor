@@ -15,7 +15,7 @@ enum Message {
     EmptySelection,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 enum Direction {
     Up,
     Down,
@@ -93,83 +93,50 @@ impl ShroudEditor {
         if direction == Direction::Down && bottom_idx == self.shroud.len() - 1 {
             return;
         }
-        let mut was_rotated_idx_changed = false;
+        self.shroud.iter_mut().for_each(|shroud_layer_container| {
+            if let Some(mirror_idx) = &mut shroud_layer_container.mirror_index_option {
+                *mirror_idx = reorder_idx(*mirror_idx, top_idx, bottom_idx, direction);
+            }
+        });
         match direction {
             Direction::Up => {
-                let rotated_idx = top_idx - 1;
-                (top_idx..=bottom_idx).for_each(|idx| {
-                    let (left, right) = self.shroud.split_at_mut(idx);
-                    if let Some(mirror_idx) = right[0].mirror_index_option {
-                        if mirror_idx < idx {
-                            left[mirror_idx].mirror_index_option = Some(idx - 1);
-                        } else {
-                            right[mirror_idx - idx].mirror_index_option = Some(idx - 1);
-                        }
-                        if mirror_idx == rotated_idx {
-                            was_rotated_idx_changed = true;
-                        }
-                        if (top_idx..=bottom_idx).contains(&mirror_idx) {
-                            right[0].mirror_index_option = Some(mirror_idx - 1);
-                        } else if rotated_idx == mirror_idx {
-                            right[0].mirror_index_option = Some(bottom_idx);
-                        }
-                    }
-                });
-                if !was_rotated_idx_changed {
-                    let (left, right) = self.shroud.split_at_mut(rotated_idx);
-                    if let Some(mirror_idx) = right[0].mirror_index_option {
-                        if mirror_idx < rotated_idx {
-                            left[mirror_idx].mirror_index_option = Some(bottom_idx);
-                        } else {
-                            right[mirror_idx - rotated_idx].mirror_index_option = Some(bottom_idx);
-                        }
-                        if (top_idx..=bottom_idx).contains(&mirror_idx) {
-                            right[0].mirror_index_option = Some(mirror_idx - 1);
-                        }
-                    }
-                }
                 self.shroud[top_idx - 1..=bottom_idx].rotate_left(1);
+                let rotated_idx = top_idx - 1;
                 self.shroud_interaction = ShroudInteraction::Inaction {
                     selection: (rotated_idx..bottom_idx).collect(),
                 };
             }
             Direction::Down => {
                 let rotated_idx = bottom_idx + 1;
-                (top_idx..=bottom_idx).for_each(|idx| {
-                    let (left, right) = self.shroud.split_at_mut(idx);
-                    if let Some(mirror_idx) = right[0].mirror_index_option {
-                        if mirror_idx == rotated_idx {
-                            was_rotated_idx_changed = true;
-                        }
-                        if mirror_idx < idx {
-                            left[mirror_idx].mirror_index_option = Some(idx + 1);
-                        } else {
-                            right[(mirror_idx - idx)].mirror_index_option = Some(idx + 1);
-                        }
-                        if (top_idx..=bottom_idx).contains(&mirror_idx) {
-                            right[0].mirror_index_option = Some(mirror_idx + 1)
-                        } else if rotated_idx == mirror_idx {
-                            right[0].mirror_index_option = Some(top_idx)
-                        }
-                    }
-                });
-                if !was_rotated_idx_changed {
-                    let (left, right) = self.shroud.split_at_mut(rotated_idx);
-                    if let Some(mirror_idx) = right[0].mirror_index_option {
-                        if mirror_idx < rotated_idx {
-                            left[mirror_idx].mirror_index_option = Some(top_idx);
-                        } else {
-                            right[mirror_idx - rotated_idx].mirror_index_option = Some(top_idx);
-                        }
-                        if (top_idx..=bottom_idx).contains(&mirror_idx) {
-                            right[0].mirror_index_option = Some(mirror_idx + 1);
-                        }
-                    }
-                }
                 self.shroud[top_idx..=bottom_idx + 1].rotate_right(1);
                 self.shroud_interaction = ShroudInteraction::Inaction {
                     selection: (top_idx + 1..=rotated_idx).collect(),
                 };
+            }
+        }
+    }
+}
+
+const fn reorder_idx(idx: usize, top_idx: usize, bottom_idx: usize, direction: Direction) -> usize {
+    match direction {
+        Direction::Up => {
+            let rotated_idx = top_idx - 1;
+            if idx < rotated_idx || bottom_idx < idx {
+                idx
+            } else if idx == rotated_idx {
+                bottom_idx
+            } else {
+                idx - 1
+            }
+        }
+        Direction::Down => {
+            let rotated_idx = bottom_idx + 1;
+            if idx < top_idx || rotated_idx < idx {
+                idx
+            } else if idx == rotated_idx {
+                top_idx
+            } else {
+                idx + 1
             }
         }
     }
