@@ -11,7 +11,7 @@ use thiserror::Error;
 
 use crate::{
     restructure_vertices::restructure_vertices,
-    shroud_editor::parsing::{parse_number_expression, variable, whitespace_and_equals, ws},
+    shroud_editor::parsing::{parse_number_expression, variable, ws, ws_and_equals},
     shroud_layer_container::ShroudLayerContainer,
 };
 
@@ -223,7 +223,7 @@ fn shroud_layer_container(input: &str) -> IResult<&str, Vec<(&str, Vec<&str>)>> 
 fn shroud(input: &str) -> IResult<&str, Vec<Vec<(&str, Vec<&str>)>>> {
     let (remainder, _) = ws(input)?;
     let (remainder, _) = tag("shroud")(remainder)?;
-    let (remainder, _) = whitespace_and_equals(remainder)?;
+    let (remainder, _) = ws_and_equals(remainder)?;
     let (remainder, _) = tag("{")(remainder)?;
     let (remainder, _) = ws(remainder)?;
     many0(delimited(ws, shroud_layer_container, ws)).parse(remainder)

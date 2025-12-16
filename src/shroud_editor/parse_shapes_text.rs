@@ -12,7 +12,7 @@ use nom::{
     branch::alt,
     bytes::{complete::tag, take_until},
     character::complete::digit1,
-    combinator::{complete, map, map_res},
+    combinator::{complete, map, map_res, opt},
     error::{FromExternalError, ParseError},
     multi::{many0, many1},
     sequence::{delimited, preceded, separated_pair},
@@ -23,7 +23,7 @@ use thiserror::Error;
 use crate::{
     mirror_pairs::MirrorPairs,
     shroud_editor::parsing::{
-        brackets_around, parse_number_expression, whitespace_and_equals, ws, ws_around,
+        brackets_around, parse_number_expression, ws, ws_and_equals, ws_around,
     },
 };
 
@@ -160,7 +160,7 @@ fn shape(input: &str) -> IResult<&str, Shape, ShapesParseResult> {
                     (
                         ws_around(brackets_around(ws)),
                         tag("mirror_of"),
-                        whitespace_and_equals,
+                        ws_and_equals,
                     ),
                     map_res(digit1, str::parse::<u32>),
                 ),
@@ -195,15 +195,17 @@ fn shape(input: &str) -> IResult<&str, Shape, ShapesParseResult> {
 
 fn scale(input: &str) -> IResult<&str, Scale, ShapesParseResult> {
     let (remainder, verts) = brackets_around(ws_around(delimited(
-        take_until("verts="),
-        preceded(tag("verts="), verts),
-        ws_around((
-            take_until("ports"),
-            preceded(tag("ports"), whitespace_and_equals),
-            complete(brackets_around(many0(ws_around(brackets_around(
-                take_until("}"),
-            ))))),
-        )),
+        (take_until("verts"), tag("verts"), ws_and_equals),
+        verts,
+        (
+            ws,
+            opt(complete((
+                take_until("ports"),
+                tag("ports"),
+                ws_and_equals,
+                brackets_around(many0(ws_around(brackets_around(take_until("}"))))),
+            ))),
+        ),
     )))
     .parse(input)
     .map_err(|_| nom::Err::Error(ShapesParseResult::Scale(input.to_string())))?;

@@ -2,7 +2,7 @@ use nom::{
     IResult, Parser,
     branch::alt,
     bytes::{
-        complete::{tag, take_while, take_while1},
+        complete::{tag, take_while1},
         streaming::tag_no_case,
         take_until,
     },
@@ -10,7 +10,7 @@ use nom::{
     error::{Error, ParseError},
     multi::{many0, many1},
     number::complete::float,
-    sequence::{delimited, pair, preceded, separated_pair, terminated},
+    sequence::{delimited, pair, separated_pair},
 };
 use std::f32::{self, consts::PI};
 
@@ -53,12 +53,7 @@ pub fn variable_name(input: &str) -> IResult<&str, &str> {
 
 pub fn variable_value(input: &str) -> IResult<&str, Vec<&str>> {
     if peek(char::<&str, Error<_>>('{')).parse(input).is_ok() {
-        delimited(
-            tag("{"),
-            many1(delimited(ws, alphanumeric_special_1, ws)),
-            tag("}"),
-        )
-        .parse(input)
+        brackets_around(many1(ws_around(alphanumeric_special_1))).parse(input)
     } else {
         many1(alphanumeric_special_1).parse(input)
     }
@@ -72,30 +67,24 @@ pub fn alphanumeric_special_1(input: &str) -> IResult<&str, &str> {
 }
 
 pub fn ws<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, (), E> {
-    let (remainder, _) =
-        value((), take_while(|c: char| c.is_whitespace() || c == ',')).parse(input)?;
-    let (remainder, _) = comment(remainder)?;
-    let (remainder, _) =
-        value((), take_while(|c: char| c.is_whitespace() || c == ',')).parse(remainder)?;
+    let (remainder, _) = many0(alt((
+        value((), take_while1(|c: char| c.is_whitespace() || c == ',')),
+        value((), comment),
+    )))
+    .parse(input)?;
     Ok((remainder, ()))
 }
 
-pub fn whitespace_and_equals<'a, E: ParseError<&'a str>>(
-    input: &'a str,
-) -> IResult<&'a str, (), E> {
-    value(
-        (),
-        take_while(|c: char| c.is_whitespace() || c == ',' || c == '='),
-    )
-    .parse(input)
+pub fn ws_and_equals<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, (), E> {
+    value((), (ws, value((), tag("=")), ws)).parse(input)
 }
 
 pub fn variable(input: &str) -> IResult<&str, (&str, Vec<&str>)> {
-    separated_pair(variable_name, whitespace_and_equals, variable_value).parse(input)
+    separated_pair(variable_name, ws_and_equals, variable_value).parse(input)
 }
 
-pub fn comment<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, Option<&'a str>, E> {
-    opt(preceded(tag("--"), terminated(take_until("\n"), tag("\n")))).parse(input)
+pub fn comment<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, (), E> {
+    value((), (tag("--"), take_until("\n"))).parse(input)
 }
 
 pub fn ws_around<'a, O, F, E>(inner: F) -> impl Parser<&'a str, Output = O, Error = E>
