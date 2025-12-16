@@ -24,11 +24,11 @@ enum Direction {
 impl ShroudEditor {
     pub fn shroud_layer_reordering_buttons(&mut self, ui: &mut Ui) {
         ui.horizontal(|ui| {
-            let up_button = ui.button("Move Selection Up");
+            let up_button = ui.button("Reorder Selection Up");
             if up_button.clicked() {
                 self.move_selection(Direction::Up);
             }
-            let down_button = ui.button("Move Selection Down");
+            let down_button = ui.button("Reorder Selection Down");
             if down_button.clicked() {
                 self.move_selection(Direction::Down);
             }
