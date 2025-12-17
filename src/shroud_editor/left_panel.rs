@@ -1,9 +1,10 @@
 use arboard::Clipboard;
 use egui::{
-    Checkbox, Color32, Context, DragValue, Grid, Popup, PopupCloseBehavior, Pos2, Rgba, ScrollArea,
-    Slider, TextBuffer, TextEdit, Ui, Vec2,
+    Area, Checkbox, Color32, Context, DragValue, Frame, Grid, Id, Popup, PopupCloseBehavior, Pos2,
+    Rect, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui, UiBuilder, Vec2,
     collapsing_header::CollapsingState,
     color_picker::{Alpha, color_edit_button_rgba},
+    pos2,
     scroll_area::ScrollBarVisibility,
     vec2,
 };
@@ -37,7 +38,7 @@ type IsChanged = bool;
 impl ShroudEditor {
     pub fn left_panel(&mut self, ctx: &Context) {
         egui::SidePanel::left("side_panel")
-            .min_width(300.0)
+            .min_width(310.0)
             .resizable(true)
             .show(ctx, |ui| {
                 ui.heading("Luexks Shroud Editor");
@@ -49,7 +50,9 @@ impl ShroudEditor {
                         self.editor_settings(ctx, ui);
                         self.block_settings(ui);
                         self.tools(ui);
-                        self.shroud_settings(ctx, ui);
+                        self.float_shroud_settings_logic(ctx, ui);
+                        self.shroud_settings(ctx, ui, false);
+                        // println!("{}", ui.cursor().min);
                         self.shroud_list(ui);
                     });
             });
@@ -95,11 +98,30 @@ impl ShroudEditor {
             });
     }
 
-    fn shroud_settings(&mut self, ctx: &Context, ui: &mut Ui) {
+    fn float_shroud_settings_logic(&mut self, ctx: &Context, ui: &mut Ui) {
+        let cursor_y = ui.cursor().min.y;
         ui.heading("Shroud Layers");
+        // println!("{}", cursor_y);
+        self.float_shroud_settings = cursor_y <= 0.0;
+        if self.float_shroud_settings {
+            Area::new(Id::new("float_shroud_settings"))
+                .fixed_pos(pos2(8.0, 23.0))
+                .fade_in(false)
+                .show(ctx, |ui| {
+                    Frame::new().fill(Color32::WHITE).show(ui, |ui| {
+                        self.shroud_settings(ctx, ui, true);
+                    });
+                });
+        }
+    }
+
+    fn shroud_settings(&mut self, ctx: &Context, ui: &mut Ui, is_floating_panel: bool) {
+        // let y = ui.cursor().min.y;
+        // println!("{}, {}", y, ui.cursor().min.y);
         if ui.button("Add Shroud Layer").clicked() {
             self.add_shroud_layer()
         }
+        // println!("{}", ui.cursor().min.y);
         if self.shroud.is_empty() {
             return;
         }
@@ -136,7 +158,7 @@ impl ShroudEditor {
                     });
             }
         });
-        self.shroud_layer_reordering_buttons(ui);
+        self.shroud_layer_reordering_buttons(ui, is_floating_panel);
     }
 
     fn select_all_excluding_mirrors_button(&mut self, ui: &mut Ui) {

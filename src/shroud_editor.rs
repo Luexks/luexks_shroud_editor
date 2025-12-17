@@ -49,6 +49,7 @@ pub struct ShroudEditor {
     just_imported_shapes_from_paste_box_message_option: Option<ShapesParseResult>,
     tool_settings: ToolSettings,
     shroud_layer_reordering_message_data_option: Option<ShroudLayerReorderingMessageData>,
+    float_shroud_settings: bool,
 }
 
 impl Default for ShroudEditor {
@@ -88,6 +89,7 @@ impl Default for ShroudEditor {
             just_imported_shapes_from_paste_box_message_option: None,
             tool_settings: ToolSettings::default(),
             shroud_layer_reordering_message_data_option: None,
+            float_shroud_settings: false,
         }
     }
 }
