@@ -1,23 +1,35 @@
 use nom::{
-    IResult, Parser,
+    AsChar, IResult, Parser,
     branch::alt,
     bytes::{
         complete::{tag, take_while1},
         streaming::tag_no_case,
         take_until,
     },
-    combinator::{complete, map, opt, peek, value},
+    character::complete::satisfy,
+    combinator::{complete, map, opt, peek, recognize, value},
     error::{Error, ParseError},
     multi::{many0, many1},
     number::complete::float,
     sequence::{delimited, pair, separated_pair},
 };
-use std::f32::{self, consts::PI};
+use std::f32::{
+    self,
+    consts::{PI, TAU},
+};
 
 use nom::character::char;
 
 pub fn parse_number(input: &str) -> IResult<&str, f32> {
-    alt((float, map(tag_no_case("pi"), |_| PI))).parse(input)
+    alt((float, pi())).parse(input)
+}
+
+fn pi<'a>() -> impl Parser<&'a str, Output = f32, Error = Error<&'a str>> {
+    map(tag_no_case("pi"), |_| PI)
+}
+
+fn tau<'a>() -> impl Parser<&'a str, Output = f32, Error = Error<&'a str>> {
+    map(tag_no_case("tau"), |_| TAU)
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -55,15 +67,32 @@ pub fn variable_value(input: &str) -> IResult<&str, Vec<&str>> {
     if peek(char::<&str, Error<_>>('{')).parse(input).is_ok() {
         brackets_around(many1(ws_around(alphanumeric_special_1))).parse(input)
     } else {
-        many1(alphanumeric_special_1).parse(input)
+        alphanumeric_special_1
+            .parse(input)
+            .map(|x| (x.0, vec![x.1]))
     }
 }
 
 pub fn alphanumeric_special_1(input: &str) -> IResult<&str, &str> {
-    take_while1(|c: char| {
-        c.is_alphanumeric() || c == '-' || c == '_' || c == '.' || c == '/' || c == '*'
-    })
+    if peek(alt((
+        value(
+            (),
+            satisfy::<_, &str, Error<_>>(|c| c.is_dec_digit() || ['-', '.'].contains(&c)),
+        ),
+        value((), pi()),
+        value((), tau()),
+    )))
     .parse(input)
+    .is_ok()
+    {
+        recognize(many1(alt((
+            tag_no_case("pi"),
+            take_while1(|c: char| c.is_dec_digit() || ['-', '.', '/', '*'].contains(&c)),
+        ))))
+        .parse(input)
+    } else {
+        take_while1(|c: char| c.is_alphanumeric() || c == '_').parse(input)
+    }
 }
 
 pub fn ws<'a, E: ParseError<&'a str>>(input: &'a str) -> IResult<&'a str, (), E> {
