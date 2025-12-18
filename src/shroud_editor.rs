@@ -1,4 +1,6 @@
+use std::cell::RefCell;
 use std::f32;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::block_container::BlockContainer;
@@ -7,6 +9,7 @@ use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
 use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
+use crate::shroud_editor::render_shroud::RenderData;
 use crate::shroud_editor::shroud_layer_reordering::ShroudLayerReorderingMessageData;
 use crate::shroud_editor::tools::ToolSettings;
 use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
@@ -22,13 +25,13 @@ pub struct ShroudEditor {
     pub block_container: BlockContainer,
     pub shroud: Vec<ShroudLayerContainer>,
     pub shroud_interaction: ShroudInteraction,
-    zoom: f32,
+    pub zoom: f32,
     pub(crate) grid_size: f32,
     grid_visible: bool,
     grid_snap_enabled: bool,
     angle_snap: f32,
     angle_snap_enabled: bool,
-    pan: Pos2,
+    pub pan: Pos2,
     key_tracker: KeyTracker,
     loaded_shapes: Shapes,
     just_exported_to_clipboard_success_option: Option<bool>,
@@ -50,6 +53,7 @@ pub struct ShroudEditor {
     tool_settings: ToolSettings,
     shroud_layer_reordering_message_data_option: Option<ShroudLayerReorderingMessageData>,
     float_shroud_settings: bool,
+    render_data_option: Arc<Mutex<Option<RenderData>>>,
 }
 
 impl Default for ShroudEditor {
@@ -90,6 +94,7 @@ impl Default for ShroudEditor {
             tool_settings: ToolSettings::default(),
             shroud_layer_reordering_message_data_option: None,
             float_shroud_settings: false,
+            render_data_option: Arc::new(Mutex::new(None)),
         }
     }
 }
@@ -127,7 +132,7 @@ mod left_panel;
 mod parse_shapes_text;
 mod parse_shroud_text;
 mod parsing;
-mod position_conversion;
+mod render_polygon;
 mod render_shroud;
 mod shape_combo_box;
 mod shroud_interaction_checks;

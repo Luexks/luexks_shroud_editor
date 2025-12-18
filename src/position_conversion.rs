@@ -26,3 +26,31 @@ impl ShroudEditor {
             .collect()
     }
 }
+
+pub fn world_pos_to_screen_pos(position: Pos2, rect: Rect, pan: Pos2, zoom: f32) -> Pos2 {
+    let center = rect.center();
+    Pos2 {
+        x: center.x + (position.x + pan.x) * zoom,
+        y: center.y + (position.y + pan.y) * zoom,
+    }
+}
+
+pub fn screen_pos_to_world_pos(position: Pos2, rect: Rect, pan: Pos2, zoom: f32) -> Pos2 {
+    let center = rect.center();
+    Pos2 {
+        x: (position.x - center.x) / zoom - pan.x,
+        y: (position.y - center.y) / zoom - pan.y,
+    }
+}
+
+pub fn positions_to_screen_positions(
+    positions: &[Pos2],
+    rect: Rect,
+    pan: Pos2,
+    zoom: f32,
+) -> Vec<Pos2> {
+    positions
+        .iter()
+        .map(|position| world_pos_to_screen_pos(*position, rect, pan, zoom))
+        .collect()
+}

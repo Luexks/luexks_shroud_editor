@@ -7,6 +7,7 @@ use luexks_reassembly::{
 
 use crate::{DEFAULT_SQUARE, color_type_conversion::rgba_to_color};
 
+#[derive(Clone)]
 pub struct BlockContainer {
     pub block: Block,
     pub vertices: Vec<Pos2>,
