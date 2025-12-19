@@ -1,4 +1,3 @@
-use std::cell::RefCell;
 use std::f32;
 use std::sync::{Arc, Mutex};
 use std::time::Duration;

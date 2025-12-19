@@ -1,7 +1,7 @@
 use arboard::Clipboard;
 use egui::{
     Area, Checkbox, Color32, Context, DragValue, Frame, Grid, Id, Popup, PopupCloseBehavior, Pos2,
-    Rect, Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui, UiBuilder, Vec2,
+    Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui, Vec2,
     collapsing_header::CollapsingState,
     color_picker::{Alpha, color_edit_button_rgba},
     pos2,
