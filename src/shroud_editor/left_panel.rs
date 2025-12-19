@@ -158,7 +158,7 @@ impl ShroudEditor {
                     });
             }
         });
-        self.shroud_layer_reordering_buttons(ui, is_floating_panel);
+        self.shroud_layer_reordering_buttons(ctx, ui, is_floating_panel);
     }
 
     fn select_all_excluding_mirrors_button(&mut self, ui: &mut Ui) {
