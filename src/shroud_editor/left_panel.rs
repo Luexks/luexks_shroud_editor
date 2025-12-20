@@ -243,6 +243,7 @@ impl ShroudEditor {
                             &mut self.shape_search_buf,
                             &mut self.block_container.max_scale,
                             self.block_container.block.scale.unwrap(),
+                            &mut self.visual_panel_key_bindings_enabled,
                         );
                         let is_scale_changed = self.block_scale_settings(ui);
                         if self.block_container.use_non_turreted_offset
@@ -256,6 +257,7 @@ impl ShroudEditor {
                                 ui,
                                 &mut self.block_container.color_1,
                                 &mut self.block_container.input_color_1,
+                                &mut self.visual_panel_key_bindings_enabled,
                             );
                             self.block_container.block.color_1 =
                                 Some(rgba_to_color(self.block_container.color_1));
@@ -266,6 +268,7 @@ impl ShroudEditor {
                                 ui,
                                 &mut self.block_container.color_2,
                                 &mut self.block_container.input_color_2,
+                                &mut self.visual_panel_key_bindings_enabled,
                             );
                             self.block_container.block.color_2 =
                                 Some(rgba_to_color(self.block_container.color_2));
@@ -276,6 +279,7 @@ impl ShroudEditor {
                                 ui,
                                 &mut self.block_container.line_color,
                                 &mut self.block_container.input_line_color,
+                                &mut self.visual_panel_key_bindings_enabled,
                             );
                             self.block_container.block.line_color =
                                 Some(rgba_to_color(self.block_container.line_color));
@@ -501,12 +505,15 @@ impl ShroudEditor {
                         layout_job.wrap.max_width = wrap_width;
                         ui.fonts(|f| f.layout_job(layout_job))
                     };
-                    ui.add(
+                    let text_edit = ui.add(
                         TextEdit::multiline(&mut self.shroud_import_text)
                             .code_editor()
                             .desired_width(f32::INFINITY)
                             .layouter(&mut layouter),
                     );
+                    if text_edit.has_focus() {
+                        self.visual_panel_key_bindings_enabled = false;
+                    }
                 });
             });
     }
@@ -591,24 +598,30 @@ impl ShroudEditor {
                         layout_job.wrap.max_width = wrap_width;
                         ui.fonts(|f| f.layout_job(layout_job))
                     };
-                    ui.add(
+                    let text_edit = ui.add(
                         TextEdit::multiline(&mut self.shapes_import_text)
                             .code_editor()
                             .desired_width(f32::INFINITY)
                             .layouter(&mut layouter),
                     );
+                    if text_edit.has_focus() {
+                        self.visual_panel_key_bindings_enabled = false;
+                    }
                 });
             });
     }
 }
 
-fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut String) {
+fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut String, enable_visual_panel_keybinds: &mut bool) {
     let response = ui.add(
         TextEdit::singleline(input_color)
             .code_editor()
             .min_size(vec2(100.0, 20.0))
             .hint_text("0xFFFFFFFF"),
     );
+    if response.has_focus() {
+        *enable_visual_panel_keybinds = false;
+    }
     ui.horizontal(|ui| {
         let rgba_option = str_to_rgba_option(input_color);
         if let Some(rgba) = rgba_option
@@ -637,6 +650,7 @@ fn block_shape_combo_box(
     search_buf: &mut String,
     max_scale: &mut u8,
     scale: u8,
+    visual_panel_key_bindings_enabled: &mut bool,
 ) -> IsChanged {
     let mut is_shape_changed = IsChanged::default();
     ui.horizontal(|ui| {
@@ -644,6 +658,7 @@ fn block_shape_combo_box(
         Popup::from_toggle_button_response(&ui.button(shape_id.as_str()))
             .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
             .show(|ui| {
+                *visual_panel_key_bindings_enabled = false;
                 let search = ui.add(
                     TextEdit::singleline(search_buf)
                         .code_editor()

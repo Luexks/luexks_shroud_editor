@@ -15,12 +15,14 @@ pub fn shroud_layer_shape_combo_box(
     loaded_shapes_mirror_pairs: &[(usize, usize)],
     show_vanilla: &mut bool,
     search_buf: &mut String,
+    visual_panel_key_bindings_enabled: &mut bool,
 ) {
     ui.horizontal(|ui| {
         ui.label("shape=");
         Popup::from_toggle_button_response(&ui.button(&shroud[index].shape_id))
             .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
             .show(|ui| {
+                *visual_panel_key_bindings_enabled = false;
                 let search = ui.add(
                     TextEdit::singleline(search_buf)
                         .code_editor()

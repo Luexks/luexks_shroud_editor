@@ -13,7 +13,7 @@ use crate::shroud_editor::tools::ToolSettings;
 use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
 use crate::shroud_interaction::ShroudInteraction;
 use crate::shroud_layer_container::ShroudLayerContainer;
-use egui::Pos2;
+use egui::{Popup, Pos2};
 use luexks_reassembly::shapes::shapes::Shapes;
 use parse_vanilla_shapes::get_vanilla_shapes;
 
@@ -52,6 +52,7 @@ pub struct ShroudEditor {
     shroud_layer_reordering_message_data_option: Option<ShroudLayerReorderingMessageData>,
     float_shroud_settings: bool,
     render_data_option: Arc<Mutex<Option<RenderData>>>,
+    visual_panel_key_bindings_enabled: bool,
 }
 
 impl Default for ShroudEditor {
@@ -93,6 +94,7 @@ impl Default for ShroudEditor {
             shroud_layer_reordering_message_data_option: None,
             float_shroud_settings: false,
             render_data_option: Arc::new(Mutex::new(None)),
+            visual_panel_key_bindings_enabled: true,
         }
     }
 }
@@ -101,13 +103,20 @@ impl eframe::App for ShroudEditor {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.update_dt(ctx);
 
-        self.pan_controls(ctx);
-        self.hotkey_shroud_layer_deletion(ctx);
-        self.delete_shroud_layers(ctx);
+        if self.visual_panel_key_bindings_enabled {
+            self.pan_controls(ctx);
+            self.hotkey_shroud_layer_deletion(ctx);
+            self.delete_shroud_layers(ctx);
 
-        self.hotkey_copy(ctx);
-        self.hotkey_paste(ctx);
-        self.hotkey_mirroring(ctx);
+            self.hotkey_copy(ctx);
+            self.hotkey_paste(ctx);
+            self.hotkey_mirroring(ctx);
+        }
+
+        self.visual_panel_key_bindings_enabled = true;
+        if Popup::is_any_open(ctx) {
+            self.visual_panel_key_bindings_enabled = false;
+        }
 
         self.left_panel(ctx);
         self.visual_panel(ctx);

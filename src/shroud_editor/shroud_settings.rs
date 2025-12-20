@@ -113,6 +113,7 @@ impl ShroudEditor {
                                 &self.loaded_shapes_mirror_pairs,
                                 &mut self.shape_search_show_vanilla,
                                 &mut self.shape_search_buf,
+                                &mut self.visual_panel_key_bindings_enabled,
                             );
 
                             let xy_speed = if self.grid_snap_enabled {
