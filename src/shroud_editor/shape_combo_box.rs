@@ -21,12 +21,13 @@ pub fn shroud_layer_shape_combo_box(
         Popup::from_toggle_button_response(&ui.button(&shroud[index].shape_id))
             .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
             .show(|ui| {
-                ui.add(
+                let search = ui.add(
                     TextEdit::singleline(search_buf)
                         .code_editor()
                         .desired_width(120.0)
                         .hint_text("Search (:"),
                 );
+                search.request_focus();
                 ui.horizontal(|ui| {
                     ui.label("Show Vanilla:");
                     ui.checkbox(show_vanilla, "");
