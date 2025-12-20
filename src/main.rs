@@ -11,7 +11,6 @@ mod color_type_conversion;
 mod fonts;
 mod gui;
 mod invert_y;
-mod key_tracker;
 mod mirror_pairs;
 mod pos_and_display_oriented_number_conversion;
 mod pos_in_polygon;

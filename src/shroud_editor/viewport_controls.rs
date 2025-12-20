@@ -1,23 +1,23 @@
 use std::f32::consts::SQRT_2;
 
-use egui::{Key, Pos2, Rect, Ui, pos2, vec2};
+use egui::{Context, Key, Pos2, Rect, Ui, pos2, vec2};
 
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 
 impl ShroudEditor {
-    pub fn pan_controls(&mut self) {
+    pub fn pan_controls(&mut self, ctx: &Context) {
         let speed: f32 = 1000.0 * self.dt as f32 / self.zoom;
         let mut delta = Pos2::default();
-        if self.key_tracker.is_held(Key::W) {
+        if ctx.input(|i| i.key_down(Key::W)) {
             delta.y += speed;
         }
-        if self.key_tracker.is_held(Key::S) {
+        if ctx.input(|i| i.key_down(Key::S)) {
             delta.y -= speed;
         }
-        if self.key_tracker.is_held(Key::D) {
+        if ctx.input(|i| i.key_down(Key::D)) {
             delta.x -= speed;
         }
-        if self.key_tracker.is_held(Key::A) {
+        if ctx.input(|i| i.key_down(Key::A)) {
             delta.x += speed;
         }
         if delta.x != 0.0 && delta.y != 0.0 {

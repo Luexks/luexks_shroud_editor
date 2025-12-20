@@ -3,7 +3,6 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::block_container::BlockContainer;
-use crate::key_tracker::KeyTracker;
 use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
 use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
@@ -31,7 +30,7 @@ pub struct ShroudEditor {
     angle_snap: f32,
     angle_snap_enabled: bool,
     pub pan: Pos2,
-    key_tracker: KeyTracker,
+    // key_tracker: KeyTracker,
     loaded_shapes: Shapes,
     just_exported_to_clipboard_success_option: Option<bool>,
     pub fill_color_gradient: f32,
@@ -72,7 +71,7 @@ impl Default for ShroudEditor {
             angle_snap: 5.0,
             angle_snap_enabled: true,
             pan: Pos2::new(0.0, 0.0),
-            key_tracker: KeyTracker::default(),
+            // key_tracker: KeyTracker::default(),
             loaded_shapes,
             just_exported_to_clipboard_success_option: None,
             fill_color_gradient: 0.0,
@@ -101,12 +100,8 @@ impl Default for ShroudEditor {
 impl eframe::App for ShroudEditor {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         self.update_dt(ctx);
-        self.key_tracker.update(ctx);
-        self.pan_controls();
 
-        self.left_panel(ctx);
-        self.visual_panel(ctx);
-
+        self.pan_controls(ctx);
         self.hotkey_shroud_layer_deletion(ctx);
         self.delete_shroud_layers(ctx);
 
@@ -114,7 +109,8 @@ impl eframe::App for ShroudEditor {
         self.hotkey_paste(ctx);
         self.hotkey_mirroring(ctx);
 
-        // println!("{:.1}", 1.0 / self.dt);
+        self.left_panel(ctx);
+        self.visual_panel(ctx);
 
         ctx.request_repaint_after(Duration::from_secs_f32(1.0 / 60.0));
     }
