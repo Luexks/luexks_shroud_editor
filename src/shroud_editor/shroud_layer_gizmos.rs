@@ -3,14 +3,17 @@ use luexks_reassembly::utility::{angle::Angle, display_oriented_math::do2d_float
 
 use crate::shroud_editor::{ShroudEditor, shroud_settings::angle_knob_settings};
 
+const GIZMO_SET_LIMIT: usize = 100;
+
 impl ShroudEditor {
     pub fn shroud_layer_gizmos(&mut self, ui: &mut Ui, rect: Rect) {
-        self.shroud_interaction
-            .selection()
-            .iter()
+        self.shroud_interaction.selection()
+            .into_iter()
+            .rev()
+            .take(GIZMO_SET_LIMIT)
             .for_each(|index| {
-                if *index < self.shroud.len() {
-                    let offset = self.shroud[*index].shroud_layer.offset.clone().unwrap();
+                if index < self.shroud.len() {
+                    let offset = self.shroud[index].shroud_layer.offset.clone().unwrap();
                     let gizmo_center = pos2(offset.x.to_f32(), -offset.y.to_f32());
                     let (gizmo_pos_top_left, gizmo_pos_bottom_right) = (
                         self.world_pos_to_screen_pos(gizmo_center, rect),
@@ -22,14 +25,14 @@ impl ShroudEditor {
                         gizmo_pos_top_left,
                         gizmo_pos_bottom_right,
                         gizmo_size,
-                        *index,
+                        index,
                     );
                     self.size_gizmo(
                         ui,
                         gizmo_pos_top_left,
                         gizmo_pos_bottom_right,
                         gizmo_size,
-                        *index,
+                        index,
                     );
                 }
             });
