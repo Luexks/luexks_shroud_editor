@@ -79,25 +79,6 @@ impl ShroudEditor {
             });
     }
 
-    fn binding_config(&mut self, ctx: &Context, ui: &mut Ui) {
-        CollapsingState::load_with_default_open(ctx, "bindings".into(), true)
-            .show_header(ui, |ui| ui.label("Bindings"))
-            .body_unindented(|ui| {
-                ui.label(
-                    r#"This will be a binding section in the future, but for now:
-    WASD move
-    Scroll zoom
-    click: select
-    shift + click: multiselect
-    drag: drag selection
-    c: copy
-    v: paste
-    f: add mirror to selection
-    r: delete selection"#,
-                );
-            });
-    }
-
     fn float_shroud_settings_logic(&mut self, ctx: &Context, ui: &mut Ui) {
         let cursor_y = ui.cursor().min.y;
         ui.heading("Shroud Layers");
@@ -503,7 +484,7 @@ impl ShroudEditor {
                         let mut layout_job =
                             highlight(ui.ctx(), ui.style(), &theme, buf.as_str(), "toml");
                         layout_job.wrap.max_width = wrap_width;
-                        ui.fonts(|f| f.layout_job(layout_job))
+                        ui.fonts_mut(|f| f.layout_job(layout_job))
                     };
                     let text_edit = ui.add(
                         TextEdit::multiline(&mut self.shroud_import_text)
@@ -596,7 +577,7 @@ impl ShroudEditor {
                         let mut layout_job =
                             highlight(ui.ctx(), ui.style(), &theme, buf.as_str(), "toml");
                         layout_job.wrap.max_width = wrap_width;
-                        ui.fonts(|f| f.layout_job(layout_job))
+                        ui.fonts_mut(|f| f.layout_job(layout_job))
                     };
                     let text_edit = ui.add(
                         TextEdit::multiline(&mut self.shapes_import_text)
@@ -612,7 +593,12 @@ impl ShroudEditor {
     }
 }
 
-fn block_color_settings(ui: &mut Ui, color: &mut Rgba, input_color: &mut String, enable_visual_panel_keybinds: &mut bool) {
+fn block_color_settings(
+    ui: &mut Ui,
+    color: &mut Rgba,
+    input_color: &mut String,
+    enable_visual_panel_keybinds: &mut bool,
+) {
     let response = ui.add(
         TextEdit::singleline(input_color)
             .code_editor()

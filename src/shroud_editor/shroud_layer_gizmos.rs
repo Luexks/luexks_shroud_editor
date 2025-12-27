@@ -7,7 +7,8 @@ const GIZMO_SET_LIMIT: usize = 100;
 
 impl ShroudEditor {
     pub fn shroud_layer_gizmos(&mut self, ui: &mut Ui, rect: Rect) {
-        self.shroud_interaction.selection()
+        self.shroud_interaction
+            .selection()
             .into_iter()
             .rev()
             .take(GIZMO_SET_LIMIT)
