@@ -1,10 +1,13 @@
-use egui::{Context, Key};
+use egui::Context;
 
-use crate::shroud_editor::{ShroudEditor, add_mirror::add_mirror};
+use crate::{
+    keybinds::is_shortcut_pressed,
+    shroud_editor::{ShroudEditor, add_mirror::add_mirror},
+};
 
 impl ShroudEditor {
     pub fn hotkey_mirroring(&mut self, ctx: &Context) {
-        if ctx.input(|i| i.key_pressed(Key::F)) {
+        if is_shortcut_pressed(ctx, &self.keybinds.mirror) {
             self.shroud_interaction
                 .selection()
                 .iter()

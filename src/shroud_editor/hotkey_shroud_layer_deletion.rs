@@ -1,11 +1,13 @@
-use egui::{Context, Key};
+use egui::Context;
 
-use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
+use crate::{
+    keybinds::is_shortcut_pressed, shroud_editor::ShroudEditor,
+    shroud_interaction::ShroudInteraction,
+};
 
 impl ShroudEditor {
     pub fn hotkey_shroud_layer_deletion(&mut self, ctx: &Context) {
-        let shroud_delete_hotkey_pressed = ctx.input(|i| i.key_pressed(Key::R));
-        if shroud_delete_hotkey_pressed {
+        if is_shortcut_pressed(ctx, &self.keybinds.delete) {
             self.shroud_interaction
                 .selection()
                 .into_iter()

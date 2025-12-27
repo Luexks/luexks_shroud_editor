@@ -909,15 +909,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "egui-keybind"
-version = "0.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c9dbaae0504f3ed63ec4322102148b6e00b778269e51a290106fa929bbb8c86d"
-dependencies = [
- "egui",
-]
-
-[[package]]
 name = "egui-wgpu"
 version = "0.33.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1858,7 +1849,6 @@ dependencies = [
  "bytemuck",
  "eframe",
  "egui",
- "egui-keybind",
  "egui_extras",
  "egui_knob",
  "env_logger",

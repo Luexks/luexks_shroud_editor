@@ -1,42 +1,28 @@
 use std::f32::consts::SQRT_2;
 
-use egui::{Context, Key, Pos2, Rect, Ui, pos2, vec2};
-use egui_keybind::Bind;
+use egui::{Context, Pos2, Rect, Ui, pos2, vec2};
 
-use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
+use crate::{
+    keybinds::is_keyboard_binding_down, shroud_editor::ShroudEditor,
+    shroud_interaction::ShroudInteraction,
+};
 
 impl ShroudEditor {
     pub fn pan_controls(&mut self, ctx: &Context) {
         let speed: f32 = 1000.0 * self.dt as f32 / self.zoom;
         let mut delta = Pos2::default();
-        ctx.input(|i| {
-            if let Some(keyboard_shortcut) = self.keybinds.pan_up.keyboard()
-                && i.key_down(keyboard_shortcut.logical_key)
-            {
-                delta.y += speed;
-            }
-        });
-        ctx.input(|i| {
-            if let Some(keyboard_shortcut) = self.keybinds.pan_down.keyboard()
-                && i.key_down(keyboard_shortcut.logical_key)
-            {
-                delta.y -= speed;
-            }
-        });
-        ctx.input(|i| {
-            if let Some(keyboard_shortcut) = self.keybinds.pan_right.keyboard()
-                && i.key_down(keyboard_shortcut.logical_key)
-            {
-                delta.x -= speed;
-            }
-        });
-        ctx.input(|i| {
-            if let Some(keyboard_shortcut) = self.keybinds.pan_left.keyboard()
-                && i.key_down(keyboard_shortcut.logical_key)
-            {
-                delta.x += speed;
-            }
-        });
+        if is_keyboard_binding_down(ctx, &self.keybinds.pan_up) {
+            delta.y += speed;
+        }
+        if is_keyboard_binding_down(ctx, &self.keybinds.pan_down) {
+            delta.y -= speed;
+        }
+        if is_keyboard_binding_down(ctx, &self.keybinds.pan_right) {
+            delta.x -= speed;
+        }
+        if is_keyboard_binding_down(ctx, &self.keybinds.pan_left) {
+            delta.x += speed;
+        }
         if delta.x != 0.0 && delta.y != 0.0 {
             delta *= SQRT_2 * 0.5;
         }

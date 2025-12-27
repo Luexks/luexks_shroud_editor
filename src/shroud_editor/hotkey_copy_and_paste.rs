@@ -1,7 +1,8 @@
-use egui::{Context, Key};
+use egui::Context;
 
 use crate::{
     invert_y::invert_y_of_pos2,
+    keybinds::is_shortcut_pressed,
     pos_and_display_oriented_number_conversion::do3d_to_pos2,
     shroud_editor::{ShroudEditor, add_mirror::add_mirror},
     shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
@@ -10,8 +11,7 @@ use crate::{
 
 impl ShroudEditor {
     pub fn hotkey_copy(&mut self, ctx: &Context) {
-        let hotkey_pressed = ctx.input(|i| i.key_pressed(Key::C));
-        if hotkey_pressed {
+        if is_shortcut_pressed(ctx, &self.keybinds.copy) {
             self.shroud_clipboard = self
                 .shroud_interaction
                 .selection()
@@ -23,8 +23,7 @@ impl ShroudEditor {
     pub fn hotkey_paste(&mut self, ctx: &Context) {
         if let ShroudInteraction::Placing { .. } = self.shroud_interaction {
         } else {
-            let hotkey_pressed = ctx.input(|i| i.key_pressed(Key::V));
-            if hotkey_pressed && !self.shroud_clipboard.is_empty() {
+            if is_shortcut_pressed(ctx, &self.keybinds.paste) && !self.shroud_clipboard.is_empty() {
                 let mut to_be_selected_indexes = Vec::new();
                 self.shroud_clipboard
                     .iter()

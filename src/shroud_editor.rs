@@ -104,7 +104,25 @@ impl Default for ShroudEditor {
 
 impl eframe::App for ShroudEditor {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // let copy = egui::KeyboardShortcut::new(egui::Modifiers::CTRL, egui::Key::C);
+        // if ctx.input_mut(|i| i.consume_shortcut(&copy)) {
+        //     print!("Debug");
+        // }
+        // if ctx.input(|i| i.key_down(egui::Key::T)) {
+        //     print!("Debug2");
+        // }
+        // if ctx.input(|i| i.key_pressed(egui::Key::C) && i.modifiers.command) {
+        //     print!("Debug2");
+        // }
+        // if ctx.input(|i| i.key_down(egui::Key::C)) {
+        //     print!("Command");
+        // }
+        // if ctx.input(|i| i.key_down(egui::Key::C)) {
+        //     print!("C");
+        // }
         self.update_dt(ctx);
+
+        self.left_panel(ctx);
 
         if self.visual_panel_key_bindings_enabled {
             self.pan_controls(ctx);
@@ -121,7 +139,6 @@ impl eframe::App for ShroudEditor {
             self.visual_panel_key_bindings_enabled = false;
         }
 
-        self.left_panel(ctx);
         self.visual_panel(ctx);
 
         ctx.request_repaint_after(Duration::from_secs_f32(1.0 / 60.0));
