@@ -3,7 +3,12 @@ use std::{fs::File, io::Read};
 use crate::{keybinds::Keybinds, shroud_editor::ShroudEditor};
 use egui::{Key, KeyboardShortcut, Modifiers};
 use nom::{
-    IResult, Parser, branch::alt, bytes::{complete::tag, take_until}, character::complete::newline, combinator::{complete, map, map_parser, opt, rest, value}, sequence::{delimited, preceded}
+    IResult, Parser,
+    branch::alt,
+    bytes::{complete::tag, take_until},
+    character::complete::newline,
+    combinator::{complete, map, map_parser, opt, rest, value},
+    sequence::delimited,
 };
 
 impl ShroudEditor {

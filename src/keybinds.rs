@@ -57,6 +57,7 @@ impl ShroudEditor {
             .show_header(ui, |ui| ui.label("Bindings"))
             .body_unindented(|ui| {
                 ui.label("Bindings are automatically loaded on startup from bindings file if one exists.");
+                ui.small("Apology: if your clipboard does not contain text, this program cannot detect Ctrl+V because my GUI framework is eating the paste event, sorry :(");
                 if ui.button("Save Bindings").clicked() {
                     let _ = self.save_keybinds();
                 }
