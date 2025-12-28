@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::block_container::BlockContainer;
+use crate::keybind_deserialiser::try_load_keybinds;
 use crate::keybinds::Keybinds;
 use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
@@ -97,7 +98,10 @@ impl Default for ShroudEditor {
             float_shroud_settings: false,
             render_data_option: Arc::new(Mutex::new(None)),
             visual_panel_key_bindings_enabled: true,
-            keybinds: Keybinds::default(),
+            keybinds: match try_load_keybinds() {
+                Ok(keybinds) => keybinds,
+                Err(_) => Keybinds::default(),
+            },
         }
     }
 }

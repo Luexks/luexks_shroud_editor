@@ -5,23 +5,24 @@ use egui::{
 
 use crate::shroud_editor::ShroudEditor;
 
+#[derive(Debug)]
 pub struct Keybinds {
     pub pan_up: Option<Key>,
-    pan_up_expecting: bool,
+    pub pan_up_expecting: bool,
     pub pan_down: Option<Key>,
-    pan_down_expecting: bool,
+    pub pan_down_expecting: bool,
     pub pan_right: Option<Key>,
-    pan_right_expecting: bool,
+    pub pan_right_expecting: bool,
     pub pan_left: Option<Key>,
-    pan_left_expecting: bool,
+    pub pan_left_expecting: bool,
     pub copy: Option<KeyboardShortcut>,
     pub paste: Option<KeyboardShortcut>,
     pub mirror: Option<KeyboardShortcut>,
     pub delete: Option<KeyboardShortcut>,
-    copy_expecting: bool,
-    paste_expecting: bool,
-    mirror_expecting: bool,
-    delete_expecting: bool,
+    pub copy_expecting: bool,
+    pub paste_expecting: bool,
+    pub mirror_expecting: bool,
+    pub delete_expecting: bool,
 }
 
 #[rustfmt::skip]
@@ -52,10 +53,14 @@ impl Default for Keybinds {
 #[rustfmt::skip]
 impl ShroudEditor {
     pub fn binding_config(&mut self, ctx: &Context, ui: &mut Ui) {
-        let keybinds = &mut self.keybinds;
         CollapsingState::load_with_default_open(ctx, "bindings".into(), true)
             .show_header(ui, |ui| ui.label("Bindings"))
             .body_unindented(|ui| {
+                ui.label("Bindings are automatically loaded on startup from bindings file if one exists.");
+                if ui.button("Save Bindings").clicked() {
+                    let _ = self.save_keybinds();
+                }
+                let keybinds = &mut self.keybinds;
                 ui.label("Click away to cancel, press escape to unbind.");
                 Grid::new("bindingsgrid").show(ui, |ui| {
                     keyboard_binding_button(ctx, ui, &mut keybinds.pan_up, &mut keybinds.pan_up_expecting, "Pan Up");
@@ -149,18 +154,6 @@ fn keyboard_and_modifiers_binding_button(
             *expecting = false
         } else {
             button.highlight();
-            // ctx.memory(|m| m.set_focus_lock_filter(button.id, EventFilter {
-            //     shor
-            // }))
-            // if ctx.input(|i| i.key_pressed(Key::Copy)) {
-            //     print!("Debug");
-            // }
-
-            // ctx.input(|i| dbg!(i.events.clone()));
-            // let copy = KeyboardShortcut::new(Modifiers::CTRL, Key::C);
-            // if ctx.input_mut(|i| i.consume_shortcut(&copy)) {
-            //     print!("Debug");
-            // }
             if let Some(keyboard_shortcut) = ctx.input(|i| {
                 i.events.iter().find_map(|e| match e {
                     Event::Key {
