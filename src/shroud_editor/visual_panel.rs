@@ -43,6 +43,11 @@ impl ShroudEditor {
 
     fn selection_release_logic(&mut self, ctx: &Context, ui: &mut egui::Ui) {
         if ui.ui_contains_pointer() && ctx.input(|i| i.pointer.primary_released()) {
+            if !matches!(self.shroud_interaction, ShroudInteraction::Inaction { .. })
+                && !self.shroud_interaction.selection().is_empty()
+            {
+                self.add_undo_history = true;
+            }
             self.shroud_interaction = ShroudInteraction::Inaction {
                 selection: self.shroud_interaction.selection(),
             };

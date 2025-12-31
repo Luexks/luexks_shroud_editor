@@ -67,7 +67,7 @@ impl ShroudEditor {
                     .as_degrees()
                     .get_value();
                 let original_angle = angle;
-                let angle =
+                let (angle, knob_drag_stopped) =
                     angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
                 self.shroud[index].shroud_layer.angle = Some(Angle::Degree(angle));
                 if original_angle != angle
@@ -76,6 +76,9 @@ impl ShroudEditor {
                     self.shroud[mirror_index].shroud_layer.angle =
                         Some(Angle::Degree(360.0 - angle));
                     // Some(Angle::Degree(-(angle - 360.0)));
+                }
+                if knob_drag_stopped {
+                    self.add_undo_history = true;
                 }
             });
         });
@@ -139,7 +142,10 @@ impl ShroudEditor {
         ui.scope_builder(UiBuilder::new().max_rect(gizmo_rect), |ui| {
             egui::Frame::new().fill(Color32::BLACK).show(ui, |ui| {
                 let xy_speed = self.get_xy_speed();
-                ui.add(DragValue::new(&mut height).speed(xy_speed));
+                let response = ui.add(DragValue::new(&mut height).speed(xy_speed));
+                if response.drag_stopped() || response.lost_focus() {
+                    self.add_undo_history = true;
+                }
             });
         });
         // let angle = angle;
@@ -184,7 +190,10 @@ impl ShroudEditor {
         ui.scope_builder(UiBuilder::new().max_rect(gizmo_rect), |ui| {
             egui::Frame::new().fill(Color32::BLACK).show(ui, |ui| {
                 let xy_speed = self.get_xy_speed();
-                ui.add(DragValue::new(&mut width).speed(xy_speed));
+                let response = ui.add(DragValue::new(&mut width).speed(xy_speed));
+                if response.drag_stopped() || response.lost_focus() {
+                    self.add_undo_history = true;
+                }
             });
         });
         self.shroud[index].shroud_layer.size = Some(do2d_float_from(width, height));

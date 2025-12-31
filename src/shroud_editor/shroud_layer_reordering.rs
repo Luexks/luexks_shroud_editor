@@ -115,6 +115,7 @@ impl ShroudEditor {
         if direction == Direction::Down && bottom_idx == self.shroud.len() - 1 {
             return;
         }
+        self.add_undo_history = true;
         self.shroud.iter_mut().for_each(|shroud_layer_container| {
             if let Some(mirror_idx) = &mut shroud_layer_container.mirror_index_option {
                 *mirror_idx = reorder_idx(*mirror_idx, top_idx, bottom_idx, direction);

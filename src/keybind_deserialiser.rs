@@ -38,6 +38,8 @@ fn deserialise_keybinds(s: &str) -> IResult<&str, Keybinds> {
     let (s, paste) = deserialise_shortcut_binding(s, "paste")?;
     let (s, mirror) = deserialise_shortcut_binding(s, "mirror")?;
     let (s, delete) = deserialise_shortcut_binding(s, "delete")?;
+    let (s, undo) = deserialise_shortcut_binding(s, "undo")?;
+    let (s, redo) = deserialise_shortcut_binding(s, "redo")?;
 
     Ok((
         s,
@@ -50,6 +52,8 @@ fn deserialise_keybinds(s: &str) -> IResult<&str, Keybinds> {
             paste,
             mirror,
             delete,
+            undo,
+            redo,
             ..Default::default()
         },
     ))

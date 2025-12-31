@@ -59,6 +59,12 @@ pub enum ShroudInteraction {
 }
 
 impl ShroudInteraction {
+    pub const fn none() -> ShroudInteraction {
+        ShroudInteraction::Inaction {
+            selection: Vec::new(),
+        }
+    }
+
     pub fn selection(&self) -> Vec<usize> {
         match self {
             ShroudInteraction::Inaction { selection } => selection.clone(),
@@ -120,9 +126,8 @@ impl ShroudEditor {
         if let Some(mouse_pos) = mouse_pos {
             if let ShroudInteraction::Placing { .. } = &self.shroud_interaction {
                 if ui.input(|i| i.pointer.primary_clicked()) {
-                    self.shroud_interaction = ShroudInteraction::Inaction {
-                        selection: Vec::new(),
-                    };
+                    self.add_undo_history = true;
+                    self.shroud_interaction = ShroudInteraction::none();
                 }
             } else {
                 if ui.input(|i| i.pointer.primary_pressed()) {

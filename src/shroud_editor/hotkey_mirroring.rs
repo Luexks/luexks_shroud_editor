@@ -25,6 +25,7 @@ impl ShroudEditor {
                         );
                     }
                 });
+            self.add_undo_history = true;
         }
     }
 }

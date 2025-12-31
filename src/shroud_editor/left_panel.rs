@@ -38,7 +38,7 @@ type IsChanged = bool;
 impl ShroudEditor {
     pub fn left_panel(&mut self, ctx: &Context) {
         egui::SidePanel::left("side_panel")
-            .min_width(310.0)
+            .min_width(320.0)
             .resizable(true)
             .show(ctx, |ui| {
                 ui.heading("Luexks Shroud Editor");
@@ -46,6 +46,7 @@ impl ShroudEditor {
                     .auto_shrink(false)
                     .scroll_bar_visibility(ScrollBarVisibility::VisibleWhenNeeded)
                     .show(ui, |ui| {
+                        self.undo_redo_buttons(ctx, ui);
                         self.file_settings(ctx, ui);
                         self.editor_settings(ctx, ui);
                         self.block_settings(ui);
@@ -83,10 +84,10 @@ impl ShroudEditor {
         let cursor_y = ui.cursor().min.y;
         ui.heading("Shroud Layers");
         // println!("{}", cursor_y);
-        self.float_shroud_settings = cursor_y <= 0.0;
+        self.float_shroud_settings = cursor_y <= 23.0;
         if self.float_shroud_settings {
             Area::new(Id::new("float_shroud_settings"))
-                .fixed_pos(pos2(8.0, 23.0))
+                .fixed_pos(pos2(8.0, 46.0))
                 .fade_in(false)
                 .show(ctx, |ui| {
                     Frame::new().fill(Color32::WHITE).show(ui, |ui| {
@@ -464,6 +465,7 @@ impl ShroudEditor {
                                 self.shroud_interaction = ShroudInteraction::Inaction {
                                     selection: Vec::new(),
                                 };
+                                self.add_undo_history = true;
                             }
                             Err(err) => {
                                 self.just_imported_shroud_from_paste_box_message_option = Some(err);

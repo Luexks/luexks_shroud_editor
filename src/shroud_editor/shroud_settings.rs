@@ -2,7 +2,6 @@ use egui::{Color32, DragValue, Grid, Stroke, Ui, collapsing_header::CollapsingSt
 use egui_knob::{Knob, KnobStyle};
 use luexks_reassembly::{
     blocks::shroud_layer::ShroudLayerColor,
-    shapes::shapes::Shapes,
     utility::{
         angle::Angle,
         display_oriented_math::{do2d_float_from, do3d_float_from},
@@ -10,11 +9,8 @@ use luexks_reassembly::{
 };
 
 use crate::{
-    shroud_editor::{
-        ShroudEditor, add_mirror::add_mirror, shape_combo_box::shroud_layer_shape_combo_box,
-    },
+    shroud_editor::{ShroudEditor, add_mirror::add_mirror},
     shroud_interaction::ShroudInteraction,
-    shroud_layer_container::ShroudLayerContainer,
 };
 
 impl ShroudEditor {
@@ -71,12 +67,7 @@ impl ShroudEditor {
                         true,
                     )
                     .show_header(ui, |ui| {
-                        select_deselect_and_delete_buttons(
-                            ui,
-                            index,
-                            &mut self.shroud[index],
-                            &mut self.shroud_interaction,
-                        );
+                        self.select_deselect_and_delete_buttons(ui, index);
                     })
                     .body_unindented(|ui| {
                         let top_of_shroud_layer_settings_y = ui.cursor().min.y;
@@ -97,24 +88,8 @@ impl ShroudEditor {
                             ui.add_space(shroud_layer_settings_height);
                             // println!("Culling shroud layer of ID: {}", index);
                         } else {
-                            shroud_layer_mirror_settings(
-                                ui,
-                                &mut self.shroud,
-                                index,
-                                &mut self.shroud_interaction,
-                                &self.loaded_shapes,
-                                &self.loaded_shapes_mirror_pairs,
-                            );
-                            shroud_layer_shape_combo_box(
-                                ui,
-                                &mut self.shroud,
-                                index,
-                                &self.loaded_shapes,
-                                &self.loaded_shapes_mirror_pairs,
-                                &mut self.shape_search_show_vanilla,
-                                &mut self.shape_search_buf,
-                                &mut self.visual_panel_key_bindings_enabled,
-                            );
+                            self.shroud_layer_mirror_settings(ui, index);
+                            self.shroud_layer_shape_combo_box(ui, index);
 
                             let xy_speed = if self.grid_snap_enabled {
                                 self.grid_size / 2.0
@@ -129,11 +104,20 @@ impl ShroudEditor {
                                 let z = offset.z.to_f32_mut();
                                 let original_offset = (*x, *y, *z);
                                 ui.label("offset={");
-                                ui.add(DragValue::new(x).speed(xy_speed));
+                                let response = ui.add(DragValue::new(x).speed(xy_speed));
+                                if response.drag_stopped() || response.lost_focus() {
+                                    self.add_undo_history = true;
+                                }
                                 ui.label(",");
-                                ui.add(DragValue::new(y).speed(xy_speed));
+                                let response = ui.add(DragValue::new(y).speed(xy_speed));
+                                if response.drag_stopped() || response.lost_focus() {
+                                    self.add_undo_history = true;
+                                }
                                 ui.label(",");
-                                ui.add(DragValue::new(z).speed(0.005));
+                                let response = ui.add(DragValue::new(z).speed(0.005));
+                                if response.drag_stopped() || response.lost_focus() {
+                                    self.add_undo_history = true;
+                                }
                                 ui.label("}");
                                 let (x, y, z) = (*x, *y, *z);
                                 if original_offset != (x, y, z)
@@ -150,9 +134,15 @@ impl ShroudEditor {
                                 let height = size.y.to_f32_mut();
                                 let original_size = (*width, *height);
                                 ui.label("size={");
-                                ui.add(DragValue::new(width).speed(xy_speed));
+                                let response = ui.add(DragValue::new(width).speed(xy_speed));
+                                if response.drag_stopped() || response.lost_focus() {
+                                    self.add_undo_history = true;
+                                }
                                 ui.label(",");
-                                ui.add(DragValue::new(height).speed(xy_speed));
+                                let response = ui.add(DragValue::new(height).speed(xy_speed));
+                                if response.drag_stopped() || response.lost_focus() {
+                                    self.add_undo_history = true;
+                                }
                                 ui.label("}");
                                 let (width, height) = (*width, *height);
                                 if original_size != (width, height)
@@ -164,13 +154,7 @@ impl ShroudEditor {
                                 }
                             });
                             ui.horizontal(|ui| {
-                                full_angle_settings(
-                                    ui,
-                                    &mut self.shroud,
-                                    index,
-                                    self.angle_snap,
-                                    self.angle_snap_enabled,
-                                );
+                                self.full_angle_settings(ui, index);
                             });
 
                             let shroud_layer_container = &mut self.shroud[index];
@@ -193,9 +177,24 @@ impl ShroudEditor {
                             let original_color_2 = *color_2;
                             let original_line_color = *line_color;
                             Grid::new(index.to_string()).show(ui, |ui| {
-                                shroud_color_setting(ui, color_1, "tri_color_id=");
-                                shroud_color_setting(ui, color_2, "tri_color1_id=");
-                                shroud_color_setting(ui, line_color, "line_color_id=");
+                                shroud_color_setting(
+                                    ui,
+                                    color_1,
+                                    "tri_color_id=",
+                                    &mut self.add_undo_history,
+                                );
+                                shroud_color_setting(
+                                    ui,
+                                    color_2,
+                                    "tri_color1_id=",
+                                    &mut self.add_undo_history,
+                                );
+                                shroud_color_setting(
+                                    ui,
+                                    line_color,
+                                    "line_color_id=",
+                                    &mut self.add_undo_history,
+                                );
                             });
                             let (color_1, color_2, line_color) = (*color_1, *color_2, *line_color);
                             if let Some(mirror_index) = self.shroud[index].mirror_index_option {
@@ -217,7 +216,10 @@ impl ShroudEditor {
                                         self.shroud[index].shroud_layer.taper.unwrap_or(1.0);
                                     let original_taper = taper;
                                     ui.label("taper=");
-                                    ui.add(DragValue::new(&mut taper).speed(0.025));
+                                    let response = ui.add(DragValue::new(&mut taper).speed(0.025));
+                                    if response.drag_stopped() || response.lost_focus() {
+                                        self.add_undo_history = true;
+                                    }
                                     self.shroud[index].shroud_layer.taper = Some(taper);
                                     if original_taper != taper
                                         && let Some(mirror_index) =
@@ -235,81 +237,150 @@ impl ShroudEditor {
         // let end_y = ui.cursor().min.y;
         // println!("Height: {}", end_y - start_y);
     }
-}
 
-fn shroud_color_setting(ui: &mut Ui, color: &mut ShroudLayerColor, text: &str) {
-    ui.label(text);
-    ui.selectable_value(color, ShroudLayerColor::Color1, "0");
-    ui.selectable_value(color, ShroudLayerColor::Color2, "1");
-    ui.selectable_value(color, ShroudLayerColor::LineColor, "2");
-    ui.end_row();
-}
+    fn shroud_layer_mirror_settings(&mut self, ui: &mut Ui, index: usize) {
+        ui.horizontal(|ui| {
+            if let Some(mirror_index) = self.shroud[index].mirror_index_option {
+                if !self.shroud_interaction.selection().contains(&mirror_index) {
+                    if ui.button("Select Mirror").clicked() {
+                        self.shroud_interaction = ShroudInteraction::Inaction {
+                            selection: self
+                                .shroud_interaction
+                                .selection()
+                                .into_iter()
+                                .chain(std::iter::once(mirror_index))
+                                .collect(),
+                        };
+                    }
+                } else if ui.button("Deselect Mirror").clicked() {
+                    self.shroud_interaction = ShroudInteraction::Inaction {
+                        selection: self
+                            .shroud_interaction
+                            .selection()
+                            .into_iter()
+                            .filter(|selection_index| *selection_index != mirror_index)
+                            .collect(),
+                    };
+                }
+                if ui.button("Unlink").clicked() {
+                    self.shroud[index].mirror_index_option = None;
+                    self.shroud[mirror_index].mirror_index_option = None;
+                    self.add_undo_history = true;
+                }
+                if ui.button("Delete Mirror").clicked() {
+                    self.shroud[mirror_index].delete_next_frame = true;
+                    self.shroud_interaction = ShroudInteraction::Inaction {
+                        selection: self
+                            .shroud_interaction
+                            .selection()
+                            .into_iter()
+                            .filter(|selection_index| *selection_index != mirror_index)
+                            .collect(),
+                    };
+                    self.add_undo_history = true;
+                }
+            } else if ui.button("Add Mirror").clicked() {
+                add_mirror(
+                    &mut self.shroud,
+                    index,
+                    false,
+                    &self.loaded_shapes,
+                    &self.loaded_shapes_mirror_pairs,
+                );
+                self.add_undo_history = true;
+            }
+        });
+    }
 
-fn select_deselect_and_delete_buttons(
-    ui: &mut Ui,
-    index: usize,
-    shroud_layer_container: &mut ShroudLayerContainer,
-    shroud_interaction: &mut ShroudInteraction,
-) {
-    ui.horizontal(|ui| {
-        if !shroud_interaction.selection().contains(&index) {
-            if ui.button("Select").clicked() {
-                *shroud_interaction = ShroudInteraction::Inaction {
-                    selection: shroud_interaction
+    fn full_angle_settings(&mut self, ui: &mut Ui, index: usize) {
+        let mut angle = self.shroud[index]
+            .shroud_layer
+            .angle
+            .clone()
+            .unwrap()
+            .as_degrees()
+            .get_value();
+        let original_angle = angle;
+        let angle_speed = if self.angle_snap_enabled {
+            self.angle_snap
+        } else {
+            1.0
+        };
+        ui.label("angle=");
+        let response = ui.add(DragValue::new(&mut angle).speed(angle_speed));
+        ui.label("*pi/180");
+        let (angle, knob_drag_stopped) =
+            angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
+        if response.drag_stopped() || response.lost_focus() || knob_drag_stopped {
+            self.add_undo_history = true;
+        }
+        self.shroud[index].shroud_layer.angle = Some(Angle::Degree(angle));
+        if original_angle != angle
+            && let Some(mirror_index) = self.shroud[index].mirror_index_option
+        {
+            self.shroud[mirror_index].shroud_layer.angle = Some(Angle::Degree(-angle));
+        }
+    }
+
+    fn select_deselect_and_delete_buttons(&mut self, ui: &mut Ui, index: usize) {
+        ui.horizontal(|ui| {
+            if !self.shroud_interaction.selection().contains(&index) {
+                if ui.button("Select").clicked() {
+                    self.shroud_interaction = ShroudInteraction::Inaction {
+                        selection: self
+                            .shroud_interaction
+                            .selection()
+                            .into_iter()
+                            .chain(std::iter::once(index))
+                            .collect(),
+                    };
+                }
+            } else if ui.button("Deselect").clicked() {
+                self.shroud_interaction = ShroudInteraction::Inaction {
+                    selection: self
+                        .shroud_interaction
                         .selection()
                         .into_iter()
-                        .chain(std::iter::once(index))
+                        .filter(|selection_index| *selection_index != index)
                         .collect(),
                 };
             }
-        } else if ui.button("Deselect").clicked() {
-            *shroud_interaction = ShroudInteraction::Inaction {
-                selection: shroud_interaction
-                    .selection()
-                    .into_iter()
-                    .filter(|selection_index| *selection_index != index)
-                    .collect(),
-            };
-        }
-        if ui.button("Delete (Double Click)").double_clicked() {
-            shroud_layer_container.delete_next_frame = true;
-            *shroud_interaction = ShroudInteraction::Inaction {
-                selection: shroud_interaction
-                    .selection()
-                    .into_iter()
-                    .filter(|selection_index| *selection_index != index)
-                    .collect(),
-            };
-        }
-    });
+            if ui.button("Delete (Double Click)").double_clicked() {
+                self.add_undo_history = true;
+                self.shroud[index].delete_next_frame = true;
+                self.shroud_interaction = ShroudInteraction::Inaction {
+                    selection: self
+                        .shroud_interaction
+                        .selection()
+                        .into_iter()
+                        .filter(|selection_index| *selection_index != index)
+                        .collect(),
+                };
+            }
+        });
+    }
 }
 
-fn full_angle_settings(
+fn shroud_color_setting(
     ui: &mut Ui,
-    shroud: &mut [ShroudLayerContainer],
-    index: usize,
-    angle_snap: f32,
-    angle_snap_enabled: bool,
+    color: &mut ShroudLayerColor,
+    text: &str,
+    add_undo_history: &mut bool,
 ) {
-    let mut angle = shroud[index]
-        .shroud_layer
-        .angle
-        .clone()
-        .unwrap()
-        .as_degrees()
-        .get_value();
-    let original_angle = angle;
-    let angle_speed = if angle_snap_enabled { angle_snap } else { 1.0 };
-    ui.label("angle=");
-    ui.add(DragValue::new(&mut angle).speed(angle_speed));
-    ui.label("*pi/180");
-    let angle = angle_knob_settings(ui, angle, angle_snap, angle_snap_enabled);
-    shroud[index].shroud_layer.angle = Some(Angle::Degree(angle));
-    if original_angle != angle
-        && let Some(mirror_index) = shroud[index].mirror_index_option
+    ui.label(text);
+    if ui
+        .selectable_value(color, ShroudLayerColor::Color1, "0")
+        .clicked()
+        || ui
+            .selectable_value(color, ShroudLayerColor::Color2, "1")
+            .clicked()
+        || ui
+            .selectable_value(color, ShroudLayerColor::LineColor, "2")
+            .clicked()
     {
-        shroud[mirror_index].shroud_layer.angle = Some(Angle::Degree(-angle));
+        *add_undo_history = true;
     }
+    ui.end_row();
 }
 
 pub fn angle_knob_settings(
@@ -317,10 +388,10 @@ pub fn angle_knob_settings(
     angle: f32,
     angle_snap: f32,
     angle_snap_enabled: bool,
-) -> f32 {
+) -> (f32, bool) {
     let original_knob_angle = 360.0 - angle + 90.0;
     let mut knob_angle = original_knob_angle;
-    ui.add(
+    let response = ui.add(
         Knob::new(&mut knob_angle, 0.0, 720.0, KnobStyle::Wiper)
             .with_size(20.0)
             .with_sweep_range(0.5, 2.0)
@@ -337,7 +408,7 @@ pub fn angle_knob_settings(
         angle = 360.0 - angle;
     }
     // println!("{}\t{}", original_knob_angle, angle);
-    angle
+    (angle, response.drag_stopped())
     // (angle - 90.0).rem_euclid(360.0)
 
     // let pre_knob_angle = 360.0 - angle + 90.0;
@@ -358,59 +429,4 @@ pub fn angle_knob_settings(
     // }
     // let angle = (angle - 90.0) % 360.0;
     // if angle < 0.0 { angle } else { 360.0 - angle }
-}
-
-fn shroud_layer_mirror_settings(
-    ui: &mut Ui,
-    shroud: &mut Vec<ShroudLayerContainer>,
-    index: usize,
-    shroud_interaction: &mut ShroudInteraction,
-    loaded_shapes: &Shapes,
-    loaded_shapes_mirror_pairs: &[(usize, usize)],
-) {
-    ui.horizontal(|ui| {
-        if let Some(mirror_index) = shroud[index].mirror_index_option {
-            if !shroud_interaction.selection().contains(&mirror_index) {
-                if ui.button("Select Mirror").clicked() {
-                    *shroud_interaction = ShroudInteraction::Inaction {
-                        selection: shroud_interaction
-                            .selection()
-                            .into_iter()
-                            .chain(std::iter::once(mirror_index))
-                            .collect(),
-                    };
-                }
-            } else if ui.button("Deselect Mirror").clicked() {
-                *shroud_interaction = ShroudInteraction::Inaction {
-                    selection: shroud_interaction
-                        .selection()
-                        .into_iter()
-                        .filter(|selection_index| *selection_index != mirror_index)
-                        .collect(),
-                };
-            }
-            if ui.button("Unlink").clicked() {
-                shroud[index].mirror_index_option = None;
-                shroud[mirror_index].mirror_index_option = None;
-            }
-            if ui.button("Delete Mirror").clicked() {
-                shroud[mirror_index].delete_next_frame = true;
-                *shroud_interaction = ShroudInteraction::Inaction {
-                    selection: shroud_interaction
-                        .selection()
-                        .into_iter()
-                        .filter(|selection_index| *selection_index != mirror_index)
-                        .collect(),
-                };
-            }
-        } else if ui.button("Add Mirror").clicked() {
-            add_mirror(
-                shroud,
-                index,
-                false,
-                loaded_shapes,
-                loaded_shapes_mirror_pairs,
-            );
-        }
-    });
 }

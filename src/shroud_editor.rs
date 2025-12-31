@@ -56,6 +56,9 @@ pub struct ShroudEditor {
     render_data_option: Arc<Mutex<Option<RenderData>>>,
     visual_panel_key_bindings_enabled: bool,
     pub keybinds: Keybinds,
+    pub undo_history: Vec<Vec<ShroudLayerContainer>>,
+    pub add_undo_history: bool,
+    pub undo_history_index: usize,
 }
 
 impl Default for ShroudEditor {
@@ -102,6 +105,9 @@ impl Default for ShroudEditor {
                 Ok(keybinds) => keybinds,
                 Err(_) => Keybinds::default(),
             },
+            undo_history: [Vec::new()].into(),
+            add_undo_history: false,
+            undo_history_index: 0,
         }
     }
 }
@@ -136,6 +142,7 @@ impl eframe::App for ShroudEditor {
             self.hotkey_copy(ctx);
             self.hotkey_paste(ctx);
             self.hotkey_mirroring(ctx);
+            self.hotkey_undo_redo(ctx);
         }
 
         self.visual_panel_key_bindings_enabled = true;
@@ -144,6 +151,8 @@ impl eframe::App for ShroudEditor {
         }
 
         self.visual_panel(ctx);
+
+        self.add_undo_history_logic();
 
         ctx.request_repaint_after(Duration::from_secs_f32(1.0 / 60.0));
     }

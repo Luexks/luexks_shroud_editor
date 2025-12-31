@@ -27,6 +27,7 @@ mod shroud_layer_container;
 mod size_from_verts;
 mod snap_to_grid;
 mod styles;
+mod undo_redo;
 
 pub const DEFAULT_SQUARE: [Pos2; 4] = [
     Pos2::new(5.0, -5.0),

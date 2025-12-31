@@ -69,7 +69,7 @@ impl ShroudEditor {
                     ),
                     drag_pos: world_mouse_pos_inverted_y,
                     potentially_snapped_drag_pos: world_mouse_pos_inverted_y,
-                }
+                };
             }
         }
     }

@@ -82,6 +82,7 @@ impl ShroudEditor {
                 .button("Set to default proportions with size multiplier")
                 .clicked()
             {
+                self.add_undo_history = true;
                 self.shroud_interaction
                     .selection()
                     .iter()
@@ -139,7 +140,7 @@ impl ShroudEditor {
                 1.0
             };
             ui.add(DragValue::new(angle).speed(angle_speed));
-            *angle = angle_knob_settings(ui, *angle, self.angle_snap, self.angle_snap_enabled);
+            (*angle, _) = angle_knob_settings(ui, *angle, self.angle_snap, self.angle_snap_enabled);
         });
     }
 
@@ -149,6 +150,7 @@ impl ShroudEditor {
             if selection.is_empty() {
                 return;
             }
+            self.add_undo_history = true;
             let new_selection_len = count * selection.len();
             let centre = self.shroud[selection[0]]
                 .shroud_layer
@@ -294,6 +296,7 @@ impl ShroudEditor {
             let distance = &mut self.tool_settings.move_selection_by_distance;
             let angle = self.tool_settings.move_selection_by_angle;
             if ui.button("Move by").clicked() {
+                self.add_undo_history = true;
                 self.shroud_interaction
                     .selection()
                     .iter()
@@ -335,7 +338,7 @@ impl ShroudEditor {
                 1.0
             };
             ui.add(DragValue::new(angle).speed(angle_speed));
-            *angle = angle_knob_settings(ui, *angle, self.angle_snap, self.angle_snap_enabled);
+            (*angle, _) = angle_knob_settings(ui, *angle, self.angle_snap, self.angle_snap_enabled);
         });
     }
 
@@ -346,6 +349,7 @@ impl ShroudEditor {
             let y = &mut self.tool_settings.move_selection_by_y;
             let z = &mut self.tool_settings.move_selection_by_z;
             if ui.button("Move by").clicked() {
+                self.add_undo_history = true;
                 self.shroud_interaction
                     .selection()
                     .iter()
@@ -394,6 +398,7 @@ impl ShroudEditor {
             let about_x = &mut self.tool_settings.scale_by_about_x;
             let about_y = &mut self.tool_settings.scale_by_about_y;
             if ui.button("Scale by").clicked() {
+                self.add_undo_history = true;
                 self.shroud_interaction
                     .selection()
                     .iter()
@@ -455,6 +460,7 @@ impl ShroudEditor {
         let about_y = &mut self.tool_settings.scale_by_2_about_y;
         ui.horizontal(|ui| {
             if ui.button("Scale by").clicked() {
+                self.add_undo_history = true;
                 self.shroud_interaction
                     .selection()
                     .iter()

@@ -21,6 +21,7 @@ impl ShroudEditor {
             self.shroud_interaction = ShroudInteraction::Inaction {
                 selection: Vec::new(),
             };
+            self.add_undo_history = true;
             // let selection = self.shroud_interaction.selection();
             // if !selection.is_empty() {
             // let mut descending_selection = selection;
