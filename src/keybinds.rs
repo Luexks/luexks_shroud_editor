@@ -1,5 +1,5 @@
 use egui::{
-    Context, Event, Grid, Key, KeyboardShortcut, ModifierNames, Modifiers, Ui,
+    Context, Event, Grid, InputState, Key, KeyboardShortcut, ModifierNames, Modifiers, Ui,
     collapsing_header::CollapsingState,
 };
 
@@ -42,8 +42,7 @@ impl Default for Keybinds {
             mirror:     Some(KeyboardShortcut::new(Modifiers::NONE, Key::F)),
             delete:     Some(KeyboardShortcut::new(Modifiers::NONE, Key::R)),
             undo:       Some(KeyboardShortcut::new(Modifiers::CTRL, Key::Z)),
-            // redo:       Some(KeyboardShortcut::new(Modifiers::CTRL | Modifiers::SHIFT, Key::Z)),
-            redo:       Some(KeyboardShortcut::new(Modifiers::CTRL, Key::Y)),
+            redo:       Some(KeyboardShortcut::new(Modifiers::CTRL | Modifiers::SHIFT, Key::Z)),
 
             pan_up_expecting: false,
             pan_down_expecting: false,
@@ -145,11 +144,49 @@ fn format_keyboard_binding(binding_option: &Option<Key>) -> &str {
 
 pub fn is_shortcut_pressed(ctx: &Context, binding_option: &Option<KeyboardShortcut>) -> bool {
     if let Some(shortcut) = binding_option {
-        ctx.input_mut(|i| i.consume_shortcut(shortcut))
+        ctx.input_mut(|i| consume_shortcut_exact(i, shortcut))
             || event_pressed_workaround(ctx, binding_option)
     } else {
         false
     }
+}
+
+fn consume_shortcut_exact(input_state: &mut InputState, shortcut: &KeyboardShortcut) -> bool {
+    let KeyboardShortcut {
+        modifiers,
+        logical_key,
+    } = *shortcut;
+    consume_key_exact(input_state, modifiers, logical_key)
+}
+
+fn consume_key_exact(input_state: &mut InputState, modifiers: Modifiers, logical_key: Key) -> bool {
+    count_and_consume_key_exact(input_state, modifiers, logical_key) > 0
+}
+
+fn count_and_consume_key_exact(
+    input_state: &mut InputState,
+    modifiers: Modifiers,
+    logical_key: Key,
+) -> usize {
+    let mut count = 0usize;
+
+    input_state.events.retain(|event| {
+        let is_match = matches!(
+            event,
+            Event::Key {
+                key: ev_key,
+                modifiers: ev_mods,
+                pressed: true,
+                ..
+            } if *ev_key == logical_key && ev_mods.matches_exact(modifiers)
+        );
+
+        count += is_match as usize;
+
+        !is_match
+    });
+
+    count
 }
 
 fn keyboard_and_modifiers_binding_button(
