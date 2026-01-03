@@ -6,6 +6,7 @@ use crate::block_container::BlockContainer;
 use crate::keybind_deserialiser::try_load_keybinds;
 use crate::keybinds::Keybinds;
 use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
+use crate::reference_image::ReferenceImage;
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
 use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
@@ -59,6 +60,7 @@ pub struct ShroudEditor {
     pub undo_history: Vec<Vec<ShroudLayerContainer>>,
     pub add_undo_history: bool,
     pub undo_history_index: usize,
+    pub reference_image: ReferenceImage,
 }
 
 impl Default for ShroudEditor {
@@ -108,6 +110,7 @@ impl Default for ShroudEditor {
             undo_history: [Vec::new()].into(),
             add_undo_history: false,
             undo_history_index: 0,
+            reference_image: ReferenceImage::default(),
         }
     }
 }

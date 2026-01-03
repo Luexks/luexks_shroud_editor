@@ -1,6 +1,7 @@
 use egui::{Context, Frame};
 
 use crate::{
+    reference_image::ImageLayer,
     shroud_editor::{ShroudEditor, shroud_layer_moving::shroud_layer_moving},
     shroud_interaction::ShroudInteraction,
 };
@@ -29,11 +30,19 @@ impl ShroudEditor {
                 self.dragging_logic(ui);
                 self.placing_logic(ui);
 
+                if matches!(self.reference_image.image_layer, ImageLayer::ImageBelow) {
+                    self.render_reference_image(ui, rect);
+                }
+
                 if self.grid_visible {
                     self.draw_grid(ui, rect);
                 }
 
                 self.render_shroud(mouse_pos, ui, rect);
+
+                if matches!(self.reference_image.image_layer, ImageLayer::ImageAbove) {
+                    self.render_reference_image(ui, rect);
+                }
 
                 if let ShroudInteraction::Inaction { .. } = &self.shroud_interaction {
                     self.shroud_layer_gizmos(ui, rect);

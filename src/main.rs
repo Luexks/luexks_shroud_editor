@@ -18,6 +18,7 @@ mod mirror_pairs;
 mod pos_and_display_oriented_number_conversion;
 mod pos_in_polygon;
 mod position_conversion;
+mod reference_image;
 mod restructure_vertices;
 mod selection_type;
 mod shapes_import_text_default;

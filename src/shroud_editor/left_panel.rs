@@ -77,6 +77,7 @@ impl ShroudEditor {
                 self.angle_snap_settings(ui);
                 self.fill_color_gradient_setting(ui);
                 self.binding_config(ctx, ui);
+                self.reference_image_settings(ctx, ui);
             });
     }
 
