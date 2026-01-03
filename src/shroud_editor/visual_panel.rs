@@ -30,7 +30,9 @@ impl ShroudEditor {
                 self.dragging_logic(ui);
                 self.placing_logic(ui);
 
-                if matches!(self.reference_image.image_layer, ImageLayer::ImageBelow) {
+                if self.reference_image.enabled
+                    && matches!(self.reference_image.image_layer, ImageLayer::ImageBelow)
+                {
                     self.render_reference_image(ui, rect);
                 }
 
@@ -40,7 +42,9 @@ impl ShroudEditor {
 
                 self.render_shroud(mouse_pos, ui, rect);
 
-                if matches!(self.reference_image.image_layer, ImageLayer::ImageAbove) {
+                if self.reference_image.enabled
+                    && matches!(self.reference_image.image_layer, ImageLayer::ImageAbove)
+                {
                     self.render_reference_image(ui, rect);
                 }
 

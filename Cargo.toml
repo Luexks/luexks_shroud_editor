@@ -16,6 +16,8 @@ luexks_reassembly = { git = "https://github.com/Luexks/luexks_reassembly_2.git" 
 parse_vanilla_shapes = {  git = "https://github.com/Luexks/parse_vanilla_shapes.git" }
 thiserror = "2.0.16"
 bytemuck = "1.24.0"
+egui-file-dialog = "0.12.0"
+image = "0.25.9"
 
 [patch."https://github.com/Luexks/luexks_reassembly_2.git"]
 luexks_reassembly = { path = "../luexks_reassembly" }

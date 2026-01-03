@@ -61,7 +61,7 @@ impl Default for Keybinds {
 #[rustfmt::skip]
 impl ShroudEditor {
     pub fn binding_config(&mut self, ctx: &Context, ui: &mut Ui) {
-        CollapsingState::load_with_default_open(ctx, "bindings".into(), true)
+        CollapsingState::load_with_default_open(ctx, "bindings".into(), false)
             .show_header(ui, |ui| ui.label("Bindings"))
             .body_unindented(|ui| {
                 ui.label("Bindings are automatically loaded on startup from bindings file if one exists.");

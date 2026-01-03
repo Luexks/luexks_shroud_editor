@@ -8,6 +8,7 @@ use egui::Pos2;
 use shroud_editor::*;
 mod block_container;
 mod color_type_conversion;
+mod file_import;
 mod fonts;
 mod gui;
 mod invert_y;

@@ -3,6 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::block_container::BlockContainer;
+use crate::file_import::WhichFileImport;
 use crate::keybind_deserialiser::try_load_keybinds;
 use crate::keybinds::Keybinds;
 use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
@@ -17,6 +18,7 @@ use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
 use crate::shroud_interaction::ShroudInteraction;
 use crate::shroud_layer_container::ShroudLayerContainer;
 use egui::{Popup, Pos2};
+use egui_file_dialog::FileDialog;
 use luexks_reassembly::shapes::shapes::Shapes;
 use parse_vanilla_shapes::get_vanilla_shapes;
 
@@ -61,6 +63,8 @@ pub struct ShroudEditor {
     pub add_undo_history: bool,
     pub undo_history_index: usize,
     pub reference_image: ReferenceImage,
+    pub file_dialog: FileDialog,
+    pub which_file_import: WhichFileImport,
 }
 
 impl Default for ShroudEditor {
@@ -111,6 +115,8 @@ impl Default for ShroudEditor {
             add_undo_history: false,
             undo_history_index: 0,
             reference_image: ReferenceImage::default(),
+            file_dialog: FileDialog::new(),
+            which_file_import: WhichFileImport::Shroud,
         }
     }
 }
@@ -156,6 +162,8 @@ impl eframe::App for ShroudEditor {
         self.visual_panel(ctx);
 
         self.add_undo_history_logic();
+
+        self.file_import_logic(ctx);
 
         ctx.request_repaint_after(Duration::from_secs_f32(1.0 / 60.0));
     }
