@@ -316,23 +316,26 @@ impl ShroudEditor {
             });
     }
 
-    fn fill_color_gradient_setting(&mut self, ui: &mut Ui) {
-        ui.horizontal(|ui| {
-            if self.fill_color_gradient_delta_enabled {
-                if self.fill_color_gradient_increasing {
-                    self.fill_color_gradient += 1.0 / FILL_COLOR_GRADIENT_TIME * self.dt as f32;
-                    if self.fill_color_gradient >= 1.0 {
-                        self.fill_color_gradient = 1.0;
-                        self.fill_color_gradient_increasing = false;
-                    }
-                } else {
-                    self.fill_color_gradient -= 1.0 / FILL_COLOR_GRADIENT_TIME * self.dt as f32;
-                    if self.fill_color_gradient <= 0.0 {
-                        self.fill_color_gradient = 0.0;
-                        self.fill_color_gradient_increasing = true;
-                    }
+    pub fn fill_color_gradient_delta(&mut self) {
+        if self.fill_color_gradient_delta_enabled {
+            if self.fill_color_gradient_increasing {
+                self.fill_color_gradient += 1.0 / FILL_COLOR_GRADIENT_TIME * self.dt as f32;
+                if self.fill_color_gradient >= 1.0 {
+                    self.fill_color_gradient = 1.0;
+                    self.fill_color_gradient_increasing = false;
+                }
+            } else {
+                self.fill_color_gradient -= 1.0 / FILL_COLOR_GRADIENT_TIME * self.dt as f32;
+                if self.fill_color_gradient <= 0.0 {
+                    self.fill_color_gradient = 0.0;
+                    self.fill_color_gradient_increasing = true;
                 }
             }
+        }
+    }
+
+    fn fill_color_gradient_setting(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
             ui.label("Gradient:");
             ui.checkbox(&mut self.fill_color_gradient_delta_enabled, "");
             ui.add(Slider::new(&mut self.fill_color_gradient, 0.0..=1.0));

@@ -141,6 +141,7 @@ impl eframe::App for ShroudEditor {
         // }
         self.update_dt(ctx);
 
+        self.fill_color_gradient_delta();
         self.left_panel(ctx);
 
         if self.visual_panel_key_bindings_enabled {
