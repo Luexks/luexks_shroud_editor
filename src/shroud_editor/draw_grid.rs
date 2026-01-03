@@ -1,13 +1,16 @@
 use egui::{Color32, Rect, Stroke, Ui, pos2};
 
-use crate::shroud_editor::ShroudEditor;
+use crate::shroud_editor::{MIN_GRID_LINE_DIST, ShroudEditor};
 
 impl ShroudEditor {
     pub fn draw_grid(&self, ui: &mut Ui, rect: Rect) {
         let stroke = Stroke::new(1.0, Color32::from_rgb(0, 0, 150));
         let axis_stroke = Stroke::new(1.0, Color32::from_rgb(255, 0, 255));
 
-        let grid_size = self.grid_size * 2.0_f32.powi((4.5 / (self.zoom + 1.0)).round() as i32);
+        let mut grid_size = self.grid_size;
+        while grid_size * self.zoom <= MIN_GRID_LINE_DIST {
+            grid_size *= 2.0;
+        }
 
         let world_min = self.screen_pos_to_world_pos(rect.min, rect);
         let world_max = self.screen_pos_to_world_pos(rect.max, rect);

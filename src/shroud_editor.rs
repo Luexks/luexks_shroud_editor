@@ -23,6 +23,9 @@ use luexks_reassembly::shapes::shapes::Shapes;
 use parse_vanilla_shapes::get_vanilla_shapes;
 
 const FILL_COLOR_GRADIENT_TIME: f32 = 4.0;
+const ZOOM_MIN: f32 = 0.001;
+const ZOOM_MAX: f32 = 10000.0;
+const MIN_GRID_LINE_DIST: f32 = 8.0;
 
 pub struct ShroudEditor {
     pub block_container: BlockContainer,

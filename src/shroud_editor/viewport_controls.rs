@@ -3,7 +3,7 @@ use std::f32::consts::SQRT_2;
 use egui::{Context, Pos2, Rect, Ui, pos2, vec2};
 
 use crate::{
-    keybinds::is_keyboard_binding_down, shroud_editor::ShroudEditor,
+    keybinds::is_keyboard_binding_down, shroud_editor::{ShroudEditor, ZOOM_MAX, ZOOM_MIN},
     shroud_interaction::ShroudInteraction,
 };
 
@@ -49,7 +49,7 @@ impl ShroudEditor {
         let delta = delta * 5.0;
         let old_zoom = self.zoom;
 
-        self.zoom = (self.zoom * (1.0 + delta * 0.1)).clamp(0.1, 40.0);
+        self.zoom = (self.zoom * (1.0 + delta * 0.1)).clamp(ZOOM_MIN, ZOOM_MAX);
 
         // Calculate world position before zoom
         let center = rect.center();
