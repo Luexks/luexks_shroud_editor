@@ -135,6 +135,7 @@ impl BlockContainer {
             })
             .min_by(f32::total_cmp)
             .unwrap();
+        println!("{}\t{}", max_vert_dist, min_midpoint_dist);
         let icon_radius = max_vert_dist.min(min_midpoint_dist);
         self.offset = pos2(icon_radius * -0.5, 0.0)
     }
