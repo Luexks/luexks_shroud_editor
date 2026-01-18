@@ -11,6 +11,7 @@ mod color_type_conversion;
 mod file_import;
 mod fonts;
 mod gui;
+mod icon_radius;
 mod invert_y;
 mod keybind_deserialiser;
 mod keybind_serialiser;
@@ -30,6 +31,7 @@ mod size_from_verts;
 mod snap_to_grid;
 mod styles;
 mod undo_redo;
+mod verts_to_convex_hull;
 
 pub const DEFAULT_SQUARE: [Pos2; 4] = [
     Pos2::new(5.0, -5.0),

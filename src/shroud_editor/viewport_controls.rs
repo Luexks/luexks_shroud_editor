@@ -3,7 +3,8 @@ use std::f32::consts::SQRT_2;
 use egui::{Context, Pos2, Rect, Ui, pos2, vec2};
 
 use crate::{
-    keybinds::is_keyboard_binding_down, shroud_editor::{ShroudEditor, ZOOM_MAX, ZOOM_MIN},
+    keybinds::is_keyboard_binding_down,
+    shroud_editor::{ShroudEditor, ZOOM_MAX, ZOOM_MIN},
     shroud_interaction::ShroudInteraction,
 };
 

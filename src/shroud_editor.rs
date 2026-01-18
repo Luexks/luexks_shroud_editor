@@ -68,6 +68,8 @@ pub struct ShroudEditor {
     pub reference_image: ReferenceImage,
     pub file_dialog: FileDialog,
     pub which_file_import: WhichFileImport,
+    pub show_icon_radius: bool,
+    pub icon_radius_option: Option<f32>,
 }
 
 impl Default for ShroudEditor {
@@ -120,6 +122,8 @@ impl Default for ShroudEditor {
             reference_image: ReferenceImage::default(),
             file_dialog: FileDialog::new(),
             which_file_import: WhichFileImport::Shroud,
+            show_icon_radius: false,
+            icon_radius_option: None,
         }
     }
 }

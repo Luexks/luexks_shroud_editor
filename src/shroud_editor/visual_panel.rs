@@ -42,6 +42,8 @@ impl ShroudEditor {
 
                 self.render_shroud(mouse_pos, ui, rect);
 
+                self.icon_radius_logic(ui, rect);
+
                 if self.reference_image.enabled
                     && matches!(self.reference_image.image_layer, ImageLayer::ImageAbove)
                 {

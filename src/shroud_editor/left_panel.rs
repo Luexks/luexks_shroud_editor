@@ -78,6 +78,7 @@ impl ShroudEditor {
                 self.fill_color_gradient_setting(ui);
                 self.binding_config(ctx, ui);
                 self.reference_image_settings(ctx, ui);
+                self.icon_radius_setting(ui);
             });
     }
 
@@ -233,6 +234,7 @@ impl ShroudEditor {
                             && (is_shape_changed || is_scale_changed)
                         {
                             self.block_container.update_non_turreted_offset();
+                            self.icon_radius_option = None;
                         }
                         Grid::new("").show(ui, |ui| {
                             ui.label("fillColor=");
@@ -281,6 +283,7 @@ impl ShroudEditor {
                 && self.block_container.use_non_turreted_offset
             {
                 self.block_container.update_non_turreted_offset();
+                self.icon_radius_option = None;
             }
         });
     }
@@ -297,6 +300,7 @@ impl ShroudEditor {
                         .checkbox(&mut self.block_container.use_non_turreted_offset, "")
                         .clicked() && self.block_container.use_non_turreted_offset {
                             self.block_container.update_non_turreted_offset();
+                            self.icon_radius_option = None;
                     }
                 });
                 ui.horizontal(|ui| {

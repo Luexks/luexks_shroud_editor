@@ -5,7 +5,7 @@ use luexks_reassembly::{
     utility::color::Color,
 };
 
-use crate::{DEFAULT_SQUARE, color_type_conversion::rgba_to_color};
+use crate::{DEFAULT_SQUARE, color_type_conversion::rgba_to_color, verts_to_convex_hull::verts_to_convex_hull};
 
 #[derive(Clone)]
 pub struct BlockContainer {
@@ -116,7 +116,7 @@ impl BlockContainer {
                 }) / self.vertices.len() as f32
             }
         };
-        let mut verts = self.vertices.clone();
+        let mut verts = verts_to_convex_hull(self.vertices.clone());
         verts
             .iter_mut()
             .for_each(|vert| *vert = pos2(vert.x - avg_vert_pos.x, vert.y - avg_vert_pos.y));
@@ -130,13 +130,16 @@ impl BlockContainer {
             .iter()
             .zip(verts.iter().cycle().skip(1))
             .map(|(vert_a, vert_b)| {
-                (((vert_a.x - vert_b.x) / 2.0).powi(2) + ((vert_a.y - vert_b.y) / 2.0).powi(2))
+                (((vert_a.x + vert_b.x) / 2.0).powi(2) + ((vert_a.y + vert_b.y) / 2.0).powi(2))
                     .sqrt()
             })
             .min_by(f32::total_cmp)
             .unwrap();
-        println!("{}\t{}", max_vert_dist, min_midpoint_dist);
         let icon_radius = max_vert_dist.min(min_midpoint_dist);
+        println!(
+            "{}\t{}\t{}\t{}",
+            avg_vert_pos, max_vert_dist, min_midpoint_dist, icon_radius
+        );
         self.offset = pos2(icon_radius * -0.5, 0.0)
     }
 }
