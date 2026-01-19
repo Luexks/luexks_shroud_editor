@@ -53,7 +53,8 @@ pub fn verts_to_convex_hull(mut verts: Vec<Pos2>) -> Vec<Pos2> {
     convex_verts.push(verts.pop_front().unwrap());
     convex_verts.push(verts.pop_front().unwrap());
     convex_verts.push(verts.pop_front().unwrap());
-    while !verts.is_empty() {
+    // while !verts.is_empty() {
+    loop {
         if convex_verts.len() < 3 {
             convex_verts.push(verts.pop_front().unwrap());
         } else {
@@ -67,12 +68,14 @@ pub fn verts_to_convex_hull(mut verts: Vec<Pos2>) -> Vec<Pos2> {
             ));
             if orientation == Orientation::Anticlockwise {
                 convex_verts.remove(b);
-            } else {
+            } else if verts.is_empty() {
+                break;
+            } else{
                 convex_verts.push(verts.pop_front().unwrap());
             }
         }
     }
-    convex_verts
+    dbg!(convex_verts)
 }
 
 #[derive(PartialEq, Eq)]
