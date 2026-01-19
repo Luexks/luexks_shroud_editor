@@ -5,7 +5,10 @@ use luexks_reassembly::{
     utility::color::Color,
 };
 
-use crate::{DEFAULT_SQUARE, color_type_conversion::rgba_to_color, verts_to_convex_hull::verts_to_convex_hull};
+use crate::{
+    DEFAULT_SQUARE, color_type_conversion::rgba_to_color,
+    verts_to_convex_hull::verts_to_convex_hull,
+};
 
 #[derive(Clone)]
 pub struct BlockContainer {
@@ -136,10 +139,10 @@ impl BlockContainer {
             .min_by(f32::total_cmp)
             .unwrap();
         let icon_radius = max_vert_dist.min(min_midpoint_dist);
-        println!(
-            "{}\t{}\t{}\t{}",
-            avg_vert_pos, max_vert_dist, min_midpoint_dist, icon_radius
-        );
+        // println!(
+        //     "{}\t{}\t{}\t{}",
+        //     avg_vert_pos, max_vert_dist, min_midpoint_dist, icon_radius
+        // );
         self.offset = pos2(icon_radius * -0.5, 0.0)
     }
 }
