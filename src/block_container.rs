@@ -124,10 +124,10 @@ impl BlockContainer {
             .iter_mut()
             .for_each(|vert| *vert = pos2(vert.x - avg_vert_pos.x, vert.y - avg_vert_pos.y));
 
-        let max_vert_dist = verts
+        let min_vert_dist = verts
             .iter()
             .map(|vert| (vert.x.powi(2) + vert.y.powi(2)).sqrt())
-            .max_by(f32::total_cmp)
+            .min_by(f32::total_cmp)
             .unwrap();
         let min_midpoint_dist = verts
             .iter()
@@ -138,7 +138,7 @@ impl BlockContainer {
             })
             .min_by(f32::total_cmp)
             .unwrap();
-        let icon_radius = max_vert_dist.min(min_midpoint_dist);
+        let icon_radius = min_vert_dist.min(min_midpoint_dist);
         // println!(
         //     "{}\t{}\t{}\t{}",
         //     avg_vert_pos, max_vert_dist, min_midpoint_dist, icon_radius
