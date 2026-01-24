@@ -4,36 +4,50 @@ use std::{cmp::Ordering, collections::VecDeque};
 
 use egui::Pos2;
 
-pub fn verts_to_convex_hull(mut verts: Vec<Pos2>) -> Vec<Pos2> {
+pub fn verts_to_convex_hull(mut verts: Vec<Pos2>, is_vanilla: bool) -> Vec<Pos2> {
     let original_verts = verts.clone();
     if verts.len() <= 3 {
         return verts;
     }
 
-    let mut min_y = verts[0].y;
-    let mut min_y_idx = 0;
+    if is_vanilla {
+        let mut min_y = verts[0].y;
+        let mut min_y_idx = 0;
 
-    verts.iter().enumerate().for_each(|(idx, vert)| {
-        if vert.y < min_y {
-            min_y = vert.y;
-            min_y_idx = idx;
-        }
-    });
+        verts.iter().enumerate().for_each(|(idx, vert)| {
+            if vert.y < min_y {
+                min_y = vert.y;
+                min_y_idx = idx;
+            }
+        });
+        verts.swap(0, min_y_idx);
+    } else {
+        let mut min_x = verts[0].x;
+        let mut min_x_idx = 0;
 
-    verts.swap(0, min_y_idx);
+        verts.iter().enumerate().for_each(|(idx, vert)| {
+            if vert.x < min_x {
+                min_x = vert.x;
+                min_x_idx = idx;
+            }
+        });
+        verts.swap(0, min_x_idx);
+    }
 
     let first = verts[0];
-    verts[1..].sort_by(|a, b| match Orientation::signed_area_determinant((first, a, b)) {
-        Orientation::Clockwise => Ordering::Less,
-        Orientation::Anticlockwise => Ordering::Greater,
-        Orientation::Collinear => {
-            let a_dist_squared = (a.x - first.x).powi(2) + (a.y - first.y).powi(2);
-            let b_dist_squared = (b.x - first.x).powi(2) + (b.y - first.y).powi(2);
-            a_dist_squared
-                .partial_cmp(&b_dist_squared)
-                .unwrap_or(Ordering::Equal)
-        }
-    });
+    verts[1..].sort_by(
+        |a, b| match Orientation::signed_area_determinant((first, a, b)) {
+            Orientation::Clockwise => Ordering::Less,
+            Orientation::Anticlockwise => Ordering::Greater,
+            Orientation::Collinear => {
+                let a_dist_squared = (a.x - first.x).powi(2) + (a.y - first.y).powi(2);
+                let b_dist_squared = (b.x - first.x).powi(2) + (b.y - first.y).powi(2);
+                a_dist_squared
+                    .partial_cmp(&b_dist_squared)
+                    .unwrap_or(Ordering::Equal)
+            }
+        },
+    );
     let mut verts = verts.into_iter().map(Some).collect::<Vec<_>>();
     const EPSILON: f32 = 1e-06 * 1e-06;
     for (curr, next) in (0..verts.len() - 1).zip(1..verts.len()) {
@@ -70,12 +84,13 @@ pub fn verts_to_convex_hull(mut verts: Vec<Pos2>) -> Vec<Pos2> {
                 convex_verts.remove(b);
             } else if verts.is_empty() {
                 break;
-            } else{
+            } else {
                 convex_verts.push(verts.pop_front().unwrap());
             }
         }
     }
-    dbg!(convex_verts)
+    // dbg!(convex_verts)
+    convex_verts
 }
 
 #[derive(PartialEq, Eq)]

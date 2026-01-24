@@ -119,16 +119,20 @@ impl BlockContainer {
                 }) / self.vertices.len() as f32
             }
         };
-        let mut verts = verts_to_convex_hull(self.vertices.clone());
+        let is_vanilla = if let Some(shape_id) = &self.block.shape {
+            match shape_id {
+                ShapeId::Vanilla(_) => true,
+                ShapeId::Number(_) => false,
+            }
+        } else {
+            true
+        };
+        let mut verts = verts_to_convex_hull(self.vertices.clone(), is_vanilla);
         verts
             .iter_mut()
             .for_each(|vert| *vert = pos2(vert.x - avg_vert_pos.x, vert.y - avg_vert_pos.y));
 
-        let min_vert_dist = verts
-            .iter()
-            .map(|vert| (vert.x.powi(2) + vert.y.powi(2)).sqrt())
-            .min_by(f32::total_cmp)
-            .unwrap();
+        let distance_to_first_vert = (verts[0].x.powi(2) + verts[0].y.powi(2)).sqrt();
         let min_midpoint_dist = verts
             .iter()
             .zip(verts.iter().cycle().skip(1))
@@ -138,7 +142,7 @@ impl BlockContainer {
             })
             .min_by(f32::total_cmp)
             .unwrap();
-        let icon_radius = min_vert_dist.min(min_midpoint_dist);
+        let icon_radius = distance_to_first_vert.min(min_midpoint_dist);
         // println!(
         //     "{}\t{}\t{}\t{}",
         //     avg_vert_pos, max_vert_dist, min_midpoint_dist, icon_radius
