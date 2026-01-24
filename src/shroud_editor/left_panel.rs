@@ -644,8 +644,8 @@ fn block_shape_combo_box(
     loaded_shapes: &Shapes,
     show_vanilla: &mut bool,
     search_buf: &mut String,
-    max_scale: &mut u8,
-    scale: u8,
+    max_scale: &mut usize,
+    scale: usize,
     visual_panel_key_bindings_enabled: &mut bool,
 ) -> IsChanged {
     let mut is_shape_changed = IsChanged::default();
@@ -690,8 +690,8 @@ fn block_shape_combo_box(
                                     selectable_shape_id,
                                 );
                                 if response.clicked() {
-                                    *max_scale = selectable_shape.get_scale_count() as u8;
-                                    let scale = u8::min(scale, *max_scale);
+                                    *max_scale = selectable_shape.get_scale_count();
+                                    let scale = usize::min(scale, *max_scale);
                                     *vertices = restructure_vertices(
                                         selectable_shape.get_nth_scale_vertices(scale as usize - 1),
                                     );

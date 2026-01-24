@@ -26,7 +26,7 @@ pub struct BlockContainer {
     // pub input_line_color: Vec<u8>,
     // pub search_buf: String,
     pub visible: bool,
-    pub max_scale: u8,
+    pub max_scale: usize,
     pub use_non_turreted_offset: bool,
     pub offset: Pos2,
 }
