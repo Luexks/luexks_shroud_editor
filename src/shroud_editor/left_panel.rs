@@ -118,30 +118,6 @@ impl ShroudEditor {
             self.deselect_all_button(ui);
         });
         self.select_all_including_mirrors_button(ui);
-        ui.horizontal(|ui| {
-            if ui.button("Expand Selection").clicked() {
-                self.shroud_interaction
-                    .selection()
-                    .iter()
-                    .for_each(|index| {
-                        let mut drop_down =
-                            CollapsingState::load(ctx, index.to_string().into()).unwrap();
-                        drop_down.set_open(true);
-                        drop_down.store(ctx);
-                    });
-            }
-            if ui.button("Collapse Selection").clicked() {
-                self.shroud_interaction
-                    .selection()
-                    .iter()
-                    .for_each(|index| {
-                        let mut drop_down =
-                            CollapsingState::load(ctx, index.to_string().into()).unwrap();
-                        drop_down.set_open(false);
-                        drop_down.store(ctx);
-                    });
-            }
-        });
         self.shroud_layer_reordering_buttons(ctx, ui, is_floating_panel);
     }
 

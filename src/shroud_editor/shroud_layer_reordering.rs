@@ -1,4 +1,4 @@
-use egui::{Context, Ui, collapsing_header::CollapsingState};
+use egui::{Context, Ui};
 
 use crate::{
     shroud_editor::ShroudEditor,
@@ -125,13 +125,6 @@ impl ShroudEditor {
             Direction::Up => top_idx - 1..=bottom_idx,
             Direction::Down => top_idx..=bottom_idx + 1,
         };
-        let mut are_drop_downs_open_options = slice_range
-            .clone()
-            .map(|idx| {
-                CollapsingState::load(ctx, idx.to_string().into())
-                    .map(|drop_down| drop_down.is_open())
-            })
-            .collect::<Vec<_>>();
         match direction {
             Direction::Up => {
                 self.shroud[slice_range].rotate_left(1);
@@ -139,9 +132,6 @@ impl ShroudEditor {
                 self.shroud_interaction = ShroudInteraction::Inaction {
                     selection: (rotated_idx..bottom_idx).collect(),
                 };
-                are_drop_downs_open_options.rotate_left(1);
-                let relative_to_idx = top_idx - 1;
-                reorder_drop_down_openness(ctx, are_drop_downs_open_options, relative_to_idx);
             }
             Direction::Down => {
                 let rotated_idx = bottom_idx + 1;
@@ -149,31 +139,9 @@ impl ShroudEditor {
                 self.shroud_interaction = ShroudInteraction::Inaction {
                     selection: (top_idx + 1..=rotated_idx).collect(),
                 };
-                are_drop_downs_open_options.rotate_right(1);
-                let relative_to_idx = top_idx;
-                reorder_drop_down_openness(ctx, are_drop_downs_open_options, relative_to_idx);
             }
         }
     }
-}
-
-fn reorder_drop_down_openness(
-    ctx: &Context,
-    are_drop_downs_open_options: Vec<Option<bool>>,
-    relative_to_idx: usize,
-) {
-    are_drop_downs_open_options
-        .into_iter()
-        .enumerate()
-        .for_each(|(relative_idx, is_drop_down_open_option)| {
-            if let Some(is_drop_down_open) = is_drop_down_open_option
-                && let Some(mut drop_down) =
-                    CollapsingState::load(ctx, (relative_to_idx + relative_idx).to_string().into())
-            {
-                drop_down.set_open(is_drop_down_open);
-                drop_down.store(ctx);
-            }
-        });
 }
 
 const fn reorder_idx(idx: usize, top_idx: usize, bottom_idx: usize, direction: Direction) -> usize {

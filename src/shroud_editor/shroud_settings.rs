@@ -1,4 +1,4 @@
-use egui::{Color32, DragValue, Grid, Stroke, Ui, collapsing_header::CollapsingState};
+use egui::{Color32, DragValue, Grid, Stroke, Ui};
 use egui_knob::{Knob, KnobStyle};
 use luexks_reassembly::{
     blocks::shroud_layer::ShroudLayerColor,
@@ -61,15 +61,8 @@ impl ShroudEditor {
                     // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
                     // let start_y = ui.cursor().min.y;
                     ui.spacing_mut().item_spacing.y = 2.0;
-                    CollapsingState::load_with_default_open(
-                        ui.ctx(),
-                        index.to_string().into(),
-                        true,
-                    )
-                    .show_header(ui, |ui| {
-                        self.select_deselect_and_delete_buttons(ui, index);
-                    })
-                    .body_unindented(|ui| {
+                    let is_selected = self.select_deselect_and_delete_buttons(ui, index);
+                    if is_selected && self.shroud_interaction.selection().len() == 1 {
                         let top_of_shroud_layer_settings_y = ui.cursor().min.y;
                         let shroud_layer_settings_height =
                             if self.shroud[index].shape_id == "SQUARE" {
@@ -230,7 +223,7 @@ impl ShroudEditor {
                                 });
                             }
                         }
-                    });
+                    }
                 });
         });
         // }
@@ -322,9 +315,10 @@ impl ShroudEditor {
         }
     }
 
-    fn select_deselect_and_delete_buttons(&mut self, ui: &mut Ui, index: usize) {
+    fn select_deselect_and_delete_buttons(&mut self, ui: &mut Ui, index: usize) -> bool {
+        let mut is_selected = false;
         ui.horizontal(|ui| {
-            if !self.shroud_interaction.selection().contains(&index) {
+            is_selected = if !self.shroud_interaction.selection().contains(&index) {
                 if ui.button("Select").clicked() {
                     self.shroud_interaction = ShroudInteraction::Inaction {
                         selection: self
@@ -334,6 +328,9 @@ impl ShroudEditor {
                             .chain(std::iter::once(index))
                             .collect(),
                     };
+                    true
+                } else {
+                    false
                 }
             } else if ui.button("Deselect").clicked() {
                 self.shroud_interaction = ShroudInteraction::Inaction {
@@ -344,7 +341,10 @@ impl ShroudEditor {
                         .filter(|selection_index| *selection_index != index)
                         .collect(),
                 };
-            }
+                false
+            } else {
+                true
+            };
             if ui.button("Delete (Double Click)").double_clicked() {
                 self.add_undo_history = true;
                 self.shroud[index].delete_next_frame = true;
@@ -358,6 +358,7 @@ impl ShroudEditor {
                 };
             }
         });
+        is_selected
     }
 }
 

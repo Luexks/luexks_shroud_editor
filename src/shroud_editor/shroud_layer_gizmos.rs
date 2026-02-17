@@ -3,7 +3,7 @@ use luexks_reassembly::utility::{angle::Angle, display_oriented_math::do2d_float
 
 use crate::shroud_editor::{ShroudEditor, shroud_settings::angle_knob_settings};
 
-const GIZMO_SET_LIMIT: usize = 100;
+const GIZMO_SET_LIMIT: usize = 16;
 
 impl ShroudEditor {
     pub fn shroud_layer_gizmos(&mut self, ui: &mut Ui, rect: Rect) {

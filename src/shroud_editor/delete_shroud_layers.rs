@@ -1,4 +1,4 @@
-use egui::{Context, collapsing_header::CollapsingState};
+use egui::Context;
 
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 
@@ -37,10 +37,6 @@ impl ShroudEditor {
             .rev()
             .collect::<Vec<_>>();
         to_be_deleted_indexes.iter().for_each(|index| {
-            if let Some(mut drop_down) = CollapsingState::load(ctx, index.to_string().into()) {
-                drop_down.set_open(true);
-                drop_down.store(ctx);
-            }
 
             self.shroud.remove(*index);
             self.shroud.iter_mut().for_each(|shroud_layer_container| {
