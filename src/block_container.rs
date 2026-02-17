@@ -109,9 +109,8 @@ impl BlockContainer {
 
     pub fn update_non_turreted_offset(&mut self) {
         let avg_vert_pos = match &*self.shape_id {
-            "COMMAND" | "CANNON" | "CANNON2" | "MISSILE_LAUNCHER" | "MISSILE_SHORT" | "COMMAND_MISSILE" => {
-                pos2(0.0, 0.0)
-            }
+            "COMMAND" | "CANNON" | "CANNON2" | "MISSILE_LAUNCHER" | "MISSILE_SHORT"
+            | "COMMAND_MISSILE" => pos2(0.0, 0.0),
             _ => {
                 self.vertices.iter().fold(Pos2::default(), |pos, vert| {
                     pos2(pos.x + vert.x, pos.y + vert.y)

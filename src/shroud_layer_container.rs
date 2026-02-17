@@ -63,9 +63,8 @@ impl ShroudLayerContainer {
         verts.iter_mut().for_each(|vert| vert.y *= -1.0);
         let avg_vert_pos = match shape_id {
             "SQUARE" => pos2(-5.0, 0.0),
-            "COMMAND" | "CANNON" | "CANNON2" | "MISSILE_LAUNCHER" | "MISSILE_SHORT" | "COMMAND_MISSILE" => {
-                pos2(0.0, 0.0)
-            }
+            "COMMAND" | "CANNON" | "CANNON2" | "MISSILE_LAUNCHER" | "MISSILE_SHORT"
+            | "COMMAND_MISSILE" => pos2(0.0, 0.0),
             _ => {
                 verts.iter().fold(Pos2::default(), |pos, vert| {
                     pos2(pos.x + vert.x, pos.y + vert.y)
