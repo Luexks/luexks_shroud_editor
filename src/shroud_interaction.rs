@@ -179,11 +179,8 @@ impl ShroudEditor {
                     }
                 }
 
-                if response.drag_started()
-                    && !self.shroud_interaction.selection().is_empty()
-                    && let Some(dragged_shroud_layer_idx) =
-                        self.get_shroud_that_would_be_selected_index_option(mouse_pos, *rect)
-                {
+                if response.drag_started() && !self.shroud_interaction.selection().is_empty() {
+                    let dragged_shroud_layer_idx = self.shroud_interaction.selection()[0];
                     let drag_pos = do3d_to_pos2(
                         self.shroud[dragged_shroud_layer_idx]
                             .shroud_layer
