@@ -47,7 +47,7 @@ pub struct ShroudEditor {
     last_frame_time: f64,
     dt: f64,
     only_show_selected_shroud_layers: bool,
-    world_mouse_pos: Pos2,
+    pub(crate) world_mouse_pos: Pos2,
     shroud_clipboard: Vec<ShroudLayerContainer>,
     loaded_shapes_mirror_pairs: Vec<(usize, usize)>,
     shroud_import_text: String,
@@ -70,6 +70,7 @@ pub struct ShroudEditor {
     pub which_file_import: WhichFileImport,
     pub show_icon_radius: bool,
     pub icon_radius_option: Option<f32>,
+    pub selection_box_start_pos_option: Option<Pos2>,
 }
 
 impl Default for ShroudEditor {
@@ -124,6 +125,7 @@ impl Default for ShroudEditor {
             which_file_import: WhichFileImport::Shroud,
             show_icon_radius: false,
             icon_radius_option: None,
+            selection_box_start_pos_option: None,
         }
     }
 }
@@ -190,6 +192,7 @@ mod parse_shroud_text;
 mod parsing;
 mod render_polygon;
 mod render_shroud;
+mod selection_box;
 mod shape_combo_box;
 mod shroud_interaction_checks;
 mod shroud_layer_gizmos;

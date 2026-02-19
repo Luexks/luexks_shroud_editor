@@ -123,6 +123,7 @@ impl ShroudEditor {
         rect: &Rect,
     ) {
         let mouse_pos = response.interact_pointer_pos();
+        let shift = ctx.input(|i| i.modifiers.shift);
         if let Some(mouse_pos) = mouse_pos {
             if let ShroudInteraction::Placing { .. } = &self.shroud_interaction {
                 if ui.input(|i| i.pointer.primary_clicked()) {
@@ -134,7 +135,7 @@ impl ShroudEditor {
                     if let Some(shroud_layer_that_would_be_selected_index) =
                         self.get_shroud_that_would_be_selected_index_option(mouse_pos, *rect)
                     {
-                        if ctx.input(|i| i.modifiers.shift) {
+                        if shift {
                             if let Some(
                                 selection_index_of_shroud_layer_that_would_be_selected_index,
                             ) = self.shroud_interaction.selection().into_iter().position(
@@ -172,39 +173,47 @@ impl ShroudEditor {
                                 selection: vec![shroud_layer_that_would_be_selected_index],
                             };
                         }
-                    } else {
+                    } else if !shift {
                         self.shroud_interaction = ShroudInteraction::Inaction {
                             selection: Vec::new(),
                         };
                     }
                 }
 
-                if response.drag_started() && !self.shroud_interaction.selection().is_empty() {
-                    let dragged_shroud_layer_idx = self.shroud_interaction.selection()[0];
-                    let drag_pos = do3d_to_pos2(
-                        self.shroud[dragged_shroud_layer_idx]
-                            .shroud_layer
-                            .offset
-                            .as_ref()
-                            .unwrap(),
-                    );
-                    self.shroud_interaction = ShroudInteraction::Dragging {
-                        drag_pos,
-                        // potentially_snapped_drag_pos: snap_to_grid(self.grid_size , drag_pos),
-                        potentially_snapped_drag_pos: drag_pos,
-                        selection: MovingShroudSelection(
-                            self.shroud_interaction
-                                .selection()
-                                .iter()
-                                .map(|idx| MovingShroudLayerInteraction {
-                                    idx: *idx,
-                                    relative_pos: drag_pos
-                                        - do3d_to_pos2(
-                                            self.shroud[*idx].shroud_layer.offset.as_ref().unwrap(),
-                                        ),
-                                })
-                                .collect(),
-                        ),
+                if response.drag_started() {
+                    if self.shroud_interaction.selection().is_empty() || shift {
+                        self.selection_box_start_pos_option = Some(self.world_mouse_pos);
+                    } else {
+                        let dragged_shroud_layer_idx = self.shroud_interaction.selection()[0];
+                        let drag_pos = do3d_to_pos2(
+                            self.shroud[dragged_shroud_layer_idx]
+                                .shroud_layer
+                                .offset
+                                .as_ref()
+                                .unwrap(),
+                        );
+                        self.shroud_interaction = ShroudInteraction::Dragging {
+                            drag_pos,
+                            // potentially_snapped_drag_pos: snap_to_grid(self.grid_size , drag_pos),
+                            potentially_snapped_drag_pos: drag_pos,
+                            selection: MovingShroudSelection(
+                                self.shroud_interaction
+                                    .selection()
+                                    .iter()
+                                    .map(|idx| MovingShroudLayerInteraction {
+                                        idx: *idx,
+                                        relative_pos: drag_pos
+                                            - do3d_to_pos2(
+                                                self.shroud[*idx]
+                                                    .shroud_layer
+                                                    .offset
+                                                    .as_ref()
+                                                    .unwrap(),
+                                            ),
+                                    })
+                                    .collect(),
+                            ),
+                        }
                     }
                 }
             }

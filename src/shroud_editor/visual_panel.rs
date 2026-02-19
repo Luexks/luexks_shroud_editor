@@ -44,6 +44,8 @@ impl ShroudEditor {
 
                 self.icon_radius_logic(ui, rect);
 
+                self.selection_box_logic(ui, rect);
+
                 if self.reference_image.enabled
                     && matches!(self.reference_image.image_layer, ImageLayer::ImageAbove)
                 {
@@ -66,6 +68,7 @@ impl ShroudEditor {
             self.shroud_interaction = ShroudInteraction::Inaction {
                 selection: self.shroud_interaction.selection(),
             };
+            self.selection_box_start_pos_option = None;
         }
     }
 

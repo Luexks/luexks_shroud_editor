@@ -37,7 +37,6 @@ impl ShroudEditor {
             .rev()
             .collect::<Vec<_>>();
         to_be_deleted_indexes.iter().for_each(|index| {
-
             self.shroud.remove(*index);
             self.shroud.iter_mut().for_each(|shroud_layer_container| {
                 if let Some(mirror_index) = &mut shroud_layer_container.mirror_index_option
