@@ -86,6 +86,15 @@ impl ShroudEditor {
     }
 }
 
+fn is_theer_aabb_triangle_intersection(aabb: Rect, tri: [Pos2; 3]) -> bool {
+    if tri.iter().any(|vert| aabb.contains(*vert)) {
+        return true;
+    }
+    let aabb_verts = [aabb.min, pos2(aabb.max.x, aabb.min.y), aabb.max, pos2(aabb.min.x, aabb.max.y)];
+    aabb_verts.iter().for_each(|vert| if tri);
+    false
+}
+
 fn sat_aabb_and_triangle(aabb: Rect, tri: [Pos2; 3]) -> bool {
     let aabb_a = [
         pos2(aabb.min.x, aabb.min.y),
