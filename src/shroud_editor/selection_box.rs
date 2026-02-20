@@ -63,7 +63,7 @@ impl ShroudEditor {
                 let aabb = Rect::from_points(&verts);
                 if aabb.intersects(selection_box) {
                     for tri in triangulate(&verts) {
-                        if is_there_aabb_triangle_intersection(selection_box, tri) {
+                        if sat_aabb_and_triangle(selection_box, tri) {
                             to_be_selected.push(i);
                             break;
                         }
@@ -86,26 +86,33 @@ impl ShroudEditor {
     }
 }
 
-fn is_there_aabb_triangle_intersection(aabb: Rect, tri: [Pos2; 3]) -> bool {
-    if tri.iter().any(|vert| aabb.contains(*vert)) {
-        return true;
-    }
-    let aabb_verts = [aabb.min, pos2(aabb.max.x, aabb.min.y), aabb.max, pos2(aabb.min.x, aabb.max.y)];
-    for vert in aabb_verts.iter() {
-        if is_point_in_tri(*vert, tri) {
-            return true;
+fn sat_aabb_and_triangle(aabb: Rect, tri: [Pos2; 3]) -> bool {
+    let aabb = [
+        pos2(aabb.min.x, aabb.min.y),
+        pos2(aabb.max.x, aabb.min.y),
+        pos2(aabb.max.x, aabb.max.y),
+        pos2(aabb.min.x, aabb.max.y),
+    ];
+    let axes = [
+        pos2(1.0, 0.0),
+        pos2(0.0, 1.0),
+        perp([tri[0], tri[1]]),
+        perp([tri[1], tri[2]]),
+        perp([tri[2], tri[0]]),
+    ];
+    for axis in axes {
+        let p1 = project_tri(axis, tri);
+        let p2 = project_aabb(axis, aabb);
+        if !overlap(p1, p2) {
+            return false;
         }
     }
-    false
+    true
 }
 
-fn is_point_in_tri(p: Pos2, tri: [Pos2; 3]) -> bool {
-    let [a, b, c] = tri;
-    let denominator = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
-    let area_fraction_a = ((b.y - c.y) * (p.x - c.x) + (c.x - b.x) * (p.y - c.y)) / denominator;
-    let area_fraction_b = ((c.y - a.y) * (p.x - c.x) + (a.x - c.x) * (p.y - c.y)) / denominator;
-    let area_fraction_c = 1.0 - area_fraction_a - area_fraction_b;
-    area_fraction_a >= 0.0 && area_fraction_b >= 0.0 && area_fraction_c >= 0.0
+fn perp(line: [Pos2; 2]) -> Pos2 {
+    let line = line[0] - line[1];
+    pos2(line.y, -line.x)
 }
 
 fn triangulate(verts: &[Pos2]) -> Vec<[Pos2; 3]> {
@@ -114,4 +121,34 @@ fn triangulate(verts: &[Pos2]) -> Vec<[Pos2; 3]> {
     };
     let a = verts[0];
     verts[1..].windows(2).map(|w| [a, w[0], w[1]]).collect()
+}
+
+fn dot(a: Pos2, b: Pos2) -> f32 {
+    a.x * b.x + a.y * b.y
+}
+
+fn project_tri(axis: Pos2, tri: [Pos2; 3]) -> (f32, f32) {
+    let mut min = dot(axis, tri[0]);
+    let mut max = min;
+    tri[1..].iter().for_each(|point| {
+        let p = dot(axis, *point);
+        min = min.min(p);
+        max = max.max(p);
+    });
+    (min, max)
+}
+
+fn project_aabb(axis: Pos2, tri: [Pos2; 4]) -> (f32, f32) {
+    let mut min = dot(axis, tri[0]);
+    let mut max = min;
+    tri[1..].iter().for_each(|point| {
+        let p = dot(axis, *point);
+        min = min.min(p);
+        max = max.max(p);
+    });
+    (min, max)
+}
+
+fn overlap(a: (f32, f32), b: (f32, f32)) -> bool {
+    a.1 >= b.0 && a.0 <= b.1
 }
