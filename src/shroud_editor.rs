@@ -72,6 +72,7 @@ pub struct ShroudEditor {
     pub icon_radius_option: Option<f32>,
     pub selection_box_start_pos_option: Option<Pos2>,
     pub is_first_frame: bool,
+    pub groups: Vec<Vec<usize>>,
 }
 
 impl Default for ShroudEditor {
@@ -128,6 +129,7 @@ impl Default for ShroudEditor {
             icon_radius_option: None,
             selection_box_start_pos_option: None,
             is_first_frame: true,
+            groups: Vec::new(),
         }
     }
 }
@@ -159,12 +161,13 @@ impl eframe::App for ShroudEditor {
         if self.visual_panel_key_bindings_enabled {
             self.pan_controls(ctx);
             self.hotkey_shroud_layer_deletion(ctx);
-            self.delete_shroud_layers(ctx);
+            self.delete_shroud_layers();
 
             self.hotkey_copy(ctx);
             self.hotkey_paste(ctx);
             self.hotkey_mirroring(ctx);
             self.hotkey_undo_redo(ctx);
+            self.hotkey_grouping(ctx);
         }
 
         self.visual_panel_key_bindings_enabled = true;
@@ -186,6 +189,7 @@ mod add_mirror;
 mod delete_shroud_layers;
 mod delta_time;
 mod draw_grid;
+mod grouping;
 mod hotkey_copy_and_paste;
 mod hotkey_mirroring;
 mod hotkey_shroud_layer_deletion;

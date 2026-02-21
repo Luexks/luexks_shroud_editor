@@ -1,17 +1,13 @@
-use egui::Context;
-
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 
 impl ShroudEditor {
-    pub fn delete_shroud_layers(&mut self, ctx: &Context) {
+    pub fn delete_shroud_layers(&mut self) {
         let widowed_mirror_indexes = self
             .shroud
             .iter()
             .filter_map(|shroud_layer_container| {
-                if shroud_layer_container.delete_next_frame
-                    && let Some(mirror_index) = shroud_layer_container.mirror_index_option
-                {
-                    Some(mirror_index)
+                if shroud_layer_container.delete_next_frame {
+                    shroud_layer_container.mirror_index_option
                 } else {
                     None
                 }
@@ -44,7 +40,23 @@ impl ShroudEditor {
                 {
                     *mirror_index -= 1;
                 }
+                if let Some(group_idx) = &mut shroud_layer_container.group_idx_option
+                    && *group_idx > *index
+                {
+                    *group_idx -= 1;
+                }
             });
+            self.groups.iter_mut().for_each(|group| {
+                if group.contains(index) {
+                    group.remove(*index);
+                }
+                group.iter_mut().for_each(|group_idx| {
+                    if *group_idx > *index {
+                        *group_idx -= 1;
+                    }
+                });
+            });
+            self.cull_empty_groups();
             self.shroud_interaction
                 .selection()
                 .iter()

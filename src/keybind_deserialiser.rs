@@ -40,6 +40,7 @@ fn deserialise_keybinds(s: &str) -> IResult<&str, Keybinds> {
     let (s, delete) = deserialise_shortcut_binding(s, "delete")?;
     let (s, undo) = deserialise_shortcut_binding(s, "undo")?;
     let (s, redo) = deserialise_shortcut_binding(s, "redo")?;
+    let (s, group) = deserialise_shortcut_binding(s, "group")?;
 
     Ok((
         s,
@@ -54,6 +55,7 @@ fn deserialise_keybinds(s: &str) -> IResult<&str, Keybinds> {
             delete,
             undo,
             redo,
+            group,
             ..Default::default()
         },
     ))

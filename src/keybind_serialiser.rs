@@ -12,7 +12,7 @@ impl Display for Keybinds {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "{}{}{}{}{}{}{}{}{}{}",
+            "{}{}{}{}{}{}{}{}{}{}{}",
             format_keyboard_binding("up", &self.pan_up),
             format_keyboard_binding("down", &self.pan_down),
             format_keyboard_binding("right", &self.pan_right),
@@ -23,6 +23,7 @@ impl Display for Keybinds {
             format_keyboard_shortcut_binding("delete", &self.delete),
             format_keyboard_shortcut_binding("undo", &self.undo),
             format_keyboard_shortcut_binding("redo", &self.redo),
+            format_keyboard_shortcut_binding("group", &self.group),
         )
     }
 }

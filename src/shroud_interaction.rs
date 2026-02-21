@@ -169,9 +169,18 @@ impl ShroudEditor {
                             .selection()
                             .contains(&shroud_layer_that_would_be_selected_index)
                         {
-                            self.shroud_interaction = ShroudInteraction::Inaction {
-                                selection: vec![shroud_layer_that_would_be_selected_index],
-                            };
+                            if let Some(group_idx) = self.shroud
+                                [shroud_layer_that_would_be_selected_index]
+                                .group_idx_option
+                            {
+                                self.shroud_interaction = ShroudInteraction::Inaction {
+                                    selection: self.groups[group_idx].clone(),
+                                }
+                            } else {
+                                self.shroud_interaction = ShroudInteraction::Inaction {
+                                    selection: vec![shroud_layer_that_would_be_selected_index],
+                                };
+                            }
                         }
                     } else if !shift {
                         self.shroud_interaction = ShroudInteraction::Inaction {

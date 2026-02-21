@@ -27,6 +27,8 @@ pub struct Keybinds {
     pub undo_expecting: bool,
     pub redo: Option<KeyboardShortcut>,
     pub redo_expecting: bool,
+    pub group: Option<KeyboardShortcut>,
+    pub group_expecting: bool,
 }
 
 #[rustfmt::skip]
@@ -43,6 +45,7 @@ impl Default for Keybinds {
             delete:     Some(KeyboardShortcut::new(Modifiers::NONE, Key::R)),
             undo:       Some(KeyboardShortcut::new(Modifiers::CTRL, Key::Z)),
             redo:       Some(KeyboardShortcut::new(Modifiers::CTRL | Modifiers::SHIFT, Key::Z)),
+            group:      Some(KeyboardShortcut::new(Modifiers::NONE, Key::G)),
 
             pan_up_expecting: false,
             pan_down_expecting: false,
@@ -54,6 +57,7 @@ impl Default for Keybinds {
             delete_expecting: false,
             undo_expecting: false,
             redo_expecting: false,
+            group_expecting: false
         }
     }
 }
@@ -82,6 +86,7 @@ impl ShroudEditor {
                     keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.delete, &mut keybinds.delete_expecting, "Delete");
                     keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.undo, &mut keybinds.undo_expecting, "Undo");
                     keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.redo, &mut keybinds.redo_expecting, "Redo");
+                    keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.group, &mut keybinds.group_expecting, "Group");
                 });
             });
     }
