@@ -71,6 +71,7 @@ pub struct ShroudEditor {
     pub show_icon_radius: bool,
     pub icon_radius_option: Option<f32>,
     pub selection_box_start_pos_option: Option<Pos2>,
+    pub is_first_frame: bool,
 }
 
 impl Default for ShroudEditor {
@@ -126,12 +127,14 @@ impl Default for ShroudEditor {
             show_icon_radius: false,
             icon_radius_option: None,
             selection_box_start_pos_option: None,
+            is_first_frame: true,
         }
     }
 }
 
 impl eframe::App for ShroudEditor {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        self.first_frame_styling_logic(ctx);
         // let copy = egui::KeyboardShortcut::new(egui::Modifiers::CTRL, egui::Key::C);
         // if ctx.input_mut(|i| i.consume_shortcut(&copy)) {
         //     print!("Debug");

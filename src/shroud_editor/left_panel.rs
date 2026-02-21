@@ -31,6 +31,7 @@ use crate::{
     },
     shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
     shroud_layer_container::ShroudLayerContainer,
+    styles::BACKGROUND_COLOUR,
 };
 
 type IsChanged = bool;
@@ -92,7 +93,7 @@ impl ShroudEditor {
                 .fixed_pos(pos2(8.0, 46.0))
                 .fade_in(false)
                 .show(ctx, |ui| {
-                    Frame::new().fill(Color32::WHITE).show(ui, |ui| {
+                    Frame::new().fill(BACKGROUND_COLOUR).show(ui, |ui| {
                         self.shroud_settings(ctx, ui, true);
                     });
                 });

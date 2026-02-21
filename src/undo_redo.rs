@@ -1,4 +1,5 @@
 use crate::keybinds::is_shortcut_pressed;
+use crate::styles::BACKGROUND_COLOUR;
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 use egui::{Area, Color32, Context, Frame, Id, Ui, pos2};
 
@@ -60,7 +61,7 @@ impl ShroudEditor {
             .default_width(290.0)
             .fade_in(false)
             .show(ctx, |ui| {
-                Frame::new().fill(Color32::WHITE).show(ui, |ui| {
+                Frame::new().fill(BACKGROUND_COLOUR).show(ui, |ui| {
                     ui.take_available_width();
                     ui.horizontal(|ui| {
                         if ui.button("Undo").clicked() {

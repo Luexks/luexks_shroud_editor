@@ -1,19 +1,37 @@
 use egui;
+use egui::{Color32, Context, Stroke, Theme, Visuals};
+
+// use crate::fonts::replace_fonts;
+use crate::shroud_editor::ShroudEditor;
+
+pub const BACKGROUND_COLOUR: Color32 = Color32::from_gray(240);
+
+impl ShroudEditor {
+    pub fn first_frame_styling_logic(&mut self, ctx: &Context) {
+        if self.is_first_frame {
+            self.is_first_frame = false;
+            apply_styles(ctx);
+            // replace_fonts(ctx);
+        }
+    }
+}
 
 pub fn apply_styles(ctx: &egui::Context) {
+    ctx.set_theme(Theme::Light);
     let mut style = (*ctx.style()).clone();
-
-    let grey = egui::Color32::from_rgb(40, 40, 40); // dark grey background
-    let white = egui::Color32::from_rgb(255, 255, 255); // white outlines
 
     // Global visuals (colors, corners)
     style.visuals = egui::Visuals {
-        dark_mode: true,
-        window_fill: grey,
-        window_stroke: egui::Stroke::new(1.0, white), // white border on windows
+        // dark_mode: true,
+        extreme_bg_color: BACKGROUND_COLOUR,
+        window_fill: BACKGROUND_COLOUR,
+        panel_fill: BACKGROUND_COLOUR,
+        // window_stroke: egui::Stroke::new(1.0, BACKGROUND_COLOUR), // white border on windows
+        window_stroke: Stroke::NONE,
         // window_rounding: egui::Rounding::none(),      // no rounding
         window_corner_radius: egui::CornerRadius::ZERO,
-        ..egui::Visuals::dark()
+        override_text_color: Some(Color32::BLACK),
+        ..Visuals::light()
     };
 
     // // Widget visuals
