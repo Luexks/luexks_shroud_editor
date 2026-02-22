@@ -17,6 +17,7 @@ use crate::shroud_editor::tools::ToolSettings;
 use crate::shroud_import_text_default::SHROUD_IMPORT_TEXT_DEFAULT;
 use crate::shroud_interaction::ShroudInteraction;
 use crate::shroud_layer_container::ShroudLayerContainer;
+use crate::undo_redo::UndoHistorySnapshot;
 use egui::{Popup, Pos2};
 use egui_file_dialog::FileDialog;
 use luexks_reassembly::shapes::shapes::Shapes;
@@ -62,7 +63,7 @@ pub struct ShroudEditor {
     render_data_option: Arc<Mutex<Option<RenderData>>>,
     visual_panel_key_bindings_enabled: bool,
     pub keybinds: Keybinds,
-    pub undo_history: Vec<Vec<ShroudLayerContainer>>,
+    pub undo_history: Vec<UndoHistorySnapshot>,
     pub add_undo_history: bool,
     pub undo_history_index: usize,
     pub reference_image: ReferenceImage,
@@ -119,7 +120,7 @@ impl Default for ShroudEditor {
                 Ok(keybinds) => keybinds,
                 Err(_) => Keybinds::default(),
             },
-            undo_history: [Vec::new()].into(),
+            undo_history: [UndoHistorySnapshot::default()].into(),
             add_undo_history: false,
             undo_history_index: 0,
             reference_image: ReferenceImage::default(),

@@ -25,14 +25,16 @@ impl ShroudEditor {
         } else {
             if is_shortcut_pressed(ctx, &self.keybinds.paste) && !self.shroud_clipboard.is_empty() {
                 let mut to_be_selected_indexes = Vec::new();
+                // let entire_one_group_idx_option = self.get_one_entire_group_idx_option_of_layers(&self.shroud_clipboard);
                 self.shroud_clipboard
                     .iter()
                     .for_each(|shroud_layer_container| {
                         let new_shroud_layer_container = ShroudLayerContainer {
+                            group_idx_option: None,
                             ..shroud_layer_container.clone()
                         };
+                        let last = self.shroud.len();
                         self.shroud.push(new_shroud_layer_container);
-                        let last = self.shroud.len() - 1;
                         to_be_selected_indexes.push(last);
                         if let Some(_mirror_index) = self.shroud[last].mirror_index_option {
                             add_mirror(

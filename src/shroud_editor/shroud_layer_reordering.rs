@@ -120,6 +120,14 @@ impl ShroudEditor {
             if let Some(mirror_idx) = &mut shroud_layer_container.mirror_index_option {
                 *mirror_idx = reorder_idx(*mirror_idx, top_idx, bottom_idx, direction);
             }
+            if let Some(layer_group_idx) = &mut shroud_layer_container.group_idx_option {
+                *layer_group_idx = reorder_idx(*layer_group_idx, top_idx, bottom_idx, direction);
+            }
+        });
+        self.groups.iter_mut().for_each(|group| {
+            group.iter_mut().for_each(|group_layer_idx| {
+                *group_layer_idx = reorder_idx(*group_layer_idx, top_idx, bottom_idx, direction);
+            })
         });
         let slice_range = match direction {
             Direction::Up => top_idx - 1..=bottom_idx,

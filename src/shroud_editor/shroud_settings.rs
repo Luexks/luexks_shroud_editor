@@ -318,6 +318,7 @@ impl ShroudEditor {
     fn select_deselect_and_delete_buttons(&mut self, ui: &mut Ui, index: usize) -> bool {
         let mut is_selected = false;
         ui.horizontal(|ui| {
+            ui.label(index.to_string());
             is_selected = if !self.shroud_interaction.selection().contains(&index) {
                 if ui.button("Select").clicked() {
                     self.shroud_interaction = ShroudInteraction::Inaction {

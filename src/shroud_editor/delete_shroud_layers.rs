@@ -32,45 +32,36 @@ impl ShroudEditor {
             })
             .rev()
             .collect::<Vec<_>>();
-        to_be_deleted_indexes.iter().for_each(|index| {
-            self.shroud.remove(*index);
+        to_be_deleted_indexes.iter().for_each(|layer_idx| {
+            self.shroud.remove(*layer_idx);
             self.shroud.iter_mut().for_each(|shroud_layer_container| {
                 if let Some(mirror_index) = &mut shroud_layer_container.mirror_index_option
-                    && *mirror_index > *index
+                    && *mirror_index > *layer_idx
                 {
                     *mirror_index -= 1;
                 }
-                if let Some(group_idx) = &mut shroud_layer_container.group_idx_option
-                    && *group_idx > *index
-                {
-                    *group_idx -= 1;
-                }
             });
             self.groups.iter_mut().for_each(|group| {
-                if let Some(group_idx) = group.iter().position(|shroud_layer_idx| *shroud_layer_idx == *index) {
-                    group.remove(group_idx);
+                if let Some(group_layer_idx_idx) = group
+                    .iter()
+                    .position(|group_layer_idx| *group_layer_idx == *layer_idx)
+                {
+                    group.remove(group_layer_idx_idx);
                 }
                 group.iter_mut().for_each(|group_idx| {
-                    if *group_idx > *index {
+                    if *group_idx > *layer_idx {
                         *group_idx -= 1;
                     }
                 });
             });
-            self.cull_empty_groups();
-            self.shroud_interaction
-                .selection()
-                .iter()
-                .copied()
-                .enumerate()
-                .for_each(|(index_in_selection_list, selected_index)| {
-                    if selected_index > *index {
-                        let mut new_selection = self.shroud_interaction.selection().clone();
-                        new_selection[index_in_selection_list] -= 1;
-                        self.shroud_interaction = ShroudInteraction::Inaction {
-                            selection: new_selection,
-                        };
-                    }
-                });
+            let mut selection = self.shroud_interaction.selection();
+            for selected_index in &mut selection {
+                if *selected_index > *layer_idx {
+                    *selected_index -= 1;
+                }
+            }
+            self.shroud_interaction = ShroudInteraction::Inaction { selection };
         });
+        self.cull_empty_groups();
     }
 }

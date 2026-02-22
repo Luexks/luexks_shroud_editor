@@ -1,4 +1,5 @@
 use egui::{Color32, Pos2, Rect, Stroke, StrokeKind, Ui, pos2};
+use luexks_reassembly::blocks::shroud;
 
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 
@@ -64,7 +65,18 @@ impl ShroudEditor {
                 if aabb.intersects(selection_box) {
                     for tri in triangulate(&verts) {
                         if sat_aabb_and_triangle(selection_box, tri) {
-                            to_be_selected.push(i);
+                            if !to_be_selected.contains(&i) {
+                                to_be_selected.push(i);
+                            }
+                            if let Some(layer_group_idx) = self.shroud[i].group_idx_option {
+                                self.groups[layer_group_idx]
+                                    .iter()
+                                    .for_each(|group_layer_idx| {
+                                        if !to_be_selected.contains(group_layer_idx) {
+                                            to_be_selected.push(*group_layer_idx);
+                                        }
+                                    });
+                            }
                             break;
                         }
                     }

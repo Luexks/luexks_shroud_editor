@@ -1,12 +1,39 @@
 use crate::keybinds::is_shortcut_pressed;
+use crate::shroud_layer_container::ShroudLayerContainer;
 use crate::styles::BACKGROUND_COLOUR;
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
-use egui::{Area, Color32, Context, Frame, Id, Ui, pos2};
+use egui::{Area, Context, Frame, Id, Ui, pos2};
 
 const UNDO_HISTORY_MAX_SNAPSHOTS: usize = 32;
 // const UNDO_HISTORY_MAX_SNAPSHOTS: usize = 3;
 
+#[derive(Clone)]
+pub struct UndoHistorySnapshot {
+    shroud: Vec<ShroudLayerContainer>,
+    groups: Vec<Vec<usize>>,
+}
+
+impl Default for UndoHistorySnapshot {
+    fn default() -> Self {
+        UndoHistorySnapshot {
+            shroud: Vec::new(),
+            groups: Vec::new(),
+        }
+    }
+}
+
 impl ShroudEditor {
+    fn get_undo_history_snapshot(&self) -> UndoHistorySnapshot {
+        UndoHistorySnapshot {
+            shroud: self.shroud.clone(),
+            groups: self.groups.clone(),
+        }
+    }
+    fn load_undo_history_snapshot(&mut self, undo_history_snapshot: UndoHistorySnapshot) {
+        self.shroud = undo_history_snapshot.shroud.clone();
+        self.groups = undo_history_snapshot.groups.clone();
+    }
+
     pub fn add_undo_history_logic(&mut self) {
         if !self.add_undo_history {
             return;
@@ -21,7 +48,7 @@ impl ShroudEditor {
         } else {
             self.undo_history_index += 1;
         }
-        self.undo_history.push(self.shroud.clone());
+        self.undo_history.push(self.get_undo_history_snapshot());
         // println!("\t\t{}\t{}", self.undo_history.len(), self.undo_history_index);
         // println!("{}\t{}", self.undo_history.len(), self.undo_history_index);
     }
@@ -31,7 +58,7 @@ impl ShroudEditor {
             return;
         }
         self.undo_history_index -= 1;
-        self.shroud = self.undo_history[self.undo_history_index].clone();
+        self.load_undo_history_snapshot(self.undo_history[self.undo_history_index].clone());
         self.shroud_interaction = ShroudInteraction::none();
     }
 
@@ -40,7 +67,7 @@ impl ShroudEditor {
             return;
         }
         self.undo_history_index += 1;
-        self.shroud = self.undo_history[self.undo_history_index].clone();
+        self.load_undo_history_snapshot(self.undo_history[self.undo_history_index].clone());
         self.shroud_interaction = ShroudInteraction::none();
     }
 

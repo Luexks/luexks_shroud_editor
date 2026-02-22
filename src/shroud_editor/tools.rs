@@ -160,6 +160,12 @@ impl ShroudEditor {
         if selection.is_empty() {
             return;
         }
+        selection.iter().for_each(|layer_idx| {
+            self.groups.iter_mut().for_each(|group| {
+                group.retain(|group_layer_idx| *group_layer_idx != *layer_idx);
+            });
+        });
+        self.cull_empty_groups();
         self.add_undo_history = true;
         let new_selection_len = count * selection.len();
         let centre = pos2(about_x, about_y);
@@ -199,6 +205,7 @@ impl ShroudEditor {
                 let mut radial_shroud_layer_container = original.clone();
                 radial_shroud_layer_container.shroud_layer.offset = Some(new_offset);
                 radial_shroud_layer_container.shroud_layer.angle = Some(new_angle);
+                radial_shroud_layer_container.group_idx_option = None;
                 self.shroud.push(radial_shroud_layer_container);
             });
         });

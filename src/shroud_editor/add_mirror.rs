@@ -44,6 +44,7 @@ pub fn add_mirror(
             ..shroud[index].shroud_layer.clone()
         },
         mirror_index_option: Some(index),
+        group_idx_option: None,
         // drag_pos_option: if should_mirror_be_selected {
         //     shroud[index].drag_pos_option
         // } else {
