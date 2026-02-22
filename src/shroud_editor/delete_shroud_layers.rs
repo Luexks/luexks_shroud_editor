@@ -47,8 +47,8 @@ impl ShroudEditor {
                 }
             });
             self.groups.iter_mut().for_each(|group| {
-                if group.contains(index) {
-                    group.remove(*index);
+                if let Some(group_idx) = group.iter().position(|shroud_layer_idx| *shroud_layer_idx == *index) {
+                    group.remove(group_idx);
                 }
                 group.iter_mut().for_each(|group_idx| {
                     if *group_idx > *index {
