@@ -102,6 +102,14 @@ impl ShroudInteraction {
         selection.sort();
         selection.windows(2).all(|w| w[0] + 1 == w[1])
     }
+
+    pub fn selection_len(&self) -> usize {
+        match self {
+            ShroudInteraction::Inaction { selection } => selection.len(),
+            ShroudInteraction::Dragging { selection, .. } => selection.0.len(),
+            ShroudInteraction::Placing { selection, .. } => selection.0.len(),
+        }
+    }
 }
 
 pub fn is_sorted_selection_contiguous(selection: &[usize]) -> bool {

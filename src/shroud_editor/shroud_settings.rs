@@ -61,22 +61,25 @@ impl ShroudEditor {
                     // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
                     // let start_y = ui.cursor().min.y;
                     ui.spacing_mut().item_spacing.y = 2.0;
-                    let is_selected = self.select_deselect_and_delete_buttons(ui, index);
-                    if is_selected && self.shroud_interaction.selection().len() == 1 {
-                        let top_of_shroud_layer_settings_y = ui.cursor().min.y;
-                        let shroud_layer_settings_height =
-                            if self.shroud[index].shape_id == "SQUARE" {
-                                207.0
-                                // 222.0
-                            } else {
-                                187.0
-                                // 202.0
-                            };
-                        let window_bottom_y = ui.clip_rect().max.y;
+                    let shroud_layer_settings_height = if self.shroud[index].shape_id == "SQUARE" {
+                        207.0
+                        // 222.0
+                    } else {
+                        187.0
+                        // 202.0
+                    };
+                    let window_bottom_y = ui.clip_rect().max.y;
+                    let top_of_shroud_layer_settings_y = ui.cursor().min.y;
+                    let shroud_layer_settings_are_off_screen =
+                        top_of_shroud_layer_settings_y + shroud_layer_settings_height < 0.0
+                            || top_of_shroud_layer_settings_y > window_bottom_y;
+                    if shroud_layer_settings_are_off_screen {
+                        ui.add_space(20.0);
+                    } else {
+                        self.select_deselect_and_delete_buttons(ui, index, is_selected);
+                    };
+                    if is_selected && self.shroud_interaction.selection_len() == 1 {
                         // println!("{}\t{}", top_of_shroud_layer_settings_y, window_bottom_y);
-                        let shroud_layer_settings_are_off_screen =
-                            top_of_shroud_layer_settings_y + shroud_layer_settings_height < 0.0
-                                || top_of_shroud_layer_settings_y > window_bottom_y;
                         if shroud_layer_settings_are_off_screen {
                             ui.add_space(shroud_layer_settings_height);
                             // println!("Culling shroud layer of ID: {}", index);
@@ -224,11 +227,10 @@ impl ShroudEditor {
                             }
                         }
                     }
+                    // let end_y = ui.cursor().min.y;
+                    // println!("Height: {}", end_y - start_y);
                 });
         });
-        // }
-        // let end_y = ui.cursor().min.y;
-        // println!("Height: {}", end_y - start_y);
     }
 
     fn shroud_layer_mirror_settings(&mut self, ui: &mut Ui, index: usize) {
@@ -315,11 +317,10 @@ impl ShroudEditor {
         }
     }
 
-    fn select_deselect_and_delete_buttons(&mut self, ui: &mut Ui, index: usize) -> bool {
-        let mut is_selected = false;
+    fn select_deselect_and_delete_buttons(&mut self, ui: &mut Ui, index: usize, is_selected: bool) {
         ui.horizontal(|ui| {
             ui.label(index.to_string());
-            is_selected = if !self.shroud_interaction.selection().contains(&index) {
+            if !is_selected {
                 if ui.button("Select").clicked() {
                     self.shroud_interaction = ShroudInteraction::Inaction {
                         selection: self
@@ -329,9 +330,6 @@ impl ShroudEditor {
                             .chain(std::iter::once(index))
                             .collect(),
                     };
-                    true
-                } else {
-                    false
                 }
             } else if ui.button("Deselect").clicked() {
                 self.shroud_interaction = ShroudInteraction::Inaction {
@@ -342,10 +340,7 @@ impl ShroudEditor {
                         .filter(|selection_index| *selection_index != index)
                         .collect(),
                 };
-                false
-            } else {
-                true
-            };
+            }
             if ui.button("Delete (Double Click)").double_clicked() {
                 self.add_undo_history = true;
                 self.shroud[index].delete_next_frame = true;
@@ -359,7 +354,6 @@ impl ShroudEditor {
                 };
             }
         });
-        is_selected
     }
 }
 
