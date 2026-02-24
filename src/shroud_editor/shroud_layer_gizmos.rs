@@ -1,10 +1,7 @@
 use egui::{Color32, DragValue, Pos2, Rect, Ui, UiBuilder, pos2, vec2};
 use luexks_reassembly::utility::{angle::Angle, display_oriented_math::do2d_float_from};
 
-use crate::{
-    angle_gizmo::AngleGizmo,
-    shroud_editor::ShroudEditor,
-};
+use crate::{angle_gizmo::AngleGizmo, shroud_editor::ShroudEditor};
 
 const GIZMO_SET_LIMIT: usize = 16;
 
@@ -47,11 +44,16 @@ impl ShroudEditor {
                         .unwrap()
                         .as_degrees()
                         .get_value();
+                    let mut add_undo_history = false;
                     ui.add(AngleGizmo::new(
                         &mut angle,
                         self.angle_snap,
                         self.angle_snap_enabled,
+                        &mut add_undo_history,
                     ));
+                    if add_undo_history {
+                        self.add_undo_history = true;
+                    }
                     self.shroud[index].shroud_layer.angle = Some(Angle::Degree(angle));
                 });
         });

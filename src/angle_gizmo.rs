@@ -4,14 +4,21 @@ pub struct AngleGizmo<'a> {
     angle: &'a mut f32,
     angle_snap: f32,
     angle_snap_enabled: bool,
+    add_undo_history: &'a mut bool,
 }
 
 impl<'a> AngleGizmo<'a> {
-    pub fn new(angle: &'a mut f32, angle_snap: f32, angle_snap_enabled: bool) -> Self {
+    pub fn new(
+        angle: &'a mut f32,
+        angle_snap: f32,
+        angle_snap_enabled: bool,
+        add_undo_history: &'a mut bool,
+    ) -> Self {
         AngleGizmo {
             angle,
             angle_snap,
             angle_snap_enabled,
+            add_undo_history,
         }
     }
 }
@@ -58,6 +65,9 @@ impl Widget for AngleGizmo<'_> {
             } else if response.hovered() {
                 interaction = Interaction::Hovered;
                 ui.ctx().set_cursor_icon(CursorIcon::Grab);
+            }
+            if response.drag_stopped() {
+                *self.add_undo_history = true;
             }
         });
         let painter = ui.painter();
