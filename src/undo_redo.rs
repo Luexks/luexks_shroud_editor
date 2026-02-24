@@ -7,19 +7,10 @@ use egui::{Area, Context, Frame, Id, Ui, pos2};
 const UNDO_HISTORY_MAX_SNAPSHOTS: usize = 32;
 // const UNDO_HISTORY_MAX_SNAPSHOTS: usize = 3;
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct UndoHistorySnapshot {
     shroud: Vec<ShroudLayerContainer>,
     groups: Vec<Vec<usize>>,
-}
-
-impl Default for UndoHistorySnapshot {
-    fn default() -> Self {
-        UndoHistorySnapshot {
-            shroud: Vec::new(),
-            groups: Vec::new(),
-        }
-    }
 }
 
 impl ShroudEditor {

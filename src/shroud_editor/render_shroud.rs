@@ -19,6 +19,7 @@ use crate::{
     selection_type::SelectionType,
     shroud_editor::{
         ShroudEditor,
+        grouping::render_group_outlines,
         render_polygon::{polygon_fill_logic, polygon_line_logic},
     },
     shroud_layer_container::ShroudLayerContainer,
@@ -150,6 +151,7 @@ impl ShroudEditor {
         } else {
             None
         };
+        let groups_option = self.outline_groups.then_some(self.groups.clone());
         let selection = self.shroud_interaction.selection();
         let callback = PaintCallback {
             rect,
@@ -168,6 +170,9 @@ impl ShroudEditor {
                         shroud_that_would_be_selected_index_option,
                         &selection,
                     );
+                    if let Some(groups) = &groups_option {
+                        render_group_outlines(&shroud, painter, rect, pan, zoom, groups);
+                    }
                 }
             })),
         };
@@ -218,126 +223,126 @@ fn render_shroud_body(
         )
         .collect::<Vec<_>>();
 
-    if !shroud_rendering_data.is_empty() {
-        let mut current_z = shroud_rendering_data[0]
-            .1
-            .shroud_layer
-            .offset
-            .as_ref()
-            .unwrap()
-            .z
-            .to_f32();
-        let mut next_outline_render_start_index = usize::default();
-        unsafe {
-            let gl = painter.gl();
-            gl.use_program(Some(render_data.program));
-            gl.bind_vertex_array(Some(render_data.vao));
-            gl.bind_buffer(ARRAY_BUFFER, Some(render_data.vbo));
-        }
-        shroud_rendering_data.iter().enumerate().for_each(
-            |(pipeline_index, (index, shroud_layer_container))| {
-                let offset = shroud_layer_container.shroud_layer.offset.as_ref().unwrap();
-
-                let is_clipping_and_on_top = offset.z.to_f32() == current_z
-                    && pipeline_index == shroud_rendering_data.len() - 1;
-                if is_clipping_and_on_top {
-                    polygon_fill_logic(
-                        &mut render_fill_vertices_buffer,
-                        block_container,
-                        rect,
-                        shroud_layer_container.get_shroud_layer_vertices(),
-                        offset,
-                        shroud_layer_container.shroud_layer.color_1.unwrap(),
-                        shroud_layer_container.shroud_layer.color_2.unwrap(),
-                        &shroud_layer_container.shape_id,
-                        fill_color_gradient,
-                        pan,
-                        zoom,
-                    );
-                }
-
-                let is_above_last = offset.z.to_f32() > current_z;
-                let is_on_top = pipeline_index == shroud_rendering_data.len() - 1;
-                if is_above_last || is_on_top {
-                    shroud_rendering_data[next_outline_render_start_index..pipeline_index]
-                        .iter()
-                        .for_each(|(index, shroud_layer_container)| {
-                            let is_hovered =
-                                Some(*index) == shroud_that_would_be_selected_index_option;
-                            let is_selected = selection.contains(index);
-                            let selection_type_option = match (is_hovered, is_selected) {
-                                (true, _) => Some(SelectionType::Hovered),
-                                (false, true) => Some(SelectionType::Selected),
-                                _ => None,
-                            };
-                            polygon_line_logic(
-                                &mut render_outline_vertices_buffer,
-                                block_container,
-                                rect,
-                                shroud_layer_container.get_shroud_layer_vertices(),
-                                shroud_layer_container.shroud_layer.offset.as_ref().unwrap(),
-                                shroud_layer_container.shroud_layer.line_color.unwrap(),
-                                selection_type_option,
-                                pan,
-                                zoom,
-                            );
-                        });
-                    next_outline_render_start_index = pipeline_index;
-                }
-
-                let is_not_clipping_and_on_top = offset.z.to_f32() > current_z
-                    && pipeline_index == shroud_rendering_data.len() - 1;
-                let is_below_top = pipeline_index != shroud_rendering_data.len() - 1;
-                if is_not_clipping_and_on_top || is_below_top {
-                    polygon_fill_logic(
-                        &mut render_fill_vertices_buffer,
-                        block_container,
-                        rect,
-                        shroud_layer_container.get_shroud_layer_vertices(),
-                        offset,
-                        shroud_layer_container.shroud_layer.color_1.unwrap(),
-                        shroud_layer_container.shroud_layer.color_2.unwrap(),
-                        &shroud_layer_container.shape_id,
-                        fill_color_gradient,
-                        pan,
-                        zoom,
-                    );
-                }
-                current_z = offset.z.to_f32();
-
-                if is_on_top {
-                    let is_hovered = Some(*index) == shroud_that_would_be_selected_index_option;
-                    let is_selected = selection.contains(index);
-                    let selection_type_option = match (is_hovered, is_selected) {
-                        (true, _) => Some(SelectionType::Hovered),
-                        (false, true) => Some(SelectionType::Selected),
-                        _ => None,
-                    };
-                    polygon_line_logic(
-                        &mut render_outline_vertices_buffer,
-                        block_container,
-                        rect,
-                        shroud_layer_container.get_shroud_layer_vertices(),
-                        shroud_layer_container.shroud_layer.offset.as_ref().unwrap(),
-                        shroud_layer_container.shroud_layer.line_color.unwrap(),
-                        selection_type_option,
-                        pan,
-                        zoom,
-                    );
-                }
-                if is_above_last || is_on_top {
-                    let gl = painter.gl();
-                    render_fills(&render_fill_vertices_buffer, gl);
-                    render_lines(&render_outline_vertices_buffer, gl);
-                    render_fill_vertices_buffer.clear();
-                    render_outline_vertices_buffer.clear();
-                }
-            },
-        );
+    if shroud_rendering_data.is_empty() {
+        return;
     }
+    let mut current_z = shroud_rendering_data[0]
+        .1
+        .shroud_layer
+        .offset
+        .as_ref()
+        .unwrap()
+        .z
+        .to_f32();
+    let mut next_outline_render_start_index = usize::default();
+    unsafe {
+        let gl = painter.gl();
+        gl.use_program(Some(render_data.program));
+        gl.bind_vertex_array(Some(render_data.vao));
+        gl.bind_buffer(ARRAY_BUFFER, Some(render_data.vbo));
+    }
+    shroud_rendering_data.iter().enumerate().for_each(
+        |(pipeline_index, (index, shroud_layer_container))| {
+            let offset = shroud_layer_container.shroud_layer.offset.as_ref().unwrap();
+
+            let is_clipping_and_on_top =
+                offset.z.to_f32() == current_z && pipeline_index == shroud_rendering_data.len() - 1;
+            if is_clipping_and_on_top {
+                polygon_fill_logic(
+                    &mut render_fill_vertices_buffer,
+                    block_container,
+                    rect,
+                    shroud_layer_container.get_shroud_layer_vertices(),
+                    offset,
+                    shroud_layer_container.shroud_layer.color_1.unwrap(),
+                    shroud_layer_container.shroud_layer.color_2.unwrap(),
+                    &shroud_layer_container.shape_id,
+                    fill_color_gradient,
+                    pan,
+                    zoom,
+                );
+            }
+
+            let is_above_last = offset.z.to_f32() > current_z;
+            let is_on_top = pipeline_index == shroud_rendering_data.len() - 1;
+            if is_above_last || is_on_top {
+                shroud_rendering_data[next_outline_render_start_index..pipeline_index]
+                    .iter()
+                    .for_each(|(index, shroud_layer_container)| {
+                        let is_hovered = Some(*index) == shroud_that_would_be_selected_index_option;
+                        let is_selected = selection.contains(index);
+                        let selection_type_option = match (is_hovered, is_selected) {
+                            (true, _) => Some(SelectionType::Hovered),
+                            (false, true) => Some(SelectionType::Selected),
+                            _ => None,
+                        };
+                        polygon_line_logic(
+                            &mut render_outline_vertices_buffer,
+                            block_container,
+                            rect,
+                            shroud_layer_container.get_shroud_layer_vertices(),
+                            shroud_layer_container.shroud_layer.offset.as_ref().unwrap(),
+                            shroud_layer_container.shroud_layer.line_color.unwrap(),
+                            selection_type_option,
+                            pan,
+                            zoom,
+                        );
+                    });
+                next_outline_render_start_index = pipeline_index;
+            }
+
+            let is_not_clipping_and_on_top =
+                offset.z.to_f32() > current_z && pipeline_index == shroud_rendering_data.len() - 1;
+            let is_below_top = pipeline_index != shroud_rendering_data.len() - 1;
+            if is_not_clipping_and_on_top || is_below_top {
+                polygon_fill_logic(
+                    &mut render_fill_vertices_buffer,
+                    block_container,
+                    rect,
+                    shroud_layer_container.get_shroud_layer_vertices(),
+                    offset,
+                    shroud_layer_container.shroud_layer.color_1.unwrap(),
+                    shroud_layer_container.shroud_layer.color_2.unwrap(),
+                    &shroud_layer_container.shape_id,
+                    fill_color_gradient,
+                    pan,
+                    zoom,
+                );
+            }
+            current_z = offset.z.to_f32();
+
+            if is_on_top {
+                let is_hovered = Some(*index) == shroud_that_would_be_selected_index_option;
+                let is_selected = selection.contains(index);
+                let selection_type_option = match (is_hovered, is_selected) {
+                    (true, _) => Some(SelectionType::Hovered),
+                    (false, true) => Some(SelectionType::Selected),
+                    _ => None,
+                };
+                polygon_line_logic(
+                    &mut render_outline_vertices_buffer,
+                    block_container,
+                    rect,
+                    shroud_layer_container.get_shroud_layer_vertices(),
+                    shroud_layer_container.shroud_layer.offset.as_ref().unwrap(),
+                    shroud_layer_container.shroud_layer.line_color.unwrap(),
+                    selection_type_option,
+                    pan,
+                    zoom,
+                );
+            }
+            if is_above_last || is_on_top {
+                let gl = painter.gl();
+                render_fills(&render_fill_vertices_buffer, gl);
+                render_lines(&render_outline_vertices_buffer, gl);
+                render_fill_vertices_buffer.clear();
+                render_outline_vertices_buffer.clear();
+            }
+        },
+    );
 }
 
-fn render_lines(render_outline_vertices: &[RenderVertex], gl: &Arc<eframe::glow::Context>) {
+pub fn render_lines(render_outline_vertices: &[RenderVertex], gl: &Arc<eframe::glow::Context>) {
     unsafe {
         gl.buffer_data_u8_slice(
             ARRAY_BUFFER,

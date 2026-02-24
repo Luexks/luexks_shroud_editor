@@ -62,6 +62,6 @@ impl ShroudEditor {
             }
             self.shroud_interaction = ShroudInteraction::Inaction { selection };
         });
-        self.cull_empty_groups();
+        self.cull_groups();
     }
 }

@@ -165,7 +165,7 @@ impl ShroudEditor {
                 group.retain(|group_layer_idx| *group_layer_idx != *layer_idx);
             });
         });
-        self.cull_empty_groups();
+        self.cull_groups();
         self.add_undo_history = true;
         let new_selection_len = count * selection.len();
         let centre = pos2(about_x, about_y);

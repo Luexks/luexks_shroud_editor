@@ -118,6 +118,17 @@ impl ShroudLayerContainer {
         }
         verts
     }
+
+    pub fn apply_offset_to_verts(&self, mut verts: Vec<Pos2>) -> Vec<Pos2> {
+        let offset = self.shroud_layer.offset.as_ref().unwrap();
+        let x_offset = offset.x.to_f32();
+        let y_offset = offset.y.to_f32();
+        verts.iter_mut().for_each(|vert| {
+            vert.x += x_offset;
+            vert.y -= y_offset;
+        });
+        verts
+    }
 }
 
 fn apply_angle_to_verts(verts: &mut [Pos2], angle_option: &Option<Angle>) {

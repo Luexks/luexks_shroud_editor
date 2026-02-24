@@ -77,6 +77,7 @@ impl ShroudEditor {
                 self.background_grid_settings(ui);
                 self.angle_snap_settings(ui);
                 self.fill_color_gradient_setting(ui);
+                self.editor_shroud_layer_group_settings(ui);
                 self.binding_config(ctx, ui);
                 self.reference_image_settings(ctx, ui);
                 self.icon_radius_setting(ui);
@@ -119,6 +120,7 @@ impl ShroudEditor {
             self.deselect_all_button(ui);
         });
         self.select_all_including_mirrors_button(ui);
+        self.collective_shroud_layer_group_settings(ui);
         self.shroud_layer_reordering_buttons(ctx, ui, is_floating_panel);
     }
 

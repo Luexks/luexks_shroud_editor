@@ -86,7 +86,7 @@ impl ShroudEditor {
                     keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.delete, &mut keybinds.delete_expecting, "Delete");
                     keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.undo, &mut keybinds.undo_expecting, "Undo");
                     keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.redo, &mut keybinds.redo_expecting, "Redo");
-                    keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.group, &mut keybinds.group_expecting, "Group");
+                    keyboard_and_modifiers_binding_button(ctx, ui, &mut keybinds.group, &mut keybinds.group_expecting, "Group/Ungroup");
                 });
             });
     }

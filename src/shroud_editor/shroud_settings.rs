@@ -61,13 +61,13 @@ impl ShroudEditor {
                     // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
                     // let start_y = ui.cursor().min.y;
                     ui.spacing_mut().item_spacing.y = 2.0;
-                    let shroud_layer_settings_height = if self.shroud[index].shape_id == "SQUARE" {
-                        207.0
-                        // 222.0
-                    } else {
-                        187.0
-                        // 202.0
-                    };
+                    let mut shroud_layer_settings_height = 187.0;
+                    if self.shroud[index].shape_id == "SQUARE" {
+                        shroud_layer_settings_height += 20.0;
+                    }
+                    if self.shroud[index].group_idx_option.is_some() {
+                        shroud_layer_settings_height += 20.0;
+                    }
                     let window_bottom_y = ui.clip_rect().max.y;
                     let top_of_shroud_layer_settings_y = ui.cursor().min.y;
                     let shroud_layer_settings_are_off_screen =
@@ -85,6 +85,7 @@ impl ShroudEditor {
                             // println!("Culling shroud layer of ID: {}", index);
                         } else {
                             self.shroud_layer_mirror_settings(ui, index);
+                            self.individual_shroud_layer_group_settings(ui, index);
                             self.shroud_layer_shape_combo_box(ui, index);
 
                             let xy_speed = if self.grid_snap_enabled {

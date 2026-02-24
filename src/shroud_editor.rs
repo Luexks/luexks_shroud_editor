@@ -74,6 +74,7 @@ pub struct ShroudEditor {
     pub selection_box_start_pos_option: Option<Pos2>,
     pub is_first_frame: bool,
     pub groups: Vec<Vec<usize>>,
+    pub outline_groups: bool,
 }
 
 impl Default for ShroudEditor {
@@ -131,6 +132,7 @@ impl Default for ShroudEditor {
             selection_box_start_pos_option: None,
             is_first_frame: true,
             groups: Vec::new(),
+            outline_groups: true,
         }
     }
 }
