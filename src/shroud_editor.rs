@@ -117,10 +117,7 @@ impl Default for ShroudEditor {
             float_shroud_settings: false,
             render_data_option: Arc::new(Mutex::new(None)),
             visual_panel_key_bindings_enabled: true,
-            keybinds: match try_load_keybinds() {
-                Ok(keybinds) => keybinds,
-                Err(_) => Keybinds::default(),
-            },
+            keybinds: try_load_keybinds().unwrap_or_default(),
             undo_history: [UndoHistorySnapshot::default()].into(),
             add_undo_history: false,
             undo_history_index: 0,

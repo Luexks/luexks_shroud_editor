@@ -1,4 +1,3 @@
-use egui;
 use egui::{Color32, Context, Stroke, Theme, Visuals};
 
 // use crate::fonts::replace_fonts;

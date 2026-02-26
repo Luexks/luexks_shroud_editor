@@ -91,7 +91,7 @@ impl ShroudInteraction {
         }
     }
 
-    pub fn is_selection_contiguous(&self) -> bool {
+    pub fn _is_selection_contiguous(&self) -> bool {
         let mut selection = self.selection();
         if selection.is_empty() {
             return false;

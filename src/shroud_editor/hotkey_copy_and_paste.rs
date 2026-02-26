@@ -22,57 +22,57 @@ impl ShroudEditor {
     }
     pub fn hotkey_paste(&mut self, ctx: &Context) {
         if let ShroudInteraction::Placing { .. } = self.shroud_interaction {
-        } else {
-            if is_shortcut_pressed(ctx, &self.keybinds.paste) && !self.shroud_clipboard.is_empty() {
-                let mut to_be_selected_indexes = Vec::new();
-                // let entire_one_group_idx_option = self.get_one_entire_group_idx_option_of_layers(&self.shroud_clipboard);
-                self.shroud_clipboard
-                    .iter()
-                    .for_each(|shroud_layer_container| {
-                        let new_shroud_layer_container = ShroudLayerContainer {
-                            group_idx_option: None,
-                            ..shroud_layer_container.clone()
-                        };
-                        let last = self.shroud.len();
-                        self.shroud.push(new_shroud_layer_container);
-                        to_be_selected_indexes.push(last);
-                        if let Some(_mirror_index) = self.shroud[last].mirror_index_option {
-                            add_mirror(
-                                &mut self.shroud,
-                                last,
-                                true,
-                                &self.loaded_shapes,
-                                &self.loaded_shapes_mirror_pairs,
-                            );
-                        }
-                    });
-                let world_mouse_pos_inverted_y = invert_y_of_pos2(self.world_mouse_pos);
-                let drag_pos = do3d_to_pos2(
-                    self.shroud_clipboard[0]
-                        .shroud_layer
-                        .offset
-                        .as_ref()
-                        .unwrap(),
-                )
-                .to_vec2();
-                self.shroud_interaction = ShroudInteraction::Placing {
-                    selection: MovingShroudSelection(
-                        to_be_selected_indexes
-                            .into_iter()
-                            .map(|idx| MovingShroudLayerInteraction {
-                                idx,
-                                relative_pos: -do3d_to_pos2(
-                                    self.shroud[idx].shroud_layer.offset.as_ref().unwrap(),
-                                )
-                                .to_vec2()
-                                    + drag_pos,
-                            })
-                            .collect(),
-                    ),
-                    drag_pos: world_mouse_pos_inverted_y,
-                    potentially_snapped_drag_pos: world_mouse_pos_inverted_y,
-                };
-            }
+        } else if is_shortcut_pressed(ctx, &self.keybinds.paste)
+            && !self.shroud_clipboard.is_empty()
+        {
+            let mut to_be_selected_indexes = Vec::new();
+            // let entire_one_group_idx_option = self.get_one_entire_group_idx_option_of_layers(&self.shroud_clipboard);
+            self.shroud_clipboard
+                .iter()
+                .for_each(|shroud_layer_container| {
+                    let new_shroud_layer_container = ShroudLayerContainer {
+                        group_idx_option: None,
+                        ..shroud_layer_container.clone()
+                    };
+                    let last = self.shroud.len();
+                    self.shroud.push(new_shroud_layer_container);
+                    to_be_selected_indexes.push(last);
+                    if let Some(_mirror_index) = self.shroud[last].mirror_index_option {
+                        add_mirror(
+                            &mut self.shroud,
+                            last,
+                            true,
+                            &self.loaded_shapes,
+                            &self.loaded_shapes_mirror_pairs,
+                        );
+                    }
+                });
+            let world_mouse_pos_inverted_y = invert_y_of_pos2(self.world_mouse_pos);
+            let drag_pos = do3d_to_pos2(
+                self.shroud_clipboard[0]
+                    .shroud_layer
+                    .offset
+                    .as_ref()
+                    .unwrap(),
+            )
+            .to_vec2();
+            self.shroud_interaction = ShroudInteraction::Placing {
+                selection: MovingShroudSelection(
+                    to_be_selected_indexes
+                        .into_iter()
+                        .map(|idx| MovingShroudLayerInteraction {
+                            idx,
+                            relative_pos: -do3d_to_pos2(
+                                self.shroud[idx].shroud_layer.offset.as_ref().unwrap(),
+                            )
+                            .to_vec2()
+                                + drag_pos,
+                        })
+                        .collect(),
+                ),
+                drag_pos: world_mouse_pos_inverted_y,
+                potentially_snapped_drag_pos: world_mouse_pos_inverted_y,
+            };
         }
     }
 }

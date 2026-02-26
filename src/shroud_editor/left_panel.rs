@@ -121,7 +121,7 @@ impl ShroudEditor {
         });
         self.select_all_including_mirrors_button(ui);
         self.collective_shroud_layer_group_settings(ui);
-        self.shroud_layer_reordering_buttons(ctx, ui, is_floating_panel);
+        self.shroud_layer_reordering_buttons(ui, is_floating_panel);
     }
 
     fn select_all_excluding_mirrors_button(&mut self, ui: &mut Ui) {
@@ -505,7 +505,7 @@ impl ShroudEditor {
                             shape.get_id().unwrap().to_string() == self.block_container.shape_id
                         })
                         .unwrap()
-                        .get_nth_scale_vertices(scale as usize - 1),
+                        .get_nth_scale_vertices(scale - 1),
                 );
                 is_changed = true;
             }
@@ -672,7 +672,7 @@ fn block_shape_combo_box(
                                     *max_scale = selectable_shape.get_scale_count();
                                     let scale = usize::min(scale, *max_scale);
                                     *vertices = restructure_vertices(
-                                        selectable_shape.get_nth_scale_vertices(scale as usize - 1),
+                                        selectable_shape.get_nth_scale_vertices(scale - 1),
                                     );
                                     *shape = selectable_shape.get_id();
                                     is_shape_changed = true;

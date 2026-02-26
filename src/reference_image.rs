@@ -1,4 +1,4 @@
-use std::{f32::INFINITY, path::PathBuf};
+use std::path::PathBuf;
 
 use arboard::Clipboard;
 use egui::{
@@ -78,7 +78,7 @@ impl ShroudEditor {
                     ui.add(
                         DragValue::new(&mut self.reference_image.scale)
                             .speed(0.01)
-                            .range(0.0..=INFINITY),
+                            .range(0.0..=f32::INFINITY),
                     );
                 });
                 ui.horizontal(|ui| {

@@ -66,7 +66,7 @@ fn deserialise_keyboard_binding<'a>(s: &'a str, name: &'a str) -> IResult<&'a st
         (tag(name), tag(" ")),
         alt((
             value(None, tag("is in the Gamma Void")),
-            map(take_until("\n"), |s| Key::from_name(s)),
+            map(take_until("\n"), Key::from_name),
         )),
         newline,
     )
@@ -88,9 +88,9 @@ fn deserialise_shortcut_binding<'a>(
                         complete(opt(value((), tag("Ctrl+")))),
                         complete(opt(value((), tag("Alt+")))),
                         complete(opt(value((), tag("Shift+")))),
-                        complete(map(rest, |s| Key::from_name(s))),
+                        complete(map(rest, Key::from_name)),
                     ),
-                    |x| Some(x),
+                    Some,
                 ),
             ),
         )),
@@ -101,22 +101,18 @@ fn deserialise_shortcut_binding<'a>(
         s,
         match binding_option {
             None => None,
-            Some((ctrl, alt, shift, key)) => {
-                if let Some(key) = key {
-                    Some(KeyboardShortcut::new(
-                        Modifiers {
-                            alt: alt.is_some(),
-                            ctrl: ctrl.is_some(),
-                            shift: shift.is_some(),
-                            mac_cmd: false,
-                            command: ctrl.is_some(),
-                        },
-                        key,
-                    ))
-                } else {
-                    None
-                }
-            }
+            Some((ctrl, alt, shift, key)) => key.map(|key| {
+                KeyboardShortcut::new(
+                    Modifiers {
+                        alt: alt.is_some(),
+                        ctrl: ctrl.is_some(),
+                        shift: shift.is_some(),
+                        mac_cmd: false,
+                        command: ctrl.is_some(),
+                    },
+                    key,
+                )
+            }),
         },
     ))
 }

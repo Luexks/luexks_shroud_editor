@@ -52,7 +52,7 @@ fn format_keyboard_shortcut_binding(
 impl ShroudEditor {
     pub fn save_keybinds(&self) -> io::Result<()> {
         let mut file = File::create("arthur.danskin")?;
-        write!(file, "{}", self.keybinds.to_string())?;
+        write!(file, "{}", self.keybinds)?;
         Ok(())
     }
 }

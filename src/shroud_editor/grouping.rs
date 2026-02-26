@@ -215,9 +215,9 @@ pub fn render_group_outlines(
     groups: &[Vec<usize>],
 ) {
     let gl = painter.gl();
-    groups.into_iter().for_each(|group| {
+    groups.iter().for_each(|group| {
         let verts = group
-            .into_iter()
+            .iter()
             .flat_map(|group_layer_idx| {
                 shroud[*group_layer_idx]
                     .apply_offset_to_verts(shroud[*group_layer_idx].get_shroud_layer_vertices())

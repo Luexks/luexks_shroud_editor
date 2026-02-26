@@ -1,5 +1,4 @@
 use egui::{Color32, Pos2, Rect, Stroke, StrokeKind, Ui, pos2};
-use luexks_reassembly::blocks::shroud;
 
 use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
 
@@ -87,7 +86,7 @@ impl ShroudEditor {
             self.shroud_interaction = ShroudInteraction::Inaction {
                 selection: original_selection
                     .into_iter()
-                    .chain(to_be_selected.into_iter())
+                    .chain(to_be_selected)
                     .collect(),
             };
         } else {

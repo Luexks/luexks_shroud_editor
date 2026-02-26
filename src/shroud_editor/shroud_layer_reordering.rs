@@ -1,4 +1,4 @@
-use egui::{Context, Ui};
+use egui::Ui;
 
 use crate::{
     shroud_editor::ShroudEditor,
@@ -23,20 +23,15 @@ enum Direction {
 }
 
 impl ShroudEditor {
-    pub fn shroud_layer_reordering_buttons(
-        &mut self,
-        ctx: &Context,
-        ui: &mut Ui,
-        is_floating_panel: bool,
-    ) {
+    pub fn shroud_layer_reordering_buttons(&mut self, ui: &mut Ui, is_floating_panel: bool) {
         ui.horizontal(|ui| {
             let up_button = ui.button("Reorder Selection Up");
             if up_button.clicked() {
-                self.move_selection(Direction::Up, is_floating_panel, ctx);
+                self.move_selection(Direction::Up, is_floating_panel);
             }
             let down_button = ui.button("Reorder Selection Down");
             if down_button.clicked() {
-                self.move_selection(Direction::Down, is_floating_panel, ctx);
+                self.move_selection(Direction::Down, is_floating_panel);
             }
             self.stop_displaying_message_logic(up_button, down_button, is_floating_panel);
         });
@@ -83,7 +78,7 @@ impl ShroudEditor {
         }
     }
 
-    fn move_selection(&mut self, direction: Direction, is_floating_panel: bool, ctx: &Context) {
+    fn move_selection(&mut self, direction: Direction, is_floating_panel: bool) {
         let mut selection = self.shroud_interaction.selection();
         selection.sort();
         if self.shroud_interaction.selection().is_empty() {

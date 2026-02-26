@@ -2,18 +2,14 @@ use std::f32::consts::TAU;
 
 use crate::{
     pos_and_display_oriented_number_conversion::do3d_to_pos2,
-    shroud_editor::{ShroudEditor, add_mirror::add_mirror, shroud_settings::angle_knob_settings},
+    shroud_editor::{ShroudEditor, shroud_settings::angle_knob_settings},
     shroud_interaction::ShroudInteraction,
-    shroud_layer_container::ShroudLayerContainer,
 };
 use egui::{DragValue, Ui, collapsing_header::CollapsingState, pos2};
 use itertools::Itertools;
-use luexks_reassembly::{
-    blocks::shroud_layer::ShroudLayer,
-    utility::{
-        angle::Angle,
-        display_oriented_math::{do2d_float_from, do3d_float_from},
-    },
+use luexks_reassembly::utility::{
+    angle::Angle,
+    display_oriented_math::{do2d_float_from, do3d_float_from},
 };
 
 pub struct ToolSettings {
