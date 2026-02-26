@@ -37,13 +37,14 @@ impl ShroudEditor {
             egui::Frame::new()
                 .fill(Color32::TRANSPARENT)
                 .show(ui, |ui| {
-                    let mut angle = self.shroud[index]
+                    let original_angle = self.shroud[index]
                         .shroud_layer
                         .angle
                         .clone()
                         .unwrap()
                         .as_degrees()
                         .get_value();
+                    let mut angle = original_angle;
                     let mut add_undo_history = false;
                     ui.add(AngleGizmo::new(
                         &mut angle,
@@ -55,6 +56,11 @@ impl ShroudEditor {
                         self.add_undo_history = true;
                     }
                     self.shroud[index].shroud_layer.angle = Some(Angle::Degree(angle));
+                    if original_angle != angle
+                        && let Some(mirror_index) = self.shroud[index].mirror_index_option
+                    {
+                        self.shroud[mirror_index].shroud_layer.angle = Some(Angle::Degree(-angle));
+                    }
                 });
         });
     }
