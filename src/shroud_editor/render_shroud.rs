@@ -241,6 +241,7 @@ fn render_shroud_body(
         gl.bind_vertex_array(Some(render_data.vao));
         gl.bind_buffer(ARRAY_BUFFER, Some(render_data.vbo));
     }
+    let gl = painter.gl();
     shroud_rendering_data.iter().enumerate().for_each(
         |(pipeline_index, (index, shroud_layer_container))| {
             let offset = shroud_layer_container.shroud_layer.offset.as_ref().unwrap();
@@ -261,6 +262,8 @@ fn render_shroud_body(
                     pan,
                     zoom,
                 );
+                render_fills(&render_fill_vertices_buffer, gl);
+                render_fill_vertices_buffer.clear();
             }
 
             let is_above_last = offset.z.to_f32() > current_z;
@@ -287,6 +290,8 @@ fn render_shroud_body(
                             pan,
                             zoom,
                         );
+                        render_lines(&render_outline_vertices_buffer, gl);
+                        render_outline_vertices_buffer.clear();
                     });
                 next_outline_render_start_index = pipeline_index;
             }
@@ -308,6 +313,8 @@ fn render_shroud_body(
                     pan,
                     zoom,
                 );
+                render_fills(&render_fill_vertices_buffer, gl);
+                render_fill_vertices_buffer.clear();
             }
             current_z = offset.z.to_f32();
 
@@ -330,12 +337,7 @@ fn render_shroud_body(
                     pan,
                     zoom,
                 );
-            }
-            if is_above_last || is_on_top {
-                let gl = painter.gl();
-                render_fills(&render_fill_vertices_buffer, gl);
                 render_lines(&render_outline_vertices_buffer, gl);
-                render_fill_vertices_buffer.clear();
                 render_outline_vertices_buffer.clear();
             }
         },
