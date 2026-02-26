@@ -11,6 +11,7 @@ use luexks_reassembly::{
 use crate::{
     shroud_editor::{ShroudEditor, add_mirror::add_mirror},
     shroud_interaction::ShroudInteraction,
+    styles::SHROUD_LAYER_SETTINGS_COLOUR,
 };
 
 impl ShroudEditor {
@@ -44,7 +45,7 @@ impl ShroudEditor {
         // let start_y = ui.cursor().min.y;
         ui.vertical(|ui| {
             egui::Frame::new()
-                .fill(Color32::from_rgba_unmultiplied(220, 220, 220, 255))
+                .fill(SHROUD_LAYER_SETTINGS_COLOUR)
                 .inner_margin(6.0)
                 .corner_radius(4.0)
                 .stroke(Stroke::new(
@@ -56,182 +57,164 @@ impl ShroudEditor {
                     },
                 ))
                 .show(ui, |ui| {
-                    // let response = ui.label("h");
-                    // let visible_rect = ui.clip_rect();
-                    // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
-                    // let start_y = ui.cursor().min.y;
-                    ui.spacing_mut().item_spacing.y = 2.0;
-                    let mut shroud_layer_settings_height = 187.0;
-                    if self.shroud[index].shape_id == "SQUARE" {
-                        shroud_layer_settings_height += 20.0;
-                    }
-                    if self.shroud[index].group_idx_option.is_some() {
-                        shroud_layer_settings_height += 20.0;
-                    }
-                    let window_bottom_y = ui.clip_rect().max.y;
-                    let top_of_shroud_layer_settings_y = ui.cursor().min.y;
-                    let shroud_layer_settings_are_off_screen =
-                        top_of_shroud_layer_settings_y + shroud_layer_settings_height < 0.0
-                            || top_of_shroud_layer_settings_y > window_bottom_y;
-                    if shroud_layer_settings_are_off_screen {
-                        ui.add_space(20.0);
-                    } else {
-                        self.select_deselect_and_delete_buttons(ui, index, is_selected);
-                    };
-                    if is_selected && self.shroud_interaction.selection_len() == 1 {
-                        // println!("{}\t{}", top_of_shroud_layer_settings_y, window_bottom_y);
-                        if shroud_layer_settings_are_off_screen {
-                            ui.add_space(shroud_layer_settings_height);
-                            // println!("Culling shroud layer of ID: {}", index);
-                        } else {
-                            self.shroud_layer_mirror_settings(ui, index);
-                            self.individual_shroud_layer_group_settings(ui, index);
-                            self.shroud_layer_shape_combo_box(ui, index);
-
-                            let xy_speed = if self.grid_snap_enabled {
-                                self.grid_size / 2.0
-                            } else {
-                                0.05
-                            };
-                            ui.horizontal(|ui| {
-                                let offset =
-                                    self.shroud[index].shroud_layer.offset.as_mut().unwrap();
-                                let x = offset.x.to_f32_mut();
-                                let y = offset.y.to_f32_mut();
-                                let z = offset.z.to_f32_mut();
-                                let original_offset = (*x, *y, *z);
-                                ui.label("offset={");
-                                let response = ui.add(DragValue::new(x).speed(xy_speed));
-                                if response.drag_stopped() || response.lost_focus() {
-                                    self.add_undo_history = true;
-                                }
-                                ui.label(",");
-                                let response = ui.add(DragValue::new(y).speed(xy_speed));
-                                if response.drag_stopped() || response.lost_focus() {
-                                    self.add_undo_history = true;
-                                }
-                                ui.label(",");
-                                let response = ui.add(DragValue::new(z).speed(0.005));
-                                if response.drag_stopped() || response.lost_focus() {
-                                    self.add_undo_history = true;
-                                }
-                                ui.label("}");
-                                let (x, y, z) = (*x, *y, *z);
-                                if original_offset != (x, y, z)
-                                    && let Some(mirror_index) =
-                                        self.shroud[index].mirror_index_option
-                                {
-                                    self.shroud[mirror_index].shroud_layer.offset =
-                                        Some(do3d_float_from(x, -y, z));
-                                }
-                            });
-                            ui.horizontal(|ui| {
-                                let size = self.shroud[index].shroud_layer.size.as_mut().unwrap();
-                                let width = size.x.to_f32_mut();
-                                let height = size.y.to_f32_mut();
-                                let original_size = (*width, *height);
-                                ui.label("size={");
-                                let response = ui.add(DragValue::new(width).speed(xy_speed));
-                                if response.drag_stopped() || response.lost_focus() {
-                                    self.add_undo_history = true;
-                                }
-                                ui.label(",");
-                                let response = ui.add(DragValue::new(height).speed(xy_speed));
-                                if response.drag_stopped() || response.lost_focus() {
-                                    self.add_undo_history = true;
-                                }
-                                ui.label("}");
-                                let (width, height) = (*width, *height);
-                                if original_size != (width, height)
-                                    && let Some(mirror_index) =
-                                        self.shroud[index].mirror_index_option
-                                {
-                                    self.shroud[mirror_index].shroud_layer.size =
-                                        Some(do2d_float_from(width, height));
-                                }
-                            });
-                            ui.horizontal(|ui| {
-                                self.full_angle_settings(ui, index);
-                            });
-
-                            let shroud_layer_container = &mut self.shroud[index];
-                            let color_1 = shroud_layer_container
-                                .shroud_layer
-                                .color_1
-                                .as_mut()
-                                .unwrap();
-                            let color_2 = shroud_layer_container
-                                .shroud_layer
-                                .color_2
-                                .as_mut()
-                                .unwrap();
-                            let line_color = shroud_layer_container
-                                .shroud_layer
-                                .line_color
-                                .as_mut()
-                                .unwrap();
-                            let original_color_1 = *color_1;
-                            let original_color_2 = *color_2;
-                            let original_line_color = *line_color;
-                            Grid::new(index.to_string()).show(ui, |ui| {
-                                shroud_color_setting(
-                                    ui,
-                                    color_1,
-                                    "tri_color_id=",
-                                    &mut self.add_undo_history,
-                                );
-                                shroud_color_setting(
-                                    ui,
-                                    color_2,
-                                    "tri_color1_id=",
-                                    &mut self.add_undo_history,
-                                );
-                                shroud_color_setting(
-                                    ui,
-                                    line_color,
-                                    "line_color_id=",
-                                    &mut self.add_undo_history,
-                                );
-                            });
-                            let (color_1, color_2, line_color) = (*color_1, *color_2, *line_color);
-                            if let Some(mirror_index) = self.shroud[index].mirror_index_option {
-                                if original_color_1 != color_1 {
-                                    self.shroud[mirror_index].shroud_layer.color_1 = Some(color_1);
-                                }
-                                if original_color_2 != color_2 {
-                                    self.shroud[mirror_index].shroud_layer.color_2 = Some(color_2);
-                                }
-                                if original_line_color != line_color {
-                                    self.shroud[mirror_index].shroud_layer.line_color =
-                                        Some(line_color);
-                                }
-                            }
-
-                            if self.shroud[index].shape_id == "SQUARE" {
-                                ui.horizontal(|ui| {
-                                    let mut taper =
-                                        self.shroud[index].shroud_layer.taper.unwrap_or(1.0);
-                                    let original_taper = taper;
-                                    ui.label("taper=");
-                                    let response = ui.add(DragValue::new(&mut taper).speed(0.025));
-                                    if response.drag_stopped() || response.lost_focus() {
-                                        self.add_undo_history = true;
-                                    }
-                                    self.shroud[index].shroud_layer.taper = Some(taper);
-                                    if original_taper != taper
-                                        && let Some(mirror_index) =
-                                            self.shroud[index].mirror_index_option
-                                    {
-                                        self.shroud[mirror_index].shroud_layer.taper = Some(taper);
-                                    }
-                                });
-                            }
-                        }
-                    }
-                    // let end_y = ui.cursor().min.y;
-                    // println!("Height: {}", end_y - start_y);
+                    self.shroud_layer_settings_body(is_selected, ui, index);
                 });
         });
+    }
+
+    fn shroud_layer_settings_body(&mut self, is_selected: bool, ui: &mut Ui, index: usize) {
+        // let response = ui.label("h");
+        // let visible_rect = ui.clip_rect();
+        // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
+        // let start_y = ui.cursor().min.y;
+        ui.spacing_mut().item_spacing.y = 2.0;
+        let mut shroud_layer_settings_height = 187.0;
+        if self.shroud[index].shape_id == "SQUARE" {
+            shroud_layer_settings_height += 20.0;
+        }
+        if self.shroud[index].group_idx_option.is_some() {
+            shroud_layer_settings_height += 20.0;
+        }
+        let window_bottom_y = ui.clip_rect().max.y;
+        let top_of_shroud_layer_settings_y = ui.cursor().min.y;
+        let shroud_layer_settings_are_off_screen =
+            top_of_shroud_layer_settings_y + shroud_layer_settings_height < 0.0
+                || top_of_shroud_layer_settings_y > window_bottom_y;
+        if shroud_layer_settings_are_off_screen {
+            ui.add_space(20.0);
+        } else {
+            self.select_deselect_and_delete_buttons(ui, index, is_selected);
+        };
+        if !is_selected && self.shroud_interaction.selection_len() != 1 {
+            return;
+        }
+        // println!("{}\t{}", top_of_shroud_layer_settings_y, window_bottom_y);
+        if shroud_layer_settings_are_off_screen {
+            ui.add_space(shroud_layer_settings_height);
+            // println!("Culling shroud layer of ID: {}", index);
+            return;
+        }
+        self.shroud_layer_mirror_settings(ui, index);
+        self.individual_shroud_layer_group_settings(ui, index);
+        self.shroud_layer_shape_combo_box(ui, index);
+
+        let xy_speed = if self.grid_snap_enabled {
+            self.grid_size / 2.0
+        } else {
+            0.05
+        };
+        ui.horizontal(|ui| {
+            let offset = self.shroud[index].shroud_layer.offset.as_mut().unwrap();
+            let x = offset.x.to_f32_mut();
+            let y = offset.y.to_f32_mut();
+            let z = offset.z.to_f32_mut();
+            let original_offset = (*x, *y, *z);
+            ui.label("offset={");
+            let response = ui.add(DragValue::new(x).speed(xy_speed));
+            if response.drag_stopped() || response.lost_focus() {
+                self.add_undo_history = true;
+            }
+            ui.label(",");
+            let response = ui.add(DragValue::new(y).speed(xy_speed));
+            if response.drag_stopped() || response.lost_focus() {
+                self.add_undo_history = true;
+            }
+            ui.label(",");
+            let response = ui.add(DragValue::new(z).speed(0.005));
+            if response.drag_stopped() || response.lost_focus() {
+                self.add_undo_history = true;
+            }
+            ui.label("}");
+            let (x, y, z) = (*x, *y, *z);
+            if original_offset != (x, y, z)
+                && let Some(mirror_index) = self.shroud[index].mirror_index_option
+            {
+                self.shroud[mirror_index].shroud_layer.offset = Some(do3d_float_from(x, -y, z));
+            }
+        });
+        ui.horizontal(|ui| {
+            let size = self.shroud[index].shroud_layer.size.as_mut().unwrap();
+            let width = size.x.to_f32_mut();
+            let height = size.y.to_f32_mut();
+            let original_size = (*width, *height);
+            ui.label("size={");
+            let response = ui.add(DragValue::new(width).speed(xy_speed));
+            if response.drag_stopped() || response.lost_focus() {
+                self.add_undo_history = true;
+            }
+            ui.label(",");
+            let response = ui.add(DragValue::new(height).speed(xy_speed));
+            if response.drag_stopped() || response.lost_focus() {
+                self.add_undo_history = true;
+            }
+            ui.label("}");
+            let (width, height) = (*width, *height);
+            if original_size != (width, height)
+                && let Some(mirror_index) = self.shroud[index].mirror_index_option
+            {
+                self.shroud[mirror_index].shroud_layer.size = Some(do2d_float_from(width, height));
+            }
+        });
+        ui.horizontal(|ui| {
+            self.full_angle_settings(ui, index);
+        });
+
+        let shroud_layer_container = &mut self.shroud[index];
+        let color_1 = shroud_layer_container
+            .shroud_layer
+            .color_1
+            .as_mut()
+            .unwrap();
+        let color_2 = shroud_layer_container
+            .shroud_layer
+            .color_2
+            .as_mut()
+            .unwrap();
+        let line_color = shroud_layer_container
+            .shroud_layer
+            .line_color
+            .as_mut()
+            .unwrap();
+        let original_color_1 = *color_1;
+        let original_color_2 = *color_2;
+        let original_line_color = *line_color;
+        Grid::new(index.to_string()).show(ui, |ui| {
+            shroud_color_setting(ui, color_1, "tri_color_id=", &mut self.add_undo_history);
+            shroud_color_setting(ui, color_2, "tri_color1_id=", &mut self.add_undo_history);
+            shroud_color_setting(ui, line_color, "line_color_id=", &mut self.add_undo_history);
+        });
+        let (color_1, color_2, line_color) = (*color_1, *color_2, *line_color);
+        if let Some(mirror_index) = self.shroud[index].mirror_index_option {
+            if original_color_1 != color_1 {
+                self.shroud[mirror_index].shroud_layer.color_1 = Some(color_1);
+            }
+            if original_color_2 != color_2 {
+                self.shroud[mirror_index].shroud_layer.color_2 = Some(color_2);
+            }
+            if original_line_color != line_color {
+                self.shroud[mirror_index].shroud_layer.line_color = Some(line_color);
+            }
+        }
+
+        if self.shroud[index].shape_id == "SQUARE" {
+            ui.horizontal(|ui| {
+                let mut taper = self.shroud[index].shroud_layer.taper.unwrap_or(1.0);
+                let original_taper = taper;
+                ui.label("taper=");
+                let response = ui.add(DragValue::new(&mut taper).speed(0.025));
+                if response.drag_stopped() || response.lost_focus() {
+                    self.add_undo_history = true;
+                }
+                self.shroud[index].shroud_layer.taper = Some(taper);
+                if original_taper != taper
+                    && let Some(mirror_index) = self.shroud[index].mirror_index_option
+                {
+                    self.shroud[mirror_index].shroud_layer.taper = Some(taper);
+                }
+            });
+        }
+        // let end_y = ui.cursor().min.y;
+        // println!("Height: {}", end_y - start_y);
     }
 
     fn shroud_layer_mirror_settings(&mut self, ui: &mut Ui, index: usize) {
@@ -358,7 +341,7 @@ impl ShroudEditor {
     }
 }
 
-fn shroud_color_setting(
+pub fn shroud_color_setting(
     ui: &mut Ui,
     color: &mut ShroudLayerColor,
     text: &str,

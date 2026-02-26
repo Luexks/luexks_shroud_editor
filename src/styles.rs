@@ -4,6 +4,7 @@ use egui::{Color32, Context, Stroke, Theme, Visuals};
 use crate::shroud_editor::ShroudEditor;
 
 pub const BACKGROUND_COLOUR: Color32 = Color32::from_gray(240);
+pub const SHROUD_LAYER_SETTINGS_COLOUR: Color32 = Color32::from_gray(220);
 
 impl ShroudEditor {
     pub fn first_frame_styling_logic(&mut self, ctx: &Context) {
