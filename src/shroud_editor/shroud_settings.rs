@@ -85,7 +85,7 @@ impl ShroudEditor {
         } else {
             self.select_deselect_and_delete_buttons(ui, index, is_selected);
         };
-        if !is_selected && self.shroud_interaction.selection_len() != 1 {
+        if !(is_selected && self.shroud_interaction.selection_len() == 1) {
             return;
         }
         // println!("{}\t{}", top_of_shroud_layer_settings_y, window_bottom_y);
