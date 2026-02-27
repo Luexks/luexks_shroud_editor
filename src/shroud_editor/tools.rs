@@ -584,8 +584,10 @@ impl ShroudEditor {
             ui.label("}");
         });
         ui.horizontal(|ui| {
-            // self.full_angle_settings(ui, index);
+            self.bulk_full_angle_settings(ui, &selection, &mirrors);
         });
+
+        let bulk_layer = &mut self.tool_settings.bulk_layer;
 
         let color_1 = bulk_layer.color_1.as_mut().unwrap();
         let color_2 = bulk_layer.color_2.as_mut().unwrap();
@@ -641,7 +643,7 @@ impl ShroudEditor {
         });
     }
 
-    fn bulk_set_shape_combo_box(&mut self, ui: &mut Ui, selection: &Vec<usize>) {
+    fn bulk_set_shape_combo_box(&mut self, ui: &mut Ui, selection: &[usize]) {
         ui.horizontal(|ui| {
             ui.label("shape=");
             Popup::from_toggle_button_response(&ui.button(&self.tool_settings.bulk_shape_id))
@@ -716,6 +718,40 @@ impl ShroudEditor {
                         });
                 });
         });
+    }
+
+    fn bulk_full_angle_settings(&mut self, ui: &mut Ui, selection: &[usize], mirrors: &[usize]) {
+        let mut angle = self
+            .tool_settings
+            .bulk_layer
+            .angle
+            .clone()
+            .unwrap()
+            .as_degrees()
+            .get_value();
+        let original_angle = angle;
+        let angle_speed = if self.angle_snap_enabled {
+            self.angle_snap
+        } else {
+            1.0
+        };
+        ui.label("angle=");
+        let response = ui.add(DragValue::new(&mut angle).speed(angle_speed));
+        ui.label("*pi/180");
+        let (angle, knob_drag_stopped) =
+            angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
+        if response.drag_stopped() || response.lost_focus() || knob_drag_stopped {
+            self.add_undo_history = true;
+        }
+        *self.tool_settings.bulk_layer.angle.as_mut().unwrap() = Angle::Degree(angle);
+        if original_angle != angle {
+            selection.iter().for_each(|idx| {
+                *self.shroud[*idx].shroud_layer.angle.as_mut().unwrap() = Angle::Degree(angle);
+            });
+            mirrors.iter().for_each(|idx| {
+                *self.shroud[*idx].shroud_layer.angle.as_mut().unwrap() = Angle::Degree(-angle);
+            });
+        }
     }
 }
 
