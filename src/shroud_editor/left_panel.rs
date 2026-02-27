@@ -1,4 +1,3 @@
-use arboard::Clipboard;
 use egui::{
     Area, Checkbox, Color32, Context, DragValue, Frame, Grid, Id, Popup, PopupCloseBehavior, Pos2,
     Rgba, ScrollArea, Slider, TextBuffer, TextEdit, Ui, Vec2,
@@ -10,11 +9,10 @@ use egui::{
 };
 use egui_extras::syntax_highlighting::{CodeTheme, highlight};
 use luexks_reassembly::{
-    blocks::{shroud::Shroud, shroud_layer::ShroudLayer},
+    blocks::shroud_layer::ShroudLayer,
     shapes::{shape_id::ShapeId, shapes::Shapes},
     utility::{
         angle::Angle,
-        component_formatting::format_component,
         display_oriented_math::{do2d_float_from, do3d_float_from},
     },
 };
@@ -65,6 +63,8 @@ impl ShroudEditor {
             .show_header(ui, |ui| ui.heading("File"))
             .body_unindented(|ui| {
                 self.export_shroud_to_clipboard_button(ui);
+                self.export_shroud_to_file_button(ui);
+                self.export_shroud_as_file_next_to_exe_button(ui);
                 self.import_shroud_from_paste_box(ui);
                 self.import_shapes_from_paste_box(ui);
             });
@@ -351,75 +351,6 @@ impl ShroudEditor {
             drag_pos,
             potentially_snapped_drag_pos: drag_pos,
         };
-    }
-
-    fn export_shroud_to_clipboard_button(&mut self, ui: &mut Ui) {
-        ui.horizontal(|ui| {
-            let export_to_clipboard_button = ui.button("Export Shroud to Clipboard");
-            if export_to_clipboard_button.clicked() {
-                let mut clipboard = Clipboard::new().unwrap();
-                let shroud = format_component(
-                    Shroud(
-                        self.shroud
-                            .iter()
-                            .map(|shroud_layer_container| {
-                                let shroud_layer = shroud_layer_container.shroud_layer.clone();
-                                let pre_block_offset_offset = shroud_layer.offset.as_ref().unwrap();
-                                let post_block_offset_offset = do3d_float_from(
-                                    pre_block_offset_offset.x.to_f32()
-                                        - self.block_container.offset.x,
-                                    pre_block_offset_offset.y.to_f32()
-                                        - self.block_container.offset.y,
-                                    pre_block_offset_offset.z.to_f32(),
-                                );
-                                ShroudLayer {
-                                    angle: if shroud_layer
-                                        .angle
-                                        .clone()
-                                        .unwrap()
-                                        .as_radians()
-                                        .get_value()
-                                        .abs()
-                                        < f32::EPSILON
-                                    {
-                                        None
-                                    } else {
-                                        shroud_layer.angle.clone()
-                                    },
-                                    taper: if shroud_layer_container.shape_id != "SQUARE"
-                                        || shroud_layer.taper.unwrap() == 1.0
-                                    {
-                                        None
-                                    } else {
-                                        shroud_layer.taper
-                                    },
-                                    offset: Some(post_block_offset_offset),
-                                    ..shroud_layer
-                                }
-                            })
-                            .collect(),
-                    ),
-                    "shroud",
-                );
-                let shroud_export = shroud.to_string();
-                let just_exported_to_clipboard_status = clipboard.set_text(shroud_export).is_ok();
-                self.just_exported_to_clipboard_success_option =
-                    Some(just_exported_to_clipboard_status)
-            }
-            if let Some(just_exported_to_clipboard_success) =
-                self.just_exported_to_clipboard_success_option
-            {
-                if export_to_clipboard_button.contains_pointer() {
-                    if just_exported_to_clipboard_success {
-                        ui.label("Copied to clipboard.");
-                    } else {
-                        ui.label("Failed :(");
-                    }
-                } else {
-                    self.just_exported_to_clipboard_success_option = None
-                }
-            }
-        });
     }
 
     fn import_shroud_from_paste_box(&mut self, ui: &mut Ui) {

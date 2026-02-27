@@ -8,7 +8,7 @@ use egui::{
 use image::{ImageError, ImageReader};
 
 use crate::{
-    file_import::WhichFileImport, invert_y::invert_y_of_pos2, shroud_editor::ShroudEditor,
+    file_import_export::WhichFileDialog, invert_y::invert_y_of_pos2, shroud_editor::ShroudEditor,
 };
 
 pub struct ReferenceImage {
@@ -111,7 +111,7 @@ impl ShroudEditor {
     }
 
     fn file_dialog_import_reference_image_from_file(&mut self) {
-        self.which_file_import = WhichFileImport::ReferenceImage;
+        self.which_file_import = WhichFileDialog::ReferenceImage;
         self.file_dialog.pick_file();
     }
 

@@ -9,7 +9,7 @@ use shroud_editor::*;
 mod angle_gizmo;
 mod block_container;
 mod color_type_conversion;
-mod file_import;
+mod file_import_export;
 mod fonts;
 mod gui;
 mod icon_radius;

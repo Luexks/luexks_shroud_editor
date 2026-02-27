@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use crate::block_container::BlockContainer;
-use crate::file_import::WhichFileImport;
+use crate::file_import_export::WhichFileDialog;
 use crate::keybind_deserialiser::try_load_keybinds;
 use crate::keybinds::Keybinds;
 use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
@@ -42,6 +42,8 @@ pub struct ShroudEditor {
     // key_tracker: KeyTracker,
     loaded_shapes: Shapes,
     just_exported_to_clipboard_success_option: Option<bool>,
+    just_exported_to_file_next_to_exe_status: Option<bool>,
+    just_exported_to_file_status: Option<bool>,
     pub fill_color_gradient: f32,
     fill_color_gradient_increasing: bool,
     fill_color_gradient_delta_enabled: bool,
@@ -68,7 +70,7 @@ pub struct ShroudEditor {
     pub undo_history_index: usize,
     pub reference_image: ReferenceImage,
     pub file_dialog: FileDialog,
-    pub which_file_import: WhichFileImport,
+    pub which_file_import: WhichFileDialog,
     pub show_icon_radius: bool,
     pub icon_radius_option: Option<f32>,
     pub selection_box_start_pos_option: Option<Pos2>,
@@ -97,6 +99,8 @@ impl Default for ShroudEditor {
             // key_tracker: KeyTracker::default(),
             loaded_shapes,
             just_exported_to_clipboard_success_option: None,
+            just_exported_to_file_next_to_exe_status: None,
+            just_exported_to_file_status: None,
             fill_color_gradient: 0.0,
             fill_color_gradient_increasing: true,
             fill_color_gradient_delta_enabled: true,
@@ -122,8 +126,8 @@ impl Default for ShroudEditor {
             add_undo_history: false,
             undo_history_index: 0,
             reference_image: ReferenceImage::default(),
-            file_dialog: FileDialog::new(),
-            which_file_import: WhichFileImport::Shroud,
+            file_dialog: FileDialog::new().default_file_name("shroud.lua"),
+            which_file_import: WhichFileDialog::ShroudImport,
             show_icon_radius: false,
             icon_radius_option: None,
             selection_box_start_pos_option: None,
@@ -189,6 +193,7 @@ mod add_mirror;
 mod delete_shroud_layers;
 mod delta_time;
 mod draw_grid;
+mod export_shroud;
 mod grouping;
 mod hotkey_copy_and_paste;
 mod hotkey_mirroring;
