@@ -1,4 +1,5 @@
 use egui::Context;
+use egui_file_dialog::DialogState;
 
 use crate::shroud_editor::ShroudEditor;
 
@@ -23,6 +24,12 @@ impl ShroudEditor {
                 }
                 _ => {}
             }
+        }
+    }
+
+    pub fn file_dialog_visual_panel_key_bindings_enabled_logic(&mut self) {
+        if matches!(*self.file_dialog.state(), DialogState::Open) {
+            self.visual_panel_key_bindings_enabled = false;
         }
     }
 }

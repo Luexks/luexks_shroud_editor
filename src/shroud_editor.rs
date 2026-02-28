@@ -63,7 +63,7 @@ pub struct ShroudEditor {
     shroud_layer_reordering_message_data_option: Option<ShroudLayerReorderingMessageData>,
     float_shroud_settings: bool,
     render_data_option: Arc<Mutex<Option<RenderData>>>,
-    visual_panel_key_bindings_enabled: bool,
+    pub(crate) visual_panel_key_bindings_enabled: bool,
     pub keybinds: Keybinds,
     pub undo_history: Vec<UndoHistorySnapshot>,
     pub add_undo_history: bool,
@@ -161,6 +161,8 @@ impl eframe::App for ShroudEditor {
 
         self.fill_color_gradient_delta();
         self.left_panel(ctx);
+
+        self.file_dialog_visual_panel_key_bindings_enabled_logic();
 
         if self.visual_panel_key_bindings_enabled {
             self.pan_controls(ctx);
