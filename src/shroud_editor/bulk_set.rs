@@ -11,7 +11,8 @@ use crate::{
         add_mirror::get_mirrored_shape_data,
         shape_combo_box::shroud_layer_shape_combo_box,
         shroud_settings::{
-            ShroudLayerSettingsTarget, colour_settings, full_angle_settings, offset_settings, size_settings, taper_setting,
+            ShroudLayerSettingsTarget, colour_settings, full_angle_settings, offset_settings,
+            size_settings, taper_setting,
         },
     },
     shroud_layer_container::ShroudLayerContainer,

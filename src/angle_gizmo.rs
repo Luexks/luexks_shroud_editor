@@ -23,7 +23,7 @@ impl<'a> AngleGizmo<'a> {
     }
 }
 
-const ANGLE_GIZMO_SIZE: Vec2 = vec2(35.0, 35.0);
+const ANGLE_GIZMO_SIZE: Vec2 = vec2(20.0, 20.0);
 const ANGLE_GIZMO_DISTANCE: f32 = 15.0;
 
 impl Widget for AngleGizmo<'_> {

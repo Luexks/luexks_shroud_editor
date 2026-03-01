@@ -1,15 +1,9 @@
 use crate::{
     pos_and_display_oriented_number_conversion::do3d_to_pos2,
-    shroud_editor::{
-        ShroudEditor,
-        shroud_settings::angle_knob_settings,
-    },
+    shroud_editor::{ShroudEditor, shroud_settings::angle_knob_settings},
     shroud_interaction::ShroudInteraction,
 };
-use egui::{
-    DragValue, Ui,
-    collapsing_header::CollapsingState, pos2,
-};
+use egui::{DragValue, Ui, collapsing_header::CollapsingState, pos2};
 use itertools::Itertools;
 use luexks_reassembly::{
     blocks::shroud_layer::ShroudLayer,
