@@ -11,7 +11,7 @@ use nom::{
     IResult, Parser,
     branch::alt,
     bytes::{complete::tag, take_until},
-    character::complete::digit1,
+    character::complete::{alphanumeric0, digit1},
     combinator::{complete, map, map_res, opt},
     error::{FromExternalError, ParseError},
     multi::{many0, many1},
@@ -23,7 +23,7 @@ use thiserror::Error;
 use crate::{
     mirror_pairs::MirrorPairs,
     shroud_editor::parsing::{
-        brackets_around, parse_number_expression, ws, ws_and_equals, ws_around,
+        brackets_around, parse_number_expression, variable, ws, ws_and_equals, ws_around,
     },
 };
 
@@ -152,8 +152,9 @@ enum ScalesOrMirrorOf {
 }
 
 fn shape(input: &str) -> IResult<&str, Shape, ShapesMessage> {
-    let (remainder, (id_str, scales_or_mirror_of, _)) = brackets_around((
+    let (remainder, (id_str, _, scales_or_mirror_of, _)) = brackets_around((
         ws_around(digit1),
+        opt((radial_launcher, ws)),
         alt((
             brackets_around(map(many1(ws_around(scale)), |scales| {
                 ScalesOrMirrorOf::Scales(scales)
@@ -170,7 +171,7 @@ fn shape(input: &str) -> IResult<&str, Shape, ShapesMessage> {
                 ScalesOrMirrorOf::MirrorOf,
             ),
         )),
-        ws,
+        (opt((ws, radial_launcher)), ws),
     ))
     .parse(input)
     .map_err(|_| nom::Err::Error(ShapesMessage::Shape(input.to_string())))?;
@@ -237,4 +238,11 @@ fn vert(input: &str) -> IResult<&str, Vertex, ShapesMessage> {
     .parse(input)
     .map_err(|_| nom::Err::Error(ShapesMessage::Vert(input.to_string())))?;
     Ok((remainder, Vertex(do2d_float_from(x, y))))
+}
+
+fn radial_launcher(input: &str) -> IResult<&str, (), ShapesMessage> {
+    let (remainder, _) = (tag("radial_launcher")).parse(input)?;
+    let (remainder, _) = ws_and_equals(remainder)?;
+    let (remainder, _) = alphanumeric0.parse(remainder)?;
+    Ok((remainder, ()))
 }
