@@ -28,7 +28,7 @@ use crate::{
 };
 
 #[derive(Error, Debug)]
-pub enum ShapesParseResult {
+pub enum ShapesMessage {
     #[error("YES!")]
     Success,
 
@@ -63,17 +63,20 @@ pub enum ShapesParseResult {
 
     #[error("Parse error for the number {0}. It's probably out of range :(")]
     NumberParse(String),
+
+    #[error("Could not open file :(")]
+    CouldNotOpenFile,
 }
 
-impl FromExternalError<&str, ParseIntError> for ShapesParseResult {
+impl FromExternalError<&str, ParseIntError> for ShapesMessage {
     fn from_external_error(input: &str, _kind: nom::error::ErrorKind, _e: ParseIntError) -> Self {
-        ShapesParseResult::NumberParse(input.to_string())
+        ShapesMessage::NumberParse(input.to_string())
     }
 }
 
-impl<'a> ParseError<&'a str> for ShapesParseResult {
+impl<'a> ParseError<&'a str> for ShapesMessage {
     fn from_error_kind(input: &'a str, kind: nom::error::ErrorKind) -> Self {
-        ShapesParseResult::Debug(format!("Cry {kind:?} {input}"))
+        ShapesMessage::Debug(format!("Cry {kind:?} {input}"))
     }
 
     fn append(_input: &'a str, _kind: nom::error::ErrorKind, other: Self) -> Self {
@@ -81,21 +84,21 @@ impl<'a> ParseError<&'a str> for ShapesParseResult {
     }
 }
 
-pub fn parse_shapes_text(input: &str) -> Result<(Shapes, MirrorPairs), ShapesParseResult> {
+pub fn parse_shapes_text(input: &str) -> Result<(Shapes, MirrorPairs), ShapesMessage> {
     match shapes(input) {
         Ok((_, (shapes, mirror_pairs))) => Ok((shapes, mirror_pairs)),
         Err(nom::Err::Error(e)) => Err(e),
         Err(nom::Err::Failure(e)) => Err(e),
-        Err(nom::Err::Incomplete(_)) => Err(ShapesParseResult::Incomplete),
+        Err(nom::Err::Incomplete(_)) => Err(ShapesMessage::Incomplete),
     }
 }
 
-fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesParseResult> {
+fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesMessage> {
     let (remainder, mut shapes) = preceded(ws_around(tag("{")), many1(ws_around(shape)))
         .parse(input)
         .map_err(|e| match e {
-            nom::Err::Error(ShapesParseResult::Debug(_)) => {
-                nom::Err::Error(ShapesParseResult::Shapes("".to_string()))
+            nom::Err::Error(ShapesMessage::Debug(_)) => {
+                nom::Err::Error(ShapesMessage::Shapes("".to_string()))
             }
             _ => e,
         })?;
@@ -127,13 +130,13 @@ fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesParseResult
                         VANILLA_SHAPE_COUNT + mirror_of_idx,
                     ));
                 } else {
-                    return Err(nom::Err::Error(ShapesParseResult::MirrorOfIsAMirror(
+                    return Err(nom::Err::Error(ShapesMessage::MirrorOfIsAMirror(
                         id.to_string(),
                         mirror_of.to_string(),
                     )));
                 }
             } else {
-                return Err(nom::Err::Error(ShapesParseResult::MirrorOfNotFound(
+                return Err(nom::Err::Error(ShapesMessage::MirrorOfNotFound(
                     id.to_string(),
                     mirror_of.to_string(),
                 )));
@@ -148,7 +151,7 @@ enum ScalesOrMirrorOf {
     MirrorOf(u32),
 }
 
-fn shape(input: &str) -> IResult<&str, Shape, ShapesParseResult> {
+fn shape(input: &str) -> IResult<&str, Shape, ShapesMessage> {
     let (remainder, (id_str, scales_or_mirror_of, _)) = brackets_around((
         ws_around(digit1),
         alt((
@@ -170,11 +173,11 @@ fn shape(input: &str) -> IResult<&str, Shape, ShapesParseResult> {
         ws,
     ))
     .parse(input)
-    .map_err(|_| nom::Err::Error(ShapesParseResult::Shape(input.to_string())))?;
+    .map_err(|_| nom::Err::Error(ShapesMessage::Shape(input.to_string())))?;
     let id = match id_str.parse::<u32>() {
         Ok(id) => ShapeId::Number(id),
         Err(..) => {
-            return Err(nom::Err::Error(ShapesParseResult::NumberParse(
+            return Err(nom::Err::Error(ShapesMessage::NumberParse(
                 id_str.to_string(),
             )));
         }
@@ -193,7 +196,7 @@ fn shape(input: &str) -> IResult<&str, Shape, ShapesParseResult> {
     }
 }
 
-fn scale(input: &str) -> IResult<&str, Scale, ShapesParseResult> {
+fn scale(input: &str) -> IResult<&str, Scale, ShapesMessage> {
     let (remainder, verts) = brackets_around(ws_around(delimited(
         (take_until("verts"), tag("verts"), ws_and_equals),
         verts,
@@ -208,7 +211,7 @@ fn scale(input: &str) -> IResult<&str, Scale, ShapesParseResult> {
         ),
     )))
     .parse(input)
-    .map_err(|_| nom::Err::Error(ShapesParseResult::Scale(input.to_string())))?;
+    .map_err(|_| nom::Err::Error(ShapesMessage::Scale(input.to_string())))?;
     Ok((
         remainder,
         Scale {
@@ -218,20 +221,20 @@ fn scale(input: &str) -> IResult<&str, Scale, ShapesParseResult> {
     ))
 }
 
-fn verts(input: &str) -> IResult<&str, Vertices, ShapesParseResult> {
+fn verts(input: &str) -> IResult<&str, Vertices, ShapesMessage> {
     let (remainder, verts) = brackets_around(many1(ws_around(vert)))
         .parse(input)
-        .map_err(|_| nom::Err::Error(ShapesParseResult::Verts(input.to_string())))?;
+        .map_err(|_| nom::Err::Error(ShapesMessage::Verts(input.to_string())))?;
     Ok((remainder, Vertices(verts)))
 }
 
-fn vert(input: &str) -> IResult<&str, Vertex, ShapesParseResult> {
+fn vert(input: &str) -> IResult<&str, Vertex, ShapesMessage> {
     let (remainder, (x, y)) = brackets_around(ws_around(separated_pair(
         parse_number_expression,
         ws,
         parse_number_expression,
     )))
     .parse(input)
-    .map_err(|_| nom::Err::Error(ShapesParseResult::Vert(input.to_string())))?;
+    .map_err(|_| nom::Err::Error(ShapesMessage::Vert(input.to_string())))?;
     Ok((remainder, Vertex(do2d_float_from(x, y))))
 }

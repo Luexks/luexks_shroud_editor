@@ -9,7 +9,7 @@ use crate::keybinds::Keybinds;
 use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
 use crate::reference_image::ReferenceImage;
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
-use crate::shroud_editor::parse_shapes_text::ShapesParseResult;
+use crate::shroud_editor::parse_shapes_text::ShapesMessage;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
 use crate::shroud_editor::render_shroud::RenderData;
 use crate::shroud_editor::shroud_layer_reordering::ShroudLayerReorderingMessageData;
@@ -58,7 +58,8 @@ pub struct ShroudEditor {
     shape_search_buf: String,
     shape_search_show_vanilla: bool,
     shapes_import_text: String,
-    just_imported_shapes_from_paste_box_message_option: Option<ShapesParseResult>,
+    just_imported_shapes_from_paste_box_message_option: Option<ShapesMessage>,
+    just_imported_shapes_from_file_message_option: Option<ShapesMessage>,
     tool_settings: ToolSettings,
     shroud_layer_reordering_message_data_option: Option<ShroudLayerReorderingMessageData>,
     float_shroud_settings: bool,
@@ -116,6 +117,7 @@ impl Default for ShroudEditor {
             shape_search_show_vanilla: true,
             shapes_import_text: SHAPES_IMPORT_TEXT_DEFAULT.to_string(),
             just_imported_shapes_from_paste_box_message_option: None,
+            just_imported_shapes_from_file_message_option: None,
             tool_settings: ToolSettings::default(),
             shroud_layer_reordering_message_data_option: None,
             float_shroud_settings: false,
@@ -200,6 +202,7 @@ mod grouping;
 mod hotkey_copy_and_paste;
 mod hotkey_mirroring;
 mod hotkey_shroud_layer_deletion;
+mod import_shapes;
 mod left_panel;
 mod parse_shapes_text;
 mod parse_shroud_text;

@@ -22,6 +22,9 @@ impl ShroudEditor {
                 WhichFileDialog::ShroudExport => {
                     self.export_shroud_to_file(path);
                 }
+                WhichFileDialog::ShapeImport => {
+                    self.import_shapes_from_file(path);
+                }
                 _ => {}
             }
         }

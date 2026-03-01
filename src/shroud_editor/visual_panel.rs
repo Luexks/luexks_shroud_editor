@@ -1,4 +1,4 @@
-use egui::{Context, Frame};
+use egui::{Context, Frame, Popup};
 
 use crate::{
     reference_image::ImageLayer,
@@ -21,7 +21,9 @@ impl ShroudEditor {
                     self.world_mouse_pos = self.screen_pos_to_world_pos(mouse_pos, rect);
                 }
 
-                self.zoom(ui, rect);
+                if !Popup::is_any_open(ctx) {
+                    self.zoom(ui, rect);
+                }
 
                 self.shroud_interaction_update(ui, ctx, &response, &rect);
 
