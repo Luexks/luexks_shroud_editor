@@ -1,28 +1,21 @@
-use std::f32::consts::TAU;
-
 use crate::{
     pos_and_display_oriented_number_conversion::do3d_to_pos2,
-    restructure_vertices::restructure_vertices,
     shroud_editor::{
-        ShroudEditor, add_mirror::get_mirrored_shape_data, shroud_settings::angle_knob_settings,
+        ShroudEditor,
+        shroud_settings::angle_knob_settings,
     },
     shroud_interaction::ShroudInteraction,
-    styles::SHROUD_LAYER_SETTINGS_COLOUR,
 };
 use egui::{
-    DragValue, Grid, Popup, PopupCloseBehavior, ScrollArea, Stroke, TextEdit, Ui,
+    DragValue, Ui,
     collapsing_header::CollapsingState, pos2,
 };
 use itertools::Itertools;
 use luexks_reassembly::{
-    blocks::shroud_layer::{ShroudLayer, ShroudLayerColor},
+    blocks::shroud_layer::ShroudLayer,
     shapes::shape_id::ShapeId,
-    utility::{
-        angle::Angle,
-        display_oriented_math::{do2d_float_from, do3d_float_from, don_float_from},
-    },
+    utility::display_oriented_math::{do2d_float_from, do3d_float_from},
 };
-use parse_vanilla_shapes::VANILLA_SHAPE_COUNT;
 
 pub struct ToolSettings {
     move_selection_by_distance: f32,
@@ -42,8 +35,8 @@ pub struct ToolSettings {
     radial_by_count: usize,
     radial_by_angle: f32,
     default_proportions_scale: f32,
-    bulk_layer: ShroudLayer,
-    bulk_shape_id: String,
+    pub bulk_layer: ShroudLayer,
+    pub bulk_shape_id: String,
 }
 
 impl Default for ToolSettings {
@@ -69,7 +62,6 @@ impl Default for ToolSettings {
             bulk_layer: ShroudLayer {
                 shape: Some(ShapeId::Vanilla("SQUARE".to_string())),
                 size: Some(do2d_float_from(10.0, 5.0)),
-                angle: Some(Angle::Radian(0.0)),
                 ..Default::default()
             },
             bulk_shape_id: "SQUARE".to_string(),
@@ -170,7 +162,7 @@ impl ShroudEditor {
                 1.0
             };
             ui.add(DragValue::new(angle).speed(angle_speed));
-            (*angle, _) = angle_knob_settings(ui, *angle, self.angle_snap, self.angle_snap_enabled);
+            (_, _) = angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
         });
     }
 
@@ -188,7 +180,7 @@ impl ShroudEditor {
         self.add_undo_history = true;
         let new_selection_len = count * selection.len();
         let centre = pos2(about_x, about_y);
-        let angle_increment = TAU / count as f32;
+        let angle_increment = 360.0 / count as f32;
         let originals = selection
             .iter()
             .map(|shroud_layer_index| self.shroud[*shroud_layer_index].clone())
@@ -204,26 +196,21 @@ impl ShroudEditor {
             (0..count).for_each(|i| {
                 let old_offset = original.shroud_layer.offset.as_ref().unwrap();
                 let relative_offset = do3d_to_pos2(old_offset) - centre;
-                let radial_angle = angle_increment * i as f32 + angle.to_radians();
-                let (sin, cos) = radial_angle.sin_cos();
+                let radial_angle = angle_increment * i as f32 + angle;
+                let (sin, cos) = radial_angle.to_radians().sin_cos();
                 let new_offset = do3d_float_from(
                     centre.x + relative_offset.x * cos - relative_offset.y * sin,
                     centre.y + relative_offset.x * sin + relative_offset.y * cos,
                     old_offset.z.to_f32(),
                 );
-                let new_angle = Angle::Radian(
-                    original
-                        .shroud_layer
-                        .angle
-                        .as_ref()
-                        .unwrap()
-                        .as_radians()
-                        .get_value()
-                        + radial_angle,
-                );
                 let mut radial_shroud_layer_container = original.clone();
                 radial_shroud_layer_container.shroud_layer.offset = Some(new_offset);
-                radial_shroud_layer_container.shroud_layer.angle = Some(new_angle);
+                *radial_shroud_layer_container
+                    .shroud_layer
+                    .angle
+                    .as_mut()
+                    .unwrap()
+                    .get_value_mut() += radial_angle;
                 radial_shroud_layer_container.group_idx_option = None;
                 self.shroud.push(radial_shroud_layer_container);
             });
@@ -284,7 +271,7 @@ impl ShroudEditor {
                 1.0
             };
             ui.add(DragValue::new(angle).speed(angle_speed));
-            (*angle, _) = angle_knob_settings(ui, *angle, self.angle_snap, self.angle_snap_enabled);
+            (_, _) = angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
         });
     }
 
@@ -463,317 +450,4 @@ impl ShroudEditor {
             ui.add(DragValue::new(about_y).speed(xy_speed));
         });
     }
-
-    fn bulk_set(&mut self, ui: &mut Ui) {
-        ui.vertical(|ui| {
-            egui::Frame::new()
-                .fill(SHROUD_LAYER_SETTINGS_COLOUR)
-                .inner_margin(6.0)
-                .corner_radius(4.0)
-                .stroke(Stroke::NONE)
-                .show(ui, |ui| {
-                    self.bulk_set_body(ui);
-                });
-        });
-    }
-
-    fn bulk_set_body(&mut self, ui: &mut Ui) {
-        let (whole_selection, selection, mirrors) = self.get_selection_mirror_split();
-        ui.spacing_mut().item_spacing.y = 2.0;
-        self.bulk_set_shape_combo_box(ui, &selection);
-        let bulk_layer = &mut self.tool_settings.bulk_layer;
-        let xy_speed = if self.grid_snap_enabled {
-            self.grid_size / 2.0
-        } else {
-            0.05
-        };
-        ui.horizontal(|ui| {
-            let offset = bulk_layer.offset.as_mut().unwrap();
-            let x = offset.x.to_f32_mut();
-            let y = offset.y.to_f32_mut();
-            let z = offset.z.to_f32_mut();
-            ui.label("offset={");
-            let response = ui.add(DragValue::new(x).speed(xy_speed));
-            if response.changed() {
-                whole_selection.iter().for_each(|idx| {
-                    *self.shroud[*idx]
-                        .shroud_layer
-                        .offset
-                        .as_mut()
-                        .unwrap()
-                        .x
-                        .to_f32_mut() = *x;
-                });
-            }
-            if response.drag_stopped() || response.lost_focus() {
-                self.add_undo_history = true;
-            }
-            ui.label(",");
-            let response = ui.add(DragValue::new(y).speed(xy_speed));
-            if response.changed() {
-                selection.iter().for_each(|idx| {
-                    self.shroud[*idx].shroud_layer.offset.as_mut().unwrap().y = don_float_from(*y);
-                });
-                mirrors.iter().for_each(|idx| {
-                    *self.shroud[*idx]
-                        .shroud_layer
-                        .offset
-                        .as_mut()
-                        .unwrap()
-                        .y
-                        .to_f32_mut() = -*y;
-                });
-            }
-            if response.drag_stopped() || response.lost_focus() {
-                self.add_undo_history = true;
-            }
-            ui.label(",");
-            let response = ui.add(DragValue::new(z).speed(0.005));
-            if response.changed() {
-                whole_selection.iter().for_each(|idx| {
-                    *self.shroud[*idx]
-                        .shroud_layer
-                        .offset
-                        .as_mut()
-                        .unwrap()
-                        .z
-                        .to_f32_mut() = *z;
-                });
-            }
-            if response.drag_stopped() || response.lost_focus() {
-                self.add_undo_history = true;
-            }
-            ui.label("}");
-        });
-        ui.horizontal(|ui| {
-            let size = bulk_layer.size.as_mut().unwrap();
-            let width = size.x.to_f32_mut();
-            let height = size.y.to_f32_mut();
-            ui.label("size={");
-            let response = ui.add(DragValue::new(width).speed(xy_speed));
-            if response.changed() {
-                whole_selection.iter().for_each(|idx| {
-                    *self.shroud[*idx]
-                        .shroud_layer
-                        .size
-                        .as_mut()
-                        .unwrap()
-                        .x
-                        .to_f32_mut() = *width;
-                });
-            }
-            if response.drag_stopped() || response.lost_focus() {
-                self.add_undo_history = true;
-            }
-            ui.label(",");
-            let response = ui.add(DragValue::new(height).speed(xy_speed));
-            if response.changed() {
-                whole_selection.iter().for_each(|idx| {
-                    *self.shroud[*idx]
-                        .shroud_layer
-                        .size
-                        .as_mut()
-                        .unwrap()
-                        .y
-                        .to_f32_mut() = *height;
-                });
-            }
-            if response.drag_stopped() || response.lost_focus() {
-                self.add_undo_history = true;
-            }
-            ui.label("}");
-        });
-        ui.horizontal(|ui| {
-            self.bulk_full_angle_settings(ui, &selection, &mirrors);
-        });
-
-        let bulk_layer = &mut self.tool_settings.bulk_layer;
-
-        let color_1 = bulk_layer.color_1.as_mut().unwrap();
-        let color_2 = bulk_layer.color_2.as_mut().unwrap();
-        let line_color = bulk_layer.line_color.as_mut().unwrap();
-        Grid::new("bulk".to_string()).show(ui, |ui| {
-            if shroud_color_setting_and_if_changed(
-                ui,
-                color_1,
-                "tri_color_id=",
-                &mut self.add_undo_history,
-            ) {
-                whole_selection.iter().for_each(|idx| {
-                    *self.shroud[*idx].shroud_layer.color_1.as_mut().unwrap() = *color_1;
-                });
-            }
-            if shroud_color_setting_and_if_changed(
-                ui,
-                color_2,
-                "tri_color1_id=",
-                &mut self.add_undo_history,
-            ) {
-                whole_selection.iter().for_each(|idx| {
-                    *self.shroud[*idx].shroud_layer.color_2.as_mut().unwrap() = *color_2;
-                });
-            }
-            if shroud_color_setting_and_if_changed(
-                ui,
-                line_color,
-                "line_color_id=",
-                &mut self.add_undo_history,
-            ) {
-                whole_selection.iter().for_each(|idx| {
-                    *self.shroud[*idx].shroud_layer.line_color.as_mut().unwrap() = *line_color;
-                });
-            }
-        });
-
-        ui.horizontal(|ui| {
-            let mut taper = bulk_layer.taper.unwrap_or(1.0);
-            ui.label("taper=");
-            let response = ui.add(DragValue::new(&mut taper).speed(0.025));
-            if response.changed() {
-                whole_selection.iter().for_each(|idx| {
-                    if self.shroud[*idx].shape_id == "SQUARE" {
-                        *self.shroud[*idx].shroud_layer.taper.as_mut().unwrap() = taper;
-                    }
-                });
-            }
-            if response.drag_stopped() || response.lost_focus() {
-                self.add_undo_history = true;
-            }
-            bulk_layer.taper = Some(taper);
-        });
-    }
-
-    fn bulk_set_shape_combo_box(&mut self, ui: &mut Ui, selection: &[usize]) {
-        ui.horizontal(|ui| {
-            ui.label("shape=");
-            Popup::from_toggle_button_response(&ui.button(&self.tool_settings.bulk_shape_id))
-                .close_behavior(PopupCloseBehavior::CloseOnClickOutside)
-                .show(|ui| {
-                    self.visual_panel_key_bindings_enabled = false;
-                    let search = ui.add(
-                        TextEdit::singleline(&mut self.shape_search_buf)
-                            .code_editor()
-                            .desired_width(120.0)
-                            .hint_text("Search (:"),
-                    );
-                    search.request_focus();
-                    ui.horizontal(|ui| {
-                        ui.label("Show Vanilla:");
-                        ui.checkbox(&mut self.shape_search_show_vanilla, "");
-                    });
-                    ScrollArea::vertical()
-                        .min_scrolled_height(500.0)
-                        .max_height(500.0)
-                        .min_scrolled_width(250.0)
-                        .max_width(250.0)
-                        .show(ui, |ui| {
-                            for selectable_shape in if self.shape_search_show_vanilla {
-                                &self.loaded_shapes.0
-                            } else {
-                                &self.loaded_shapes.0[VANILLA_SHAPE_COUNT..]
-                            } {
-                                let selectable_shape_id =
-                                    selectable_shape.get_id().unwrap().to_string();
-                                if self.shape_search_buf.is_empty()
-                                    || selectable_shape_id
-                                        .to_lowercase()
-                                        .contains(&self.shape_search_buf.to_lowercase())
-                                {
-                                    let response = ui.selectable_value(
-                                        &mut self.tool_settings.bulk_shape_id,
-                                        selectable_shape_id.clone(),
-                                        selectable_shape_id,
-                                    );
-                                    if response.clicked() {
-                                        self.add_undo_history = true;
-                                        selection.iter().for_each(|idx| {
-                                            self.shroud[*idx].shape_id =
-                                                self.tool_settings.bulk_shape_id.clone();
-                                            self.shroud[*idx].vertices = restructure_vertices(
-                                                selectable_shape.get_first_scale_vertices(),
-                                            );
-                                            self.shroud[*idx].shroud_layer.shape =
-                                                selectable_shape.get_id();
-                                            if let Some(mirror_index) =
-                                                self.shroud[*idx].mirror_index_option
-                                            {
-                                                self.shroud[mirror_index].shape_id =
-                                                    self.tool_settings.bulk_shape_id.clone();
-                                                let (shape, shape_id, vertices) =
-                                                    get_mirrored_shape_data(
-                                                        &self.shroud,
-                                                        *idx,
-                                                        &self.loaded_shapes,
-                                                        &self.loaded_shapes_mirror_pairs,
-                                                    );
-                                                self.shroud[mirror_index].vertices = vertices;
-                                                self.shroud[mirror_index].shroud_layer.shape =
-                                                    Some(shape);
-                                                self.shroud[mirror_index].shape_id = shape_id;
-                                            }
-                                        });
-                                    }
-                                }
-                            }
-                        });
-                });
-        });
-    }
-
-    fn bulk_full_angle_settings(&mut self, ui: &mut Ui, selection: &[usize], mirrors: &[usize]) {
-        let mut angle = self
-            .tool_settings
-            .bulk_layer
-            .angle
-            .clone()
-            .unwrap()
-            .as_degrees()
-            .get_value();
-        let original_angle = angle;
-        let angle_speed = if self.angle_snap_enabled {
-            self.angle_snap
-        } else {
-            1.0
-        };
-        ui.label("angle=");
-        let response = ui.add(DragValue::new(&mut angle).speed(angle_speed));
-        ui.label("*pi/180");
-        let (angle, knob_drag_stopped) =
-            angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
-        if response.drag_stopped() || response.lost_focus() || knob_drag_stopped {
-            self.add_undo_history = true;
-        }
-        *self.tool_settings.bulk_layer.angle.as_mut().unwrap() = Angle::Degree(angle);
-        if original_angle != angle {
-            selection.iter().for_each(|idx| {
-                *self.shroud[*idx].shroud_layer.angle.as_mut().unwrap() = Angle::Degree(angle);
-            });
-            mirrors.iter().for_each(|idx| {
-                *self.shroud[*idx].shroud_layer.angle.as_mut().unwrap() = Angle::Degree(-angle);
-            });
-        }
-    }
-}
-
-fn shroud_color_setting_and_if_changed(
-    ui: &mut Ui,
-    color: &mut ShroudLayerColor,
-    text: &str,
-    add_undo_history: &mut bool,
-) -> bool {
-    ui.label(text);
-    let changed = ui
-        .selectable_value(color, ShroudLayerColor::Color1, "0")
-        .clicked()
-        || ui
-            .selectable_value(color, ShroudLayerColor::Color2, "1")
-            .clicked()
-        || ui
-            .selectable_value(color, ShroudLayerColor::LineColor, "2")
-            .clicked();
-    if changed {
-        *add_undo_history = true;
-    }
-    ui.end_row();
-    changed
 }

@@ -31,13 +31,13 @@ pub fn add_mirror(
                 offset.z.to_f32(),
             )),
             // size: Some(do2d_float_from(size.x.to_f32(), -size.y.to_f32())),
-            angle: Some(Angle::Radian(
+            angle: Some(Angle::Degree(
                 -shroud[index]
                     .shroud_layer
                     .angle
                     .clone()
                     .unwrap()
-                    .as_radians()
+                    .as_degrees()
                     .get_value(),
             )),
             shape: Some(shape),

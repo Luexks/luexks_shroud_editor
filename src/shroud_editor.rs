@@ -194,6 +194,7 @@ impl eframe::App for ShroudEditor {
 }
 
 mod add_mirror;
+mod bulk_set;
 mod delete_shroud_layers;
 mod delta_time;
 mod draw_grid;

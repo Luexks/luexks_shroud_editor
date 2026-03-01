@@ -28,7 +28,6 @@ impl Default for ShroudLayerContainer {
             shroud_layer: ShroudLayer {
                 shape: Some(ShapeId::Vanilla("SQUARE".to_string())),
                 size: Some(do2d_float_from(10.0, 5.0)),
-                angle: Some(Angle::Radian(0.0)),
                 ..Default::default()
             },
             vertices: DEFAULT_SQUARE.into(),
