@@ -185,8 +185,9 @@ impl ShroudEditor {
                 && !selection.contains(&mirror_index)
             {
                 self.shroud[mirror_index].mirror_index_option = None;
-                original.mirror_index_option = None;
             }
+            original.mirror_index_option = None;
+            original.group_idx_option = None;
             (0..count).for_each(|i| {
                 let old_offset = original.shroud_layer.offset.as_ref().unwrap();
                 let relative_offset = do3d_to_pos2(old_offset) - centre;
@@ -205,7 +206,6 @@ impl ShroudEditor {
                     .as_mut()
                     .unwrap()
                     .get_value_mut() += radial_angle;
-                radial_shroud_layer_container.group_idx_option = None;
                 self.shroud.push(radial_shroud_layer_container);
             });
         });
