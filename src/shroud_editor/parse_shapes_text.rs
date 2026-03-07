@@ -102,6 +102,7 @@ fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesMessage> {
             }
             _ => e,
         })?;
+    shapes.retain(|shape| shape.get_first_scale_vertices().0.len() >= 3);
     let mut mirror_pairs = MirrorPairs::new();
     for shape_idx in 0..shapes.len() {
         if let Shape::Mirror { id, mirror_of, .. } = &shapes[shape_idx] {
