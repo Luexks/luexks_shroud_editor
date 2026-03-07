@@ -23,6 +23,7 @@ mod pos_in_polygon;
 mod position_conversion;
 mod reference_image;
 mod restructure_vertices;
+mod right_tri_angle_edge_case;
 mod selection_mirror_splitting;
 mod selection_type;
 mod shapes_import_text_default;

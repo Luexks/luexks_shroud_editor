@@ -6,6 +6,7 @@ use luexks_reassembly::{
 
 use crate::{
     restructure_vertices::restructure_vertices,
+    right_tri_angle_edge_case::{RIGHT_TRI, rotate_right_tri_shroud_layer_mirror},
     shroud_editor::{
         ShroudEditor,
         add_mirror::get_mirrored_shape_data,
@@ -61,6 +62,9 @@ impl ShroudLayerSettingsTarget for BulkSettingsTarget<'_> {
                 );
                 self.shroud[mirror_index].vertices = vertices;
                 self.shroud[mirror_index].shroud_layer.shape = Some(shape);
+                if shape_id == RIGHT_TRI {
+                    rotate_right_tri_shroud_layer_mirror(&mut self.shroud[mirror_index]);
+                }
                 self.shroud[mirror_index].shape_id = shape_id;
             }
         });
@@ -151,6 +155,9 @@ impl ShroudLayerSettingsTarget for BulkSettingsTarget<'_> {
                 .as_mut()
                 .unwrap()
                 .get_value_mut() = -angle;
+            if *self.shroud[*idx].shape_id == *RIGHT_TRI {
+                rotate_right_tri_shroud_layer_mirror(&mut self.shroud[*idx]);
+            }
         });
     }
 

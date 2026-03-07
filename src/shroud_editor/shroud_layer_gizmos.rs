@@ -1,7 +1,11 @@
 use egui::{Color32, DragValue, Pos2, Rect, Ui, UiBuilder, pos2, vec2};
 use luexks_reassembly::utility::{angle::Angle, display_oriented_math::do2d_float_from};
 
-use crate::{angle_gizmo::AngleGizmo, shroud_editor::ShroudEditor};
+use crate::{
+    angle_gizmo::AngleGizmo,
+    right_tri_angle_edge_case::{RIGHT_TRI, rotate_right_tri_shroud_layer_mirror},
+    shroud_editor::ShroudEditor,
+};
 
 const GIZMO_SET_LIMIT: usize = 16;
 
@@ -60,6 +64,9 @@ impl ShroudEditor {
                         && let Some(mirror_index) = self.shroud[index].mirror_index_option
                     {
                         self.shroud[mirror_index].shroud_layer.angle = Some(Angle::Degree(-angle));
+                        if self.shroud[index].shape_id == RIGHT_TRI {
+                            rotate_right_tri_shroud_layer_mirror(&mut self.shroud[mirror_index]);
+                        }
                     }
                 });
         });

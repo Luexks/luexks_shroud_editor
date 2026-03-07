@@ -1,12 +1,13 @@
 use egui::Pos2;
 use luexks_reassembly::{
-    blocks::shroud_layer::ShroudLayer,
     shapes::{shape_id::ShapeId, shapes::Shapes},
     utility::{angle::Angle, display_oriented_math::do3d_float_from},
 };
 
 use crate::{
-    restructure_vertices::restructure_vertices, shroud_layer_container::ShroudLayerContainer,
+    restructure_vertices::restructure_vertices,
+    right_tri_angle_edge_case::rotate_right_tri_shroud_layer_mirror,
+    shroud_layer_container::ShroudLayerContainer,
 };
 
 pub fn add_mirror(
@@ -19,41 +20,38 @@ pub fn add_mirror(
     shroud[index].mirror_index_option = Some(shroud.len());
 
     let offset = shroud[index].shroud_layer.offset.clone().unwrap();
-    // let size = shroud[index].shroud_layer.size.clone().unwrap();
     let (shape, shape_id, vertices) =
         get_mirrored_shape_data(shroud, index, loaded_shapes, loaded_shapes_mirror_pairs);
 
-    let shroud_layer_mirror = ShroudLayerContainer {
-        shroud_layer: ShroudLayer {
-            offset: Some(do3d_float_from(
-                offset.x.to_f32(),
-                -offset.y.to_f32(),
-                offset.z.to_f32(),
-            )),
-            // size: Some(do2d_float_from(size.x.to_f32(), -size.y.to_f32())),
-            angle: Some(Angle::Degree(
-                -shroud[index]
-                    .shroud_layer
-                    .angle
-                    .clone()
-                    .unwrap()
-                    .as_degrees()
-                    .get_value(),
-            )),
-            shape: Some(shape),
-            ..shroud[index].shroud_layer.clone()
-        },
+    let is_right_tri = shape_id == "RIGHT_TRI";
+
+    let mut shroud_layer_mirror = ShroudLayerContainer {
         mirror_index_option: Some(index),
         group_idx_option: None,
-        // drag_pos_option: if should_mirror_be_selected {
-        //     shroud[index].drag_pos_option
-        // } else {
-        //     None
-        // },
         shape_id,
         vertices,
         ..shroud[index].clone()
     };
+
+    shroud_layer_mirror.shroud_layer.offset = Some(do3d_float_from(
+        offset.x.to_f32(),
+        -offset.y.to_f32(),
+        offset.z.to_f32(),
+    ));
+    shroud_layer_mirror.shroud_layer.angle = Some(Angle::Degree(
+        -shroud[index]
+            .shroud_layer
+            .angle
+            .clone()
+            .unwrap()
+            .as_degrees()
+            .get_value(),
+    ));
+    shroud_layer_mirror.shroud_layer.shape = Some(shape);
+
+    if is_right_tri {
+        rotate_right_tri_shroud_layer_mirror(&mut shroud_layer_mirror);
+    }
 
     shroud.push(shroud_layer_mirror);
 }
