@@ -1,4 +1,4 @@
-use crate::{shroud_editor::ShroudEditor, shroud_interaction::ShroudInteraction};
+use crate::shroud_editor::ShroudEditor;
 
 impl ShroudEditor {
     pub fn delete_shroud_layers(&mut self) {
@@ -34,33 +34,9 @@ impl ShroudEditor {
             .collect::<Vec<_>>();
         to_be_deleted_indexes.iter().for_each(|layer_idx| {
             self.shroud.remove(*layer_idx);
-            self.shroud.iter_mut().for_each(|shroud_layer_container| {
-                if let Some(mirror_index) = &mut shroud_layer_container.mirror_index_option
-                    && *mirror_index > *layer_idx
-                {
-                    *mirror_index -= 1;
-                }
-            });
-            self.groups.iter_mut().for_each(|group| {
-                if let Some(group_layer_idx_idx) = group
-                    .iter()
-                    .position(|group_layer_idx| *group_layer_idx == *layer_idx)
-                {
-                    group.remove(group_layer_idx_idx);
-                }
-                group.iter_mut().for_each(|group_idx| {
-                    if *group_idx > *layer_idx {
-                        *group_idx -= 1;
-                    }
-                });
-            });
-            let mut selection = self.shroud_interaction.selection();
-            for selected_index in &mut selection {
-                if *selected_index > *layer_idx {
-                    *selected_index -= 1;
-                }
-            }
-            self.shroud_interaction = ShroudInteraction::Inaction { selection };
+            self.mirror_idx_logic_for_deleted_layer_idx(*layer_idx);
+            self.groups_logic_for_deleted_layer_idx(*layer_idx);
+            self.selection_logic_for_deleted_layer_idx(*layer_idx);
         });
         self.cull_groups();
     }

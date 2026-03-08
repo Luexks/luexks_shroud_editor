@@ -50,47 +50,33 @@ impl ShroudEditor {
     }
 
     fn remove_group(&mut self, groups_group_idx: usize) {
-        assert!(groups_group_idx < self.groups.len());
         let group = self.groups.remove(groups_group_idx);
         group.into_iter().for_each(|group_layer_idx| {
             self.shroud[group_layer_idx].group_idx_option = None;
         });
-        self.shroud.iter_mut().for_each(|layer| {
-            if let Some(layer_group_idx) = &mut layer.group_idx_option
-                && *layer_group_idx > groups_group_idx
-            {
-                *layer_group_idx -= 1;
-            }
-        });
+        layer_group_idx_logic_for_deleted_groups_group_idx(&mut self.shroud, groups_group_idx);
     }
 
     pub fn cull_groups(&mut self) {
         self.groups
-            .iter_mut()
+            .iter()
             .enumerate()
             .rev()
             .for_each(|(groups_group_idx, group)| {
                 if group.is_empty() {
-                    self.shroud.iter_mut().for_each(|layer| {
-                        if let Some(layer_group_idx) = &mut layer.group_idx_option
-                            && *layer_group_idx > groups_group_idx
-                        {
-                            *layer_group_idx -= 1;
-                        }
-                    });
+                    layer_group_idx_logic_for_deleted_groups_group_idx(
+                        &mut self.shroud,
+                        groups_group_idx,
+                    );
                 } else if group.len() == 1 {
                     self.shroud[group[0]].group_idx_option = None;
-                    group.remove(0);
-                    self.shroud.iter_mut().for_each(|layer| {
-                        if let Some(layer_group_idx) = &mut layer.group_idx_option
-                            && *layer_group_idx > groups_group_idx
-                        {
-                            *layer_group_idx -= 1;
-                        }
-                    });
+                    layer_group_idx_logic_for_deleted_groups_group_idx(
+                        &mut self.shroud,
+                        groups_group_idx,
+                    );
                 }
             });
-        self.groups.retain(|group| !group.is_empty());
+        self.groups.retain(|group| group.len() >= 2);
     }
 
     pub fn get_one_entire_selected_group_idx_option(&self, selection: &[usize]) -> Option<usize> {
@@ -170,12 +156,10 @@ impl ShroudEditor {
                 if self.groups[layer_group_idx].len() == 2 {
                     self.remove_group(layer_group_idx);
                 } else {
-                    let Some(group_layer_idx_idx) = self.groups[layer_group_idx]
+                    let group_layer_idx_idx = self.groups[layer_group_idx]
                         .iter()
                         .position(|group_layer_idx| *group_layer_idx == layer_idx)
-                    else {
-                        panic!("Layer idx not in group which it points to.");
-                    };
+                        .expect("Layer idx not in group which it points to.");
                     self.groups[layer_group_idx].remove(group_layer_idx_idx);
                 }
                 self.shroud[layer_idx].group_idx_option = None;
@@ -202,6 +186,55 @@ impl ShroudEditor {
             ui.checkbox(&mut self.outline_groups, "");
         });
     }
+
+    pub fn groups_logic_for_deleted_layer_idx(&mut self, layer_idx: usize) {
+        self.groups.iter_mut().for_each(|group| {
+            if let Some(group_layer_idx_idx) = group
+                .iter()
+                .position(|group_layer_idx| *group_layer_idx == layer_idx)
+            {
+                group.remove(group_layer_idx_idx);
+            }
+            group.iter_mut().for_each(|group_layer_idx| {
+                if *group_layer_idx > layer_idx {
+                    *group_layer_idx -= 1;
+                }
+            });
+        });
+    }
+
+    pub fn mirror_idx_logic_for_deleted_layer_idx(&mut self, layer_idx: usize) {
+        self.shroud.iter_mut().for_each(|shroud_layer_container| {
+            if let Some(mirror_index) = &mut shroud_layer_container.mirror_index_option
+                && *mirror_index > layer_idx
+            {
+                *mirror_index -= 1;
+            }
+        });
+    }
+
+    pub fn selection_logic_for_deleted_layer_idx(&mut self, layer_idx: usize) {
+        let mut selection = self.shroud_interaction.selection();
+        for selected_index in &mut selection {
+            if *selected_index > layer_idx {
+                *selected_index -= 1;
+            }
+        }
+        self.shroud_interaction = ShroudInteraction::Inaction { selection };
+    }
+}
+
+fn layer_group_idx_logic_for_deleted_groups_group_idx(
+    shroud: &mut [ShroudLayerContainer],
+    groups_group_idx: usize,
+) {
+    shroud.iter_mut().for_each(|layer| {
+        if let Some(layer_group_idx) = &mut layer.group_idx_option
+            && *layer_group_idx > groups_group_idx
+        {
+            *layer_group_idx -= 1;
+        }
+    });
 }
 
 const GROUP_OUTLINE_COLOUR: Rgba = Rgba::from_gray(200.0);

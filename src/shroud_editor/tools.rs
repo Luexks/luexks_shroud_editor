@@ -170,9 +170,7 @@ impl ShroudEditor {
             return;
         }
         selection.iter().for_each(|layer_idx| {
-            self.groups.iter_mut().for_each(|group| {
-                group.retain(|group_layer_idx| *group_layer_idx != *layer_idx);
-            });
+            self.groups_logic_for_deleted_layer_idx(*layer_idx);
         });
         self.cull_groups();
         self.add_undo_history = true;
