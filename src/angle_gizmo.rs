@@ -1,10 +1,14 @@
 use egui::{Color32, CursorIcon, Rect, Response, Sense, Stroke, Ui, UiBuilder, Vec2, Widget, vec2};
 
+use crate::rotation_edgecase::{RotationEdgecase, rotation_edgecase_logic_radians};
+
 pub struct AngleGizmo<'a> {
     angle: &'a mut f32,
     angle_snap: f32,
     angle_snap_enabled: bool,
     add_undo_history: &'a mut bool,
+    changed: &'a mut bool,
+    rotation_edgecase_option: Option<RotationEdgecase>,
 }
 
 impl<'a> AngleGizmo<'a> {
@@ -13,12 +17,16 @@ impl<'a> AngleGizmo<'a> {
         angle_snap: f32,
         angle_snap_enabled: bool,
         add_undo_history: &'a mut bool,
+        changed: &'a mut bool,
+        rotation_edgecase_option: Option<RotationEdgecase>,
     ) -> Self {
         AngleGizmo {
             angle,
             angle_snap,
             angle_snap_enabled,
             add_undo_history,
+            changed,
+            rotation_edgecase_option,
         }
     }
 }
@@ -28,11 +36,14 @@ const ANGLE_GIZMO_DISTANCE: f32 = 15.0;
 
 impl Widget for AngleGizmo<'_> {
     fn ui(self, ui: &mut Ui) -> Response {
+        let rotation_edgecase_option = self.rotation_edgecase_option;
         let (rect, response) = ui.allocate_exact_size(Vec2::ZERO, Sense::empty());
         let centre = rect.min;
         let painter = ui.painter();
         painter.circle_filled(centre, 2.5, Color32::WHITE);
-        let (sin, cos) = self.angle.to_radians().sin_cos();
+        let (sin, cos) =
+            rotation_edgecase_logic_radians(rotation_edgecase_option, self.angle.to_radians())
+                .sin_cos();
         let mut gizmo_pos = centre;
         gizmo_pos.x += cos * ANGLE_GIZMO_DISTANCE;
         gizmo_pos.y -= sin * ANGLE_GIZMO_DISTANCE;
@@ -50,7 +61,13 @@ impl Widget for AngleGizmo<'_> {
             if response.dragged()
                 && let Some(mouse_pos) = response.ctx.pointer_interact_pos()
             {
-                *self.angle = 360.0 - (mouse_pos - centre).angle().to_degrees();
+                *self.changed = true;
+                let mouse_angle = rotation_edgecase_logic_radians(
+                    rotation_edgecase_option,
+                    (mouse_pos - centre).angle(),
+                )
+                .to_degrees();
+                *self.angle = 360.0 - mouse_angle;
                 *self.angle %= 360.0;
                 if self.angle_snap_enabled {
                     *self.angle /= self.angle_snap;

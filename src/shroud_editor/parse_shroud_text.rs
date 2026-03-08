@@ -1,6 +1,6 @@
 use luexks_reassembly::{
     blocks::shroud_layer::ShroudLayerColor,
-    shapes::{shape::Shape, shape_id::ShapeId, shapes::Shapes},
+    shapes::shape_id::ShapeId,
     utility::{
         angle::Angle,
         display_oriented_math::{do2d_float_from, do3d_float_from},
@@ -11,6 +11,7 @@ use thiserror::Error;
 
 use crate::{
     restructure_vertices::restructure_vertices,
+    shape_container::ShapeContainer,
     shroud_editor::parsing::{parse_number_expression, variable, ws, ws_and_equals},
     shroud_layer_container::ShroudLayerContainer,
 };
@@ -61,7 +62,7 @@ pub enum ShroudParseResult {
 }
 
 #[rustfmt::skip]
-pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Vec<ShroudLayerContainer>, ShroudParseResult> {
+pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &[ShapeContainer]) -> Result<Vec<ShroudLayerContainer>, ShroudParseResult> {
     let (_, shroud_data) = shroud(shroud_text)
         .map_err(|_| ShroudParseResult::Shroud)?;
     shroud_data.iter().map(|shroud_layer_data| {
@@ -111,7 +112,7 @@ pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Ve
                             let shape_name_string = shape_name.to_string();
                             if let Some(matched_shape) = match_shape(loaded_shapes, &shape_name_string) {
                                 shroud_layer_container.shroud_layer.shape = Some(ShapeId::Number(shape_name));
-                                shroud_layer_container.vertices = restructure_vertices(matched_shape.get_first_scale_vertices());
+                                shroud_layer_container.vertices = restructure_vertices(matched_shape.s.get_first_scale_vertices());
                                 shroud_layer_container.shape_id = shape_name_string;
                             } else {
                                 return Err(ShroudParseResult::ShapeCustom(shape_name_string));
@@ -120,7 +121,8 @@ pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Ve
                             let shape_name_string = shape_data.to_string();
                             shroud_layer_container.shroud_layer.shape = Some(ShapeId::Vanilla(shape_name_string.clone()));
                             if let Some(matched_shape) = match_shape(loaded_shapes, &shape_name_string) {
-                                shroud_layer_container.vertices = restructure_vertices(matched_shape.get_first_scale_vertices());
+                                shroud_layer_container.vertices = restructure_vertices(matched_shape.s.get_first_scale_vertices());
+                                shroud_layer_container.invert_height_of_mirror = matched_shape.invert_height_of_mirror;
                                 shroud_layer_container.shape_id = shape_name_string;
                             } else {
                                 return Err(ShroudParseResult::ShapeVanilla(shape_name_string));
@@ -165,7 +167,7 @@ pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Ve
                             return Err(ShroudParseResult::Offset(x_data.to_string(), y_data.to_string(), z_data.to_string()));
                         }
                     } else {
-                        return Err(ShroudParseResult::VariableValueData("offset".to_string())) ;
+                        return Err(ShroudParseResult::VariableValueData("offset".to_string()));
                     }
                 },
                 ("size", variable_value_data) => {
@@ -209,11 +211,13 @@ pub fn parse_shroud_text(shroud_text: &str, loaded_shapes: &Shapes) -> Result<Ve
     }).collect()
 }
 
-fn match_shape<'a>(loaded_shapes: &'a Shapes, shape_name_string: &'a str) -> Option<&'a Shape> {
+fn match_shape<'a>(
+    loaded_shapes: &'a [ShapeContainer],
+    shape_name_string: &'a str,
+) -> Option<&'a ShapeContainer> {
     loaded_shapes
-        .0
         .iter()
-        .find(|loaded_shapes| loaded_shapes.get_id().unwrap().to_string() == shape_name_string)
+        .find(|loaded_shape| loaded_shape.s.get_id().unwrap().to_string() == shape_name_string)
 }
 
 fn shroud_layer_container(input: &str) -> IResult<&str, Vec<(&str, Vec<&str>)>> {

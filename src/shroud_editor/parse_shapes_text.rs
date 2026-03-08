@@ -1,10 +1,7 @@
 use std::num::ParseIntError;
 
 use luexks_reassembly::{
-    shapes::{
-        scale::Scale, shape::Shape, shape_id::ShapeId, shapes::Shapes, vertex::Vertex,
-        vertices::Vertices,
-    },
+    shapes::{scale::Scale, shape::Shape, shape_id::ShapeId, vertex::Vertex, vertices::Vertices},
     utility::display_oriented_math::do2d_float_from,
 };
 use nom::{
@@ -22,8 +19,9 @@ use thiserror::Error;
 
 use crate::{
     mirror_pairs::MirrorPairs,
+    shape_container::ShapeContainer,
     shroud_editor::parsing::{
-        brackets_around, parse_number_expression, variable, ws, ws_and_equals, ws_around,
+        brackets_around, parse_number_expression, ws, ws_and_equals, ws_around,
     },
 };
 
@@ -84,16 +82,20 @@ impl<'a> ParseError<&'a str> for ShapesMessage {
     }
 }
 
-pub fn parse_shapes_text(input: &str) -> Result<(Shapes, MirrorPairs), ShapesMessage> {
+pub fn parse_shapes_text(
+    input: &str,
+) -> Result<(Vec<ShapeContainer>, MirrorPairs, Vec<usize>), ShapesMessage> {
     match shapes(input) {
-        Ok((_, (shapes, mirror_pairs))) => Ok((shapes, mirror_pairs)),
+        Ok((_, (shapes, mirror_pairs, non_mirrors))) => Ok((shapes, mirror_pairs, non_mirrors)),
         Err(nom::Err::Error(e)) => Err(e),
         Err(nom::Err::Failure(e)) => Err(e),
         Err(nom::Err::Incomplete(_)) => Err(ShapesMessage::Incomplete),
     }
 }
 
-fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesMessage> {
+fn shapes(
+    input: &str,
+) -> IResult<&str, (Vec<ShapeContainer>, MirrorPairs, Vec<usize>), ShapesMessage> {
     let (remainder, mut shapes) = preceded(ws_around(tag("{")), many1(ws_around(shape)))
         .parse(input)
         .map_err(|e| match e {
@@ -103,21 +105,23 @@ fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesMessage> {
             _ => e,
         })?;
     shapes.retain(|shape| {
-        matches!(shape, Shape::Mirror { .. }) || shape.get_first_scale_vertices().0.len() >= 3
+        matches!(shape.s, Shape::Mirror { .. }) || shape.s.get_first_scale_vertices().0.len() >= 3
     });
+    let mut non_mirrors =
+        (VANILLA_SHAPE_COUNT..VANILLA_SHAPE_COUNT + shapes.len()).collect::<Vec<_>>();
     let mut mirror_pairs = MirrorPairs::new();
     for shape_idx in 0..shapes.len() {
-        if let Shape::Mirror { id, mirror_of, .. } = &shapes[shape_idx] {
+        if let Shape::Mirror { id, mirror_of, .. } = &shapes[shape_idx].s {
             if let Some(mirror_of_idx) = shapes
                 .iter()
-                .position(|shape| *mirror_of == shape.get_id().unwrap())
+                .position(|shape| *mirror_of == shape.s.get_id().unwrap())
             {
                 if let Shape::Standard {
                     id: _mirror_id,
                     scales,
-                } = &shapes[mirror_of_idx]
+                } = &shapes[mirror_of_idx].s
                 {
-                    shapes[shape_idx] = Shape::Standard {
+                    shapes[shape_idx].s = Shape::Standard {
                         id: id.clone(),
                         scales: scales
                             .iter()
@@ -128,10 +132,12 @@ fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesMessage> {
                             })
                             .collect(),
                     };
-                    mirror_pairs.push((
-                        VANILLA_SHAPE_COUNT + shape_idx,
-                        VANILLA_SHAPE_COUNT + mirror_of_idx,
-                    ));
+                    let shape_idx = VANILLA_SHAPE_COUNT + shape_idx;
+                    let mirror_of_idx = VANILLA_SHAPE_COUNT + mirror_of_idx;
+                    mirror_pairs.push((shape_idx, mirror_of_idx));
+                    non_mirrors.retain(|non_mirror_idx| {
+                        *non_mirror_idx != shape_idx && *non_mirror_idx != mirror_of_idx
+                    });
                 } else {
                     return Err(nom::Err::Error(ShapesMessage::MirrorOfIsAMirror(
                         id.to_string(),
@@ -146,7 +152,7 @@ fn shapes(input: &str) -> IResult<&str, (Shapes, MirrorPairs), ShapesMessage> {
             }
         }
     }
-    Ok((remainder, (Shapes(shapes), mirror_pairs)))
+    Ok((remainder, (shapes, mirror_pairs, non_mirrors)))
 }
 
 enum ScalesOrMirrorOf {
@@ -154,7 +160,7 @@ enum ScalesOrMirrorOf {
     MirrorOf(u32),
 }
 
-fn shape(input: &str) -> IResult<&str, Shape, ShapesMessage> {
+fn shape(input: &str) -> IResult<&str, ShapeContainer, ShapesMessage> {
     let (remainder, (id_str, _, scales_or_mirror_of, _)) = brackets_around((
         ws_around(digit1),
         opt((radial_launcher, ws)),
@@ -187,15 +193,18 @@ fn shape(input: &str) -> IResult<&str, Shape, ShapesMessage> {
         }
     };
     match scales_or_mirror_of {
-        ScalesOrMirrorOf::Scales(scales) => Ok((remainder, Shape::Standard { scales, id })),
+        ScalesOrMirrorOf::Scales(scales) => Ok((
+            remainder,
+            ShapeContainer::new(Shape::Standard { scales, id }),
+        )),
         ScalesOrMirrorOf::MirrorOf(mirror_of) => Ok((
             remainder,
-            Shape::Mirror {
+            ShapeContainer::new(Shape::Mirror {
                 id,
                 mirror_of: ShapeId::Number(mirror_of),
                 scale_count: 0,
                 scale_names: Vec::new(),
-            },
+            }),
         )),
     }
 }

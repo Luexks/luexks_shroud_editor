@@ -1,15 +1,16 @@
 use egui::{Popup, PopupCloseBehavior, ScrollArea, TextEdit, Ui};
-use luexks_reassembly::shapes::shapes::Shapes;
 use parse_vanilla_shapes::VANILLA_SHAPE_COUNT;
 
-use crate::shroud_editor::shroud_settings::ShroudLayerSettingsTarget;
+use crate::{
+    shape_container::ShapeContainer, shroud_editor::shroud_settings::ShroudLayerSettingsTarget,
+};
 
 pub fn shroud_layer_shape_combo_box(
     ui: &mut Ui,
     shroud_layer_settings_target: &mut impl ShroudLayerSettingsTarget,
     shape_search_buf: &mut String,
     shape_search_show_vanilla: &mut bool,
-    loaded_shapes: &Shapes,
+    loaded_shapes: &Vec<ShapeContainer>,
     loaded_shapes_mirror_pairs: &[(usize, usize)],
     add_undo_history: &mut bool,
     visual_panel_key_bindings_enabled: &mut bool,
@@ -40,11 +41,11 @@ pub fn shroud_layer_shape_combo_box(
                 .max_width(250.0)
                 .show(ui, |ui| {
                     for selectable_shape in if *shape_search_show_vanilla {
-                        &loaded_shapes.0
+                        &loaded_shapes
                     } else {
-                        &loaded_shapes.0[VANILLA_SHAPE_COUNT..]
+                        &loaded_shapes[VANILLA_SHAPE_COUNT..]
                     } {
-                        let selectable_shape_id = selectable_shape.get_id().unwrap().to_string();
+                        let selectable_shape_id = selectable_shape.s.get_id().unwrap().to_string();
                         if shape_search_buf.is_empty()
                             || selectable_shape_id
                                 .to_lowercase()

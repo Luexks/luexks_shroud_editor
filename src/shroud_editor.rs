@@ -8,6 +8,7 @@ use crate::keybind_deserialiser::try_load_keybinds;
 use crate::keybinds::Keybinds;
 use crate::mirror_pairs::get_loaded_shapes_mirror_pairs;
 use crate::reference_image::ReferenceImage;
+use crate::shape_container::{ShapeContainer, restructure_shapes};
 use crate::shapes_import_text_default::SHAPES_IMPORT_TEXT_DEFAULT;
 use crate::shroud_editor::parse_shapes_text::ShapesMessage;
 use crate::shroud_editor::parse_shroud_text::ShroudParseResult;
@@ -20,7 +21,6 @@ use crate::shroud_layer_container::ShroudLayerContainer;
 use crate::undo_redo::UndoHistorySnapshot;
 use egui::{Popup, Pos2};
 use egui_file_dialog::FileDialog;
-use luexks_reassembly::shapes::shapes::Shapes;
 use parse_vanilla_shapes::get_vanilla_shapes;
 
 const FILL_COLOR_GRADIENT_TIME: f32 = 4.0;
@@ -40,7 +40,7 @@ pub struct ShroudEditor {
     angle_snap_enabled: bool,
     pub pan: Pos2,
     // key_tracker: KeyTracker,
-    loaded_shapes: Shapes,
+    loaded_shapes: Vec<ShapeContainer>,
     just_exported_to_clipboard_success_option: Option<bool>,
     just_exported_to_file_next_to_exe_status: Option<bool>,
     just_exported_to_file_status: Option<bool>,
@@ -82,7 +82,7 @@ pub struct ShroudEditor {
 
 impl Default for ShroudEditor {
     fn default() -> Self {
-        let loaded_shapes = get_vanilla_shapes();
+        let loaded_shapes = restructure_shapes(get_vanilla_shapes());
         let loaded_shapes_mirror_pairs = get_loaded_shapes_mirror_pairs(&loaded_shapes);
         Self {
             block_container: Default::default(),

@@ -1,12 +1,10 @@
-use egui::{Stroke, Ui};
-use luexks_reassembly::{
-    blocks::shroud_layer::{ShroudLayer, ShroudLayerColor},
-    shapes::{shape::Shape, shapes::Shapes},
-};
+use egui::{Color32, Stroke, Ui};
+use luexks_reassembly::blocks::shroud_layer::{ShroudLayer, ShroudLayerColor};
 
 use crate::{
     restructure_vertices::restructure_vertices,
     right_tri_angle_edge_case::{RIGHT_TRI, rotate_right_tri_shroud_layer_mirror},
+    shape_container::ShapeContainer,
     shroud_editor::{
         ShroudEditor,
         add_mirror::get_mirrored_shape_data,
@@ -44,28 +42,85 @@ impl ShroudLayerSettingsTarget for BulkSettingsTarget<'_> {
 
     fn on_shape_changed(
         &mut self,
-        shape: &Shape,
-        loaded_shapes: &Shapes,
+        shape: &ShapeContainer,
+        loaded_shapes: &[ShapeContainer],
         loaded_shapes_mirror_pairs: &[(usize, usize)],
     ) {
         self.selection.clone().into_iter().for_each(|idx| {
-            self.shroud[idx].shape_id = shape.get_id().unwrap().to_string();
-            self.shroud[idx].vertices = restructure_vertices(shape.get_first_scale_vertices());
-            self.shroud[idx].shroud_layer.shape = shape.get_id();
-            if let Some(mirror_index) = self.shroud[idx].mirror_index_option {
-                self.shroud[mirror_index].shape_id = self.get_shape_id_string();
+            self.shroud[idx].shape_id = shape.s.get_id().unwrap().to_string();
+            self.shroud[idx].vertices = restructure_vertices(shape.s.get_first_scale_vertices());
+            self.shroud[idx].invert_height_of_mirror = shape.invert_height_of_mirror;
+            self.shroud[idx].shroud_layer.shape = shape.s.get_id();
+            if let Some(mirror_idx) = self.shroud[idx].mirror_index_option {
+                self.shroud[mirror_idx].invert_height_of_mirror = shape.invert_height_of_mirror;
+                if shape.invert_height_of_mirror {
+                    *self.shroud[mirror_idx]
+                        .shroud_layer
+                        .size
+                        .as_mut()
+                        .unwrap()
+                        .y
+                        .to_f32_mut() = -self.shroud[idx]
+                        .shroud_layer
+                        .size
+                        .as_ref()
+                        .unwrap()
+                        .y
+                        .to_f32();
+                    *self.shroud[mirror_idx]
+                        .shroud_layer
+                        .angle
+                        .as_mut()
+                        .unwrap()
+                        .as_degrees_mut()
+                        .get_value_mut() = self.shroud[idx]
+                        .shroud_layer
+                        .angle
+                        .as_ref()
+                        .unwrap()
+                        .as_degrees()
+                        .get_value();
+                } else {
+                    *self.shroud[mirror_idx]
+                        .shroud_layer
+                        .size
+                        .as_mut()
+                        .unwrap()
+                        .y
+                        .to_f32_mut() = self.shroud[idx]
+                        .shroud_layer
+                        .size
+                        .as_ref()
+                        .unwrap()
+                        .y
+                        .to_f32();
+                    *self.shroud[mirror_idx]
+                        .shroud_layer
+                        .angle
+                        .as_mut()
+                        .unwrap()
+                        .as_degrees_mut()
+                        .get_value_mut() = -self.shroud[idx]
+                        .shroud_layer
+                        .angle
+                        .as_ref()
+                        .unwrap()
+                        .as_degrees()
+                        .get_value();
+                }
+                self.shroud[mirror_idx].shape_id = self.get_shape_id_string();
                 let (shape, shape_id, vertices) = get_mirrored_shape_data(
                     self.shroud,
                     idx,
                     loaded_shapes,
                     loaded_shapes_mirror_pairs,
                 );
-                self.shroud[mirror_index].vertices = vertices;
-                self.shroud[mirror_index].shroud_layer.shape = Some(shape);
+                self.shroud[mirror_idx].vertices = vertices;
+                self.shroud[mirror_idx].shroud_layer.shape = Some(shape);
                 if shape_id == RIGHT_TRI {
-                    rotate_right_tri_shroud_layer_mirror(&mut self.shroud[mirror_index]);
+                    rotate_right_tri_shroud_layer_mirror(&mut self.shroud[mirror_idx]);
                 }
-                self.shroud[mirror_index].shape_id = shape_id;
+                self.shroud[mirror_idx].shape_id = shape_id;
             }
         });
     }
@@ -128,7 +183,20 @@ impl ShroudLayerSettingsTarget for BulkSettingsTarget<'_> {
     }
 
     fn on_height_changed(&mut self, height: f32) {
-        self.whole_selection.iter().for_each(|idx| {
+        self.selection.iter().for_each(|idx| {
+            *self.shroud[*idx]
+                .shroud_layer
+                .size
+                .as_mut()
+                .unwrap()
+                .y
+                .to_f32_mut() = height;
+        });
+        self.mirrors.iter().for_each(|idx| {
+            let mut height = height;
+            if self.shroud[*idx].invert_height_of_mirror {
+                height *= -1.0;
+            }
             *self.shroud[*idx]
                 .shroud_layer
                 .size
@@ -149,6 +217,10 @@ impl ShroudLayerSettingsTarget for BulkSettingsTarget<'_> {
                 .get_value_mut() = angle;
         });
         self.mirrors.iter().for_each(|idx| {
+            let mut angle = angle;
+            if self.shroud[*idx].invert_height_of_mirror {
+                angle *= -1.0;
+            }
             *self.shroud[*idx]
                 .shroud_layer
                 .angle
@@ -211,7 +283,7 @@ impl ShroudEditor {
                 .fill(SHROUD_LAYER_SETTINGS_COLOUR)
                 .inner_margin(6.0)
                 .corner_radius(4.0)
-                .stroke(Stroke::NONE)
+                .stroke(Stroke::new(1.0, Color32::BLUE))
                 .show(ui, |ui| {
                     self.bulk_set_body(ui);
                 });
@@ -249,6 +321,7 @@ impl ShroudEditor {
             add_undo_history,
             self.angle_snap,
             self.angle_snap_enabled,
+            None,
         );
         colour_settings(ui, bulk_settings_target, add_undo_history);
         taper_setting(ui, bulk_settings_target, add_undo_history);

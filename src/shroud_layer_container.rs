@@ -20,6 +20,7 @@ pub struct ShroudLayerContainer {
     pub delete_next_frame: bool,
     pub mirror_index_option: Option<usize>,
     pub group_idx_option: Option<usize>,
+    pub invert_height_of_mirror: bool,
 }
 
 impl Default for ShroudLayerContainer {
@@ -35,6 +36,7 @@ impl Default for ShroudLayerContainer {
             delete_next_frame: false,
             mirror_index_option: None,
             group_idx_option: None,
+            invert_height_of_mirror: false,
         }
     }
 }

@@ -18,7 +18,7 @@ impl ShroudEditor {
     pub fn hotkey_grouping(&mut self, ctx: &Context) {
         if is_shortcut_pressed(ctx, &self.keybinds.group) {
             self.group_selection();
-            dbg!(&self.groups);
+            // dbg!(&self.groups);
         }
     }
 

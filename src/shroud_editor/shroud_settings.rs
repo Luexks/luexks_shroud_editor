@@ -1,13 +1,12 @@
 use egui::{Color32, DragValue, Grid, Stroke, Ui};
 use egui_knob::{Knob, KnobStyle};
-use luexks_reassembly::{
-    blocks::shroud_layer::{ShroudLayer, ShroudLayerColor},
-    shapes::{shape::Shape, shapes::Shapes},
-};
+use luexks_reassembly::blocks::shroud_layer::{ShroudLayer, ShroudLayerColor};
 
 use crate::{
     restructure_vertices::restructure_vertices,
     right_tri_angle_edge_case::{RIGHT_TRI, rotate_right_tri_shroud_layer_mirror},
+    rotation_edgecase::{RotationEdgecase, rotation_edgecase_logic_degrees},
+    shape_container::ShapeContainer,
     shroud_editor::{
         ShroudEditor,
         add_mirror::{add_mirror, get_mirrored_shape_data},
@@ -24,8 +23,8 @@ pub trait ShroudLayerSettingsTarget {
     fn egui_id(&self) -> String;
     fn on_shape_changed(
         &mut self,
-        shape: &Shape,
-        loaded_shapes: &Shapes,
+        shape: &ShapeContainer,
+        loaded_shapes: &[ShapeContainer],
         loaded_shapes_mirror_pairs: &[(usize, usize)],
     );
     fn on_x_changed(&mut self, x: f32);
@@ -44,9 +43,9 @@ pub trait ShroudLayerSettingsTarget {
     fn set_shape_id(&mut self, shape_id: String);
 }
 
-struct SingleSettingsTarget<'a> {
-    shroud: &'a mut Vec<ShroudLayerContainer>,
-    idx: usize,
+pub struct SingleSettingsTarget<'a> {
+    pub shroud: &'a mut Vec<ShroudLayerContainer>,
+    pub idx: usize,
 }
 
 impl ShroudLayerSettingsTarget for SingleSettingsTarget<'_> {
@@ -61,25 +60,82 @@ impl ShroudLayerSettingsTarget for SingleSettingsTarget<'_> {
     }
     fn on_shape_changed(
         &mut self,
-        shape: &Shape,
-        loaded_shapes: &Shapes,
+        shape: &ShapeContainer,
+        loaded_shapes: &[ShapeContainer],
         loaded_shapes_mirror_pairs: &[(usize, usize)],
     ) {
-        self.shroud[self.idx].vertices = restructure_vertices(shape.get_first_scale_vertices());
-        self.shroud[self.idx].shroud_layer.shape = shape.get_id();
-        if let Some(mirror_index) = self.shroud[self.idx].mirror_index_option {
+        self.shroud[self.idx].vertices = restructure_vertices(shape.s.get_first_scale_vertices());
+        self.shroud[self.idx].invert_height_of_mirror = shape.invert_height_of_mirror;
+        self.shroud[self.idx].shroud_layer.shape = shape.s.get_id();
+        if let Some(mirror_idx) = self.shroud[self.idx].mirror_index_option {
+            self.shroud[mirror_idx].invert_height_of_mirror = shape.invert_height_of_mirror;
+            if shape.invert_height_of_mirror {
+                *self.shroud[mirror_idx]
+                    .shroud_layer
+                    .size
+                    .as_mut()
+                    .unwrap()
+                    .y
+                    .to_f32_mut() = -self.shroud[self.idx]
+                    .shroud_layer
+                    .size
+                    .as_ref()
+                    .unwrap()
+                    .y
+                    .to_f32();
+                *self.shroud[mirror_idx]
+                    .shroud_layer
+                    .angle
+                    .as_mut()
+                    .unwrap()
+                    .as_degrees_mut()
+                    .get_value_mut() = self.shroud[self.idx]
+                    .shroud_layer
+                    .angle
+                    .as_ref()
+                    .unwrap()
+                    .as_degrees()
+                    .get_value();
+            } else {
+                *self.shroud[mirror_idx]
+                    .shroud_layer
+                    .size
+                    .as_mut()
+                    .unwrap()
+                    .y
+                    .to_f32_mut() = self.shroud[self.idx]
+                    .shroud_layer
+                    .size
+                    .as_ref()
+                    .unwrap()
+                    .y
+                    .to_f32();
+                *self.shroud[mirror_idx]
+                    .shroud_layer
+                    .angle
+                    .as_mut()
+                    .unwrap()
+                    .as_degrees_mut()
+                    .get_value_mut() = -self.shroud[self.idx]
+                    .shroud_layer
+                    .angle
+                    .as_ref()
+                    .unwrap()
+                    .as_degrees()
+                    .get_value();
+            }
             let (shape, shape_id, vertices) = get_mirrored_shape_data(
                 self.shroud,
                 self.idx,
                 loaded_shapes,
                 loaded_shapes_mirror_pairs,
             );
-            self.shroud[mirror_index].vertices = vertices;
-            self.shroud[mirror_index].shroud_layer.shape = Some(shape);
+            self.shroud[mirror_idx].vertices = vertices;
+            self.shroud[mirror_idx].shroud_layer.shape = Some(shape);
             if shape_id == RIGHT_TRI {
-                rotate_right_tri_shroud_layer_mirror(&mut self.shroud[mirror_index]);
+                rotate_right_tri_shroud_layer_mirror(&mut self.shroud[mirror_idx]);
             }
-            self.shroud[mirror_index].shape_id = shape_id;
+            self.shroud[mirror_idx].shape_id = shape_id;
         }
     }
     fn on_x_changed(&mut self, x: f32) {
@@ -126,8 +182,11 @@ impl ShroudLayerSettingsTarget for SingleSettingsTarget<'_> {
                 .to_f32_mut() = width;
         }
     }
-    fn on_height_changed(&mut self, height: f32) {
+    fn on_height_changed(&mut self, mut height: f32) {
         if let Some(mirror_idx) = self.shroud[self.idx].mirror_index_option {
+            if self.shroud[mirror_idx].invert_height_of_mirror {
+                height *= -1.0;
+            }
             *self.shroud[mirror_idx]
                 .shroud_layer
                 .size
@@ -137,8 +196,11 @@ impl ShroudLayerSettingsTarget for SingleSettingsTarget<'_> {
                 .to_f32_mut() = height;
         }
     }
-    fn on_angle_changed(&mut self, angle: f32) {
+    fn on_angle_changed(&mut self, mut angle: f32) {
         if let Some(mirror_idx) = self.shroud[self.idx].mirror_index_option {
+            if self.shroud[mirror_idx].invert_height_of_mirror {
+                angle *= -1.0;
+            }
             *self.shroud[mirror_idx]
                 .shroud_layer
                 .angle
@@ -386,6 +448,7 @@ pub fn full_angle_settings(
     add_undo_history: &mut bool,
     angle_snap: f32,
     angle_snap_enabled: bool,
+    rotation_edgecase_option: Option<RotationEdgecase>,
 ) {
     let angle_speed = if angle_snap_enabled { angle_snap } else { 1.0 };
     ui.horizontal(|ui| {
@@ -399,8 +462,10 @@ pub fn full_angle_settings(
         ui.label("angle=");
         let response = ui.add(DragValue::new(angle).speed(angle_speed));
         ui.label("*pi/180");
+        *angle = rotation_edgecase_logic_degrees(rotation_edgecase_option, *angle);
         let (knob_changed, knob_drag_stopped) =
             angle_knob_settings(ui, angle, angle_snap, angle_snap_enabled);
+        *angle = rotation_edgecase_logic_degrees(rotation_edgecase_option, *angle);
         if response.changed() || knob_changed {
             let angle = *angle;
             shroud_layer_settings_target.on_angle_changed(angle);
@@ -465,6 +530,7 @@ impl ShroudEditor {
         // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
         // let start_y = ui.cursor().min.y;
         let xy_speed = self.get_xy_speed();
+        let rotation_edgecase_option = Into::<Option<RotationEdgecase>>::into(&self.shroud[idx]);
         ui.spacing_mut().item_spacing.y = 2.0;
         let mut shroud_layer_settings_height = 187.0;
         if self.shroud[idx].shape_id == "SQUARE" {
@@ -521,6 +587,7 @@ impl ShroudEditor {
             add_undo_history,
             self.angle_snap,
             self.angle_snap_enabled,
+            rotation_edgecase_option,
         );
         colour_settings(ui, shroud_layer_settings_target, add_undo_history);
 

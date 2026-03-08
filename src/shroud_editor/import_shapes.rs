@@ -2,13 +2,13 @@ use std::{fs::read_to_string, path::PathBuf};
 
 use egui::{ScrollArea, TextBuffer, TextEdit, Ui, collapsing_header::CollapsingState};
 use egui_extras::syntax_highlighting::{CodeTheme, highlight};
-use luexks_reassembly::shapes::shapes::Shapes;
 use parse_vanilla_shapes::VANILLA_SHAPE_COUNT;
 
 use crate::{
     file_import_export::WhichFileDialog,
     mirror_pairs::get_loaded_shapes_mirror_pairs,
     restructure_vertices::restructure_vertices,
+    shape_container::ShapeContainer,
     shroud_editor::{
         ShroudEditor,
         parse_shapes_text::{ShapesMessage, parse_shapes_text},
@@ -16,31 +16,39 @@ use crate::{
 };
 
 impl ShroudEditor {
-    fn load_shapes(&mut self, imported_shapes: Shapes, mirror_pairs: Vec<(usize, usize)>) {
-        self.loaded_shapes = Shapes(
-            self.loaded_shapes.0[0..VANILLA_SHAPE_COUNT]
-                .iter()
-                .cloned()
-                .chain(imported_shapes.0)
-                .collect(),
-        );
+    fn load_shapes(
+        &mut self,
+        imported_shapes: Vec<ShapeContainer>,
+        mirror_pairs: Vec<(usize, usize)>,
+        non_mirrors: Vec<usize>,
+    ) {
+        self.loaded_shapes = self.loaded_shapes[0..VANILLA_SHAPE_COUNT]
+            .iter()
+            .cloned()
+            .chain(imported_shapes)
+            .collect();
+        non_mirrors.into_iter().for_each(|non_mirror| {
+            self.loaded_shapes[non_mirror].set_invert_height_of_mirror();
+        });
         self.loaded_shapes_mirror_pairs = get_loaded_shapes_mirror_pairs(&self.loaded_shapes);
         self.loaded_shapes_mirror_pairs.extend(mirror_pairs);
         (0..self.shroud.len()).for_each(|shroud_layer_index| {
             let shroud_layer = &mut self.shroud[shroud_layer_index];
-            if let Some(shape_idx) = self.loaded_shapes.0.iter().position(|shape| {
-                shape.get_id().unwrap() == *shroud_layer.shroud_layer.shape.as_ref().unwrap()
+            if let Some(shape_idx) = self.loaded_shapes.iter().position(|shape| {
+                shape.s.get_id().unwrap() == *shroud_layer.shroud_layer.shape.as_ref().unwrap()
             }) {
                 shroud_layer.vertices = restructure_vertices(
-                    self.loaded_shapes.0[shape_idx].get_first_scale_vertices(),
+                    self.loaded_shapes[shape_idx].s.get_first_scale_vertices(),
                 );
+                shroud_layer.invert_height_of_mirror =
+                    self.loaded_shapes[shape_idx].invert_height_of_mirror
             }
         });
-        if let Some(shape_idx) = self.loaded_shapes.0.iter().position(|shape| {
-            shape.get_id().unwrap() == *self.block_container.block.shape.as_ref().unwrap()
+        if let Some(shape_idx) = self.loaded_shapes.iter().position(|shape| {
+            shape.s.get_id().unwrap() == *self.block_container.block.shape.as_ref().unwrap()
         }) {
             self.block_container.vertices =
-                restructure_vertices(self.loaded_shapes.0[shape_idx].get_first_scale_vertices());
+                restructure_vertices(self.loaded_shapes[shape_idx].s.get_first_scale_vertices());
         }
     }
 
@@ -63,8 +71,8 @@ impl ShroudEditor {
     pub fn import_shapes_from_file(&mut self, path: PathBuf) {
         if let Ok(s) = read_to_string(path) {
             match parse_shapes_text(&s) {
-                Ok((imported_shapes, mirror_pairs)) => {
-                    self.load_shapes(imported_shapes, mirror_pairs);
+                Ok((imported_shapes, mirror_pairs, non_mirrors)) => {
+                    self.load_shapes(imported_shapes, mirror_pairs, non_mirrors);
                     self.just_imported_shapes_from_file_message_option =
                         Some(ShapesMessage::Success);
                 }
@@ -90,8 +98,8 @@ impl ShroudEditor {
                     let response = ui.button("Import");
                     if response.clicked() {
                         match parse_shapes_text(&self.shapes_import_text) {
-                            Ok((imported_shapes, mirror_pairs)) => {
-                                self.load_shapes(imported_shapes, mirror_pairs);
+                            Ok((imported_shapes, mirror_pairs, non_mirrors)) => {
+                                self.load_shapes(imported_shapes, mirror_pairs, non_mirrors);
                                 self.just_imported_shapes_from_paste_box_message_option =
                                     Some(ShapesMessage::Success);
                             }

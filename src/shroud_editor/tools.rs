@@ -1,6 +1,9 @@
 use crate::{
-    pos_and_display_oriented_number_conversion::do3d_to_pos2,
-    shroud_editor::{ShroudEditor, shroud_settings::angle_knob_settings},
+    pos_and_display_oriented_number_conversion::{do3d_to_pos2, pos2_to_do2d},
+    shroud_editor::{
+        ShroudEditor,
+        shroud_settings::{ShroudLayerSettingsTarget, SingleSettingsTarget, angle_knob_settings},
+    },
     shroud_interaction::ShroudInteraction,
 };
 use egui::{DragValue, Ui, collapsing_header::CollapsingState, pos2};
@@ -90,42 +93,43 @@ impl ShroudEditor {
                 .button("Set to default proportions with size multiplier")
                 .clicked()
             {
-                self.add_undo_history = true;
-                self.shroud_interaction
-                    .selection()
-                    .iter()
-                    .for_each(|shroud_layer_index| {
-                        let shroud_layer = &mut self.shroud[*shroud_layer_index];
-                        let verts = &shroud_layer.vertices;
-                        let (min_x, max_x, min_y, max_y) = verts.iter().fold(
-                            (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
-                            |(min_x, max_x, min_y, max_y), vert| {
-                                (
-                                    vert.x.min(min_x),
-                                    vert.x.max(max_x),
-                                    vert.y.min(min_y),
-                                    vert.y.max(max_y),
-                                )
-                            },
-                        );
-                        let shape_size = (-min_x + max_x, -min_y + max_y);
-                        let scaled_default_proportion_size = do2d_float_from(
-                            shape_size.0 * self.tool_settings.default_proportions_scale,
-                            shape_size.1 * self.tool_settings.default_proportions_scale,
-                        );
-                        if let Some(mirror_index) = shroud_layer.mirror_index_option {
-                            shroud_layer.shroud_layer.size =
-                                Some(scaled_default_proportion_size.clone());
-                            self.shroud[mirror_index].shroud_layer.size =
-                                Some(scaled_default_proportion_size);
-                        } else {
-                            shroud_layer.shroud_layer.size = Some(scaled_default_proportion_size);
-                        }
-                    });
+                self.set_default_proportions();
             }
             ui.add(DragValue::new(
                 &mut self.tool_settings.default_proportions_scale,
             ));
+        });
+    }
+
+    fn set_default_proportions(&mut self) {
+        self.add_undo_history = true;
+        self.shroud_interaction.selection().iter().for_each(|idx| {
+            let shroud_layer = &mut self.shroud[*idx];
+            let verts = &shroud_layer.vertices;
+            let (min_x, max_x, min_y, max_y) = verts.iter().fold(
+                (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
+                |(min_x, max_x, min_y, max_y), vert| {
+                    (
+                        vert.x.min(min_x),
+                        vert.x.max(max_x),
+                        vert.y.min(min_y),
+                        vert.y.max(max_y),
+                    )
+                },
+            );
+            let shroud_settings_target = &mut SingleSettingsTarget {
+                shroud: &mut self.shroud,
+                idx: *idx,
+            };
+            let shape_size = (-min_x + max_x, -min_y + max_y);
+            let scaled_default_proportion_size = pos2(
+                shape_size.0 * self.tool_settings.default_proportions_scale,
+                shape_size.1 * self.tool_settings.default_proportions_scale,
+            );
+            shroud_settings_target.get_main_layer_mut().size =
+                Some(pos2_to_do2d(&scaled_default_proportion_size));
+            shroud_settings_target.on_width_changed(scaled_default_proportion_size.x);
+            shroud_settings_target.on_height_changed(scaled_default_proportion_size.y);
         });
     }
 

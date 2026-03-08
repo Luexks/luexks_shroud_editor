@@ -10,7 +10,7 @@ use egui::{
 use egui_extras::syntax_highlighting::{CodeTheme, highlight};
 use luexks_reassembly::{
     blocks::shroud_layer::ShroudLayer,
-    shapes::{shape_id::ShapeId, shapes::Shapes},
+    shapes::shape_id::ShapeId,
     utility::{
         angle::Angle,
         display_oriented_math::{do2d_float_from, do3d_float_from},
@@ -22,6 +22,7 @@ use crate::{
     color_type_conversion::{rgba_to_color, rgba_to_color_string, str_to_rgba_option},
     invert_y::invert_y_of_pos2,
     restructure_vertices::restructure_vertices,
+    shape_container::ShapeContainer,
     shroud_editor::{
         FILL_COLOR_GRADIENT_TIME, ShroudEditor,
         parse_shroud_text::{ShroudParseResult, parse_shroud_text},
@@ -431,12 +432,12 @@ impl ShroudEditor {
                 self.block_container.block.scale = Some(scale);
                 self.block_container.vertices = restructure_vertices(
                     self.loaded_shapes
-                        .0
                         .iter()
                         .find(|shape| {
-                            shape.get_id().unwrap().to_string() == self.block_container.shape_id
+                            shape.s.get_id().unwrap().to_string() == self.block_container.shape_id
                         })
                         .unwrap()
+                        .s
                         .get_nth_scale_vertices(scale - 1),
                 );
                 is_changed = true;
@@ -484,7 +485,7 @@ fn block_shape_combo_box(
     shape: &mut Option<ShapeId>,
     shape_id: &mut String,
     vertices: &mut Vec<Pos2>,
-    loaded_shapes: &Shapes,
+    loaded_shapes: &[ShapeContainer],
     show_vanilla: &mut bool,
     search_buf: &mut String,
     max_scale: &mut usize,
@@ -516,12 +517,12 @@ fn block_shape_combo_box(
                     .max_width(250.0)
                     .show(ui, |ui| {
                         for selectable_shape in if *show_vanilla {
-                            &loaded_shapes.0
+                            &loaded_shapes
                         } else {
-                            &loaded_shapes.0[VANILLA_SHAPE_COUNT..]
+                            &loaded_shapes[VANILLA_SHAPE_COUNT..]
                         } {
                             let selectable_shape_id =
-                                selectable_shape.get_id().unwrap().to_string();
+                                selectable_shape.s.get_id().unwrap().to_string();
                             if search_buf.is_empty()
                                 || selectable_shape_id
                                     .to_lowercase()
@@ -533,12 +534,12 @@ fn block_shape_combo_box(
                                     selectable_shape_id,
                                 );
                                 if response.clicked() {
-                                    *max_scale = selectable_shape.get_scale_count();
+                                    *max_scale = selectable_shape.s.get_scale_count();
                                     let scale = usize::min(scale, *max_scale);
                                     *vertices = restructure_vertices(
-                                        selectable_shape.get_nth_scale_vertices(scale - 1),
+                                        selectable_shape.s.get_nth_scale_vertices(scale - 1),
                                     );
-                                    *shape = selectable_shape.get_id();
+                                    *shape = selectable_shape.s.get_id();
                                     is_shape_changed = true;
                                 }
                             }
