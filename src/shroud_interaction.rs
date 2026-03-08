@@ -197,7 +197,7 @@ impl ShroudEditor {
                     }
                 }
 
-                if response.drag_started() {
+                if response.drag_started_by(egui::PointerButton::Primary) {
                     if self.shroud_interaction.selection().is_empty() || shift {
                         self.selection_box_start_pos_option = Some(self.world_mouse_pos);
                     } else {
