@@ -51,7 +51,7 @@ impl ShroudEditor {
                         self.block_settings(ui);
                         self.tools(ui);
                         self.float_shroud_settings_logic(ctx, ui);
-                        self.shroud_settings(ctx, ui, false);
+                        self.shroud_settings(ui, false);
                         // println!("{}", ui.cursor().min);
                         self.shroud_list(ui);
                     });
@@ -97,13 +97,13 @@ impl ShroudEditor {
                 .fade_in(false)
                 .show(ctx, |ui| {
                     Frame::new().fill(BACKGROUND_COLOUR).show(ui, |ui| {
-                        self.shroud_settings(ctx, ui, true);
+                        self.shroud_settings(ui, true);
                     });
                 });
         }
     }
 
-    fn shroud_settings(&mut self, ctx: &Context, ui: &mut Ui, is_floating_panel: bool) {
+    fn shroud_settings(&mut self, ui: &mut Ui, is_floating_panel: bool) {
         // let y = ui.cursor().min.y;
         // println!("{}, {}", y, ui.cursor().min.y);
         if ui.button("Add Shroud Layer").clicked() {
