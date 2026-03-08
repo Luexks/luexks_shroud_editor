@@ -484,12 +484,13 @@ impl ShroudEditor {
             // let start = ui.cursor().min.y;
             // println!("{}", start);
             // (0..self.shroud.len()).for_each(|index| {
+            let are_multiple_selected = self.shroud_interaction.selection_len() >= 2;
             for index in 0..self.shroud.len() {
                 let is_selected = self
                     .shroud_interaction
                     .is_shroud_layer_index_selected(index);
                 if !self.only_show_selected_shroud_layers || is_selected {
-                    self.shroud_layer_settings(is_selected, ui, index);
+                    self.shroud_layer_settings(is_selected, ui, index, are_multiple_selected);
                 }
                 // });
                 // let top_of_shroud_layer_settings_y = ui.cursor().min.y;
@@ -503,7 +504,13 @@ impl ShroudEditor {
         ui.add_space(4.0);
     }
 
-    fn shroud_layer_settings(&mut self, is_selected: bool, ui: &mut Ui, index: usize) {
+    fn shroud_layer_settings(
+        &mut self,
+        is_selected: bool,
+        ui: &mut Ui,
+        index: usize,
+        are_multiple_selected: bool,
+    ) {
         // let start_y = ui.cursor().min.y;
         ui.vertical(|ui| {
             egui::Frame::new()
@@ -519,12 +526,18 @@ impl ShroudEditor {
                     },
                 ))
                 .show(ui, |ui| {
-                    self.shroud_layer_settings_body(is_selected, ui, index);
+                    self.shroud_layer_settings_body(is_selected, ui, index, are_multiple_selected);
                 });
         });
     }
 
-    fn shroud_layer_settings_body(&mut self, is_selected: bool, ui: &mut Ui, idx: usize) {
+    fn shroud_layer_settings_body(
+        &mut self,
+        is_selected: bool,
+        ui: &mut Ui,
+        idx: usize,
+        are_multiple_selected: bool,
+    ) {
         // let response = ui.label("h");
         // let visible_rect = ui.clip_rect();
         // println!("{}\t{}", response.rect.min.y, visible_rect.min.y);
@@ -547,7 +560,7 @@ impl ShroudEditor {
         if shroud_layer_settings_are_off_screen {
             ui.add_space(20.0);
         } else {
-            self.select_deselect_and_delete_buttons(ui, idx, is_selected);
+            self.select_deselect_and_delete_buttons(ui, idx, is_selected, are_multiple_selected);
         };
         if !(is_selected && self.shroud_interaction.selection_len() == 1) {
             return;
@@ -652,7 +665,13 @@ impl ShroudEditor {
         });
     }
 
-    fn select_deselect_and_delete_buttons(&mut self, ui: &mut Ui, index: usize, is_selected: bool) {
+    fn select_deselect_and_delete_buttons(
+        &mut self,
+        ui: &mut Ui,
+        index: usize,
+        is_selected: bool,
+        are_multiple_selected: bool,
+    ) {
         ui.horizontal(|ui| {
             ui.label(index.to_string());
             if !is_selected {
@@ -666,15 +685,22 @@ impl ShroudEditor {
                             .collect(),
                     };
                 }
-            } else if ui.button("Deselect").clicked() {
-                self.shroud_interaction = ShroudInteraction::Inaction {
-                    selection: self
-                        .shroud_interaction
-                        .selection()
-                        .into_iter()
-                        .filter(|selection_index| *selection_index != index)
-                        .collect(),
-                };
+            } else {
+                if ui.button("Deselect").clicked() {
+                    self.shroud_interaction = ShroudInteraction::Inaction {
+                        selection: self
+                            .shroud_interaction
+                            .selection()
+                            .into_iter()
+                            .filter(|selection_index| *selection_index != index)
+                            .collect(),
+                    };
+                }
+                if are_multiple_selected && ui.button("Solo Select").clicked() {
+                    self.shroud_interaction = ShroudInteraction::Inaction {
+                        selection: [index].into(),
+                    };
+                }
             }
             if ui.button("Delete (Double Click)").double_clicked() {
                 self.add_undo_history = true;
