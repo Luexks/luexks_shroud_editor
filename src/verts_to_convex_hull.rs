@@ -24,10 +24,14 @@ pub fn verts_to_convex_hull(mut verts: Vec<Pos2>, is_vanilla: bool) -> Vec<Pos2>
     } else {
         let mut min_x = verts[0].x;
         let mut min_x_idx = 0;
+        let mut min_y = verts[0].y;
 
         verts.iter().enumerate().for_each(|(idx, vert)| {
             if vert.x < min_x {
                 min_x = vert.x;
+                min_x_idx = idx;
+            } else if vert.x == min_x && vert.y < min_y {
+                min_y = vert.y;
                 min_x_idx = idx;
             }
         });
@@ -93,7 +97,7 @@ pub fn verts_to_convex_hull(mut verts: Vec<Pos2>, is_vanilla: bool) -> Vec<Pos2>
     convex_verts
 }
 
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Debug)]
 enum Orientation {
     Clockwise,
     Anticlockwise,

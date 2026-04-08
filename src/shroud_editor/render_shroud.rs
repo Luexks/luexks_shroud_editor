@@ -222,7 +222,6 @@ fn render_shroud_body(
             },
         )
         .collect::<Vec<_>>();
-
     if shroud_rendering_data.is_empty() {
         return;
     }
