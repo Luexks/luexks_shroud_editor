@@ -1,0 +1,12 @@
+        shroud={
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=SQUARE size={13,0.75} offset={2,-0,0.02} taper=0.85 }
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=SQUARE size={13,0.75} offset={2,1.75,0.02} taper=0.85 }
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=SQUARE size={13,0.75} offset={2,-1.75,0.02} taper=0.85 }
+            { tri_color_id=0 tri_color1_id=0 line_color_id=2 shape=OCTAGON size={9,9} offset={0,-0,0.01} }
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=SQUARE size={8.6,2.6} offset={-6,-0,0.04} taper=1.3 }
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=OCTAGON size={7,7.5} offset={-2,0,0.02} }
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=SQUARE size={2,4.2} offset={-1,0,0.03} }
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=SQUARE size={11,0.9} offset={2,1.75,0.03} taper=0.85 }
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=SQUARE size={11,0.9} offset={2,-1.75,0.03} taper=0.85 }
+            { tri_color_id=0 tri_color1_id=1 line_color_id=2 shape=SQUARE size={11,0.9} offset={2,-0,0.03} taper=0.85 }
+        }
