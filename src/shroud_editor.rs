@@ -220,4 +220,5 @@ mod shroud_settings;
 mod tools;
 mod viewport_controls;
 mod visual_panel;
+mod world_mouse_pos_text;
 mod x_y_z_drag_value_speed;

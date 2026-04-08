@@ -57,6 +57,8 @@ impl ShroudEditor {
                 if let ShroudInteraction::Inaction { .. } = &self.shroud_interaction {
                     self.shroud_layer_gizmos(ui, rect);
                 }
+
+                self.world_mouse_pos_text(ui, rect);
             });
     }
 
