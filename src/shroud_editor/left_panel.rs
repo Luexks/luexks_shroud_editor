@@ -385,6 +385,7 @@ impl ShroudEditor {
                                 self.shroud_interaction = ShroudInteraction::Inaction {
                                     selection: Vec::new(),
                                 };
+                                self.groups.clear();
                                 self.add_undo_history = true;
                             }
                             Err(err) => {
