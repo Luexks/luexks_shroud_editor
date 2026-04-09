@@ -60,6 +60,8 @@ impl ShroudEditor {
                         });
                 });
             }
+        } else {
+            self.show_right_click_shroud_add = false;
         }
     }
 
