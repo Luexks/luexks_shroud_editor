@@ -24,6 +24,9 @@ impl ShroudEditor {
                 if let Some(pos) = response.interact_pointer_pos() {
                     self.right_click_shroud_screen_pos = pos;
                 }
+                self.shroud_interaction = ShroudInteraction::Inaction {
+                    selection: Vec::new(),
+                };
             }
             if self.show_right_click_shroud_add {
                 if response.clicked() {

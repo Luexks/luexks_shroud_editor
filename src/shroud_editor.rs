@@ -79,7 +79,7 @@ pub struct ShroudEditor {
     pub is_first_frame: bool,
     pub groups: Vec<Vec<usize>>,
     pub outline_groups: bool,
-    show_right_click_shroud_add: bool,
+    pub(crate) show_right_click_shroud_add: bool,
     right_click_shroud_screen_pos: Pos2,
 }
 

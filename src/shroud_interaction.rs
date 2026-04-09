@@ -200,6 +200,7 @@ impl ShroudEditor {
                 if response.drag_started_by(egui::PointerButton::Primary) {
                     if self.shroud_interaction.selection().is_empty() || shift {
                         self.selection_box_start_pos_option = Some(self.world_mouse_pos);
+                        self.show_right_click_shroud_add = false;
                     } else {
                         let dragged_shroud_layer_idx = self.shroud_interaction.selection()[0];
                         let drag_pos = do3d_to_pos2(
