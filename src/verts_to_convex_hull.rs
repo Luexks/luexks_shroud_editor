@@ -39,28 +39,70 @@ pub fn verts_to_convex_hull(mut verts: Vec<Pos2>, is_vanilla: bool) -> Vec<Pos2>
     }
 
     let first = verts[0];
-    verts[1..].sort_by(
-        |a, b| match Orientation::signed_area_determinant((first, a, b)) {
-            Orientation::Clockwise => Ordering::Less,
-            Orientation::Anticlockwise => Ordering::Greater,
-            Orientation::Collinear => {
-                let a_dist_squared = (a.x - first.x).powi(2) + (a.y - first.y).powi(2);
-                let b_dist_squared = (b.x - first.x).powi(2) + (b.y - first.y).powi(2);
-                a_dist_squared
-                    .partial_cmp(&b_dist_squared)
-                    .unwrap_or(Ordering::Equal)
-            }
-        },
-    );
-    let mut verts = verts.into_iter().map(Some).collect::<Vec<_>>();
+    // println!("##############");
     const EPSILON: f32 = 1e-06 * 1e-06;
-    for (curr, next) in (0..verts.len() - 1).zip(1..verts.len()) {
+    // let mut verts = verts[1..];
+        // .into_iter()
+        // .map(|vert| (*vert, dbg!((vert.y - first.y).atan2(vert.x - first.x) / std::f32::consts::PI * 180.)))
+        // .sorted_by(|(_, angle_1), (_, angle_2)| angle_1.partial_cmp(angle_2).unwrap_or(Ordering::Equal))
+        // .dedup_by(|(_, angle_1), (_, angle_2)| angle_1 != angle_2)
+        // .collect::<Vec<_>>();
+    // verts.sort_by(|(a, _), (b, _)| {
+    // let mut verts = verts.into_iter().enumerate().map(|(i, vert)| (vert, i)).collect::<Vec<_>>();
+    // verts[1..].sort_by(|(a, a_i), (b, b_i)| {
+    verts.remove(0);
+    verts.sort_by(|a, b| {
+        // match Orientation::signed_area_determinant((first, a, b)) {
+        //     Orientation::Clockwise => Ordering::Less,
+        //     Orientation::Anticlockwise => Ordering::Greater,
+        //     Orientation::Collinear => {
+        //         let a_dist_squared = (a.x - first.x).powi(2) + (a.y - first.y).powi(2);
+        //         let b_dist_squared = (b.x - first.x).powi(2) + (b.y - first.y).powi(2);
+        //         a_dist_squared
+        //             .partial_cmp(&b_dist_squared)
+        //             .unwrap_or(Ordering::Equal)
+        //         // a_dist_squared
+        //         //     .total_cmp(&b_dist_squared)
+        //         // a_i.cmp(b_i)
+        //     }
+        // }
+        let angle_a = (a.x - first.x).atan2(a.y - first.y);
+        let angle_b = (b.x - first.x).atan2(b.y - first.y);
+        angle_a.total_cmp(&angle_b)
+    });
+    // let mut verts = verts.into_iter().dedup_by(|a, b| {
+    //     let angle_a = (a.x - first.x).atan2(a.y - first.y);
+    //     let angle_b = (b.x - first.x).atan2(b.y - first.y);
+    //     (angle_a - angle_b).abs() < EPSILON
+    // } ).collect::<Vec<_>>();
+    verts.insert(0, first);
+    let mut verts = verts
+        .into_iter()
+        // .map(|(vert, _)| vert)
+        .map(Some)
+        .collect::<Vec<_>>();
+    // verts.insert(0, Some(first));
+    for (curr, next) in (1..verts.len() - 1).zip(2..verts.len()) {
         let (Some(a), Some(b)) = (verts[curr], verts[next]) else {
             continue;
         };
         let square_difference = (a - b).length_sq();
         if square_difference < EPSILON {
             verts[curr] = None;
+            continue;
+        }
+        let angle_a = (a.x - first.x).atan2(a.y - first.y);
+        let angle_b = (b.x - first.x).atan2(b.y - first.y);
+        let a_dist_squared = (a.x - first.x).powi(2) + (a.y - first.y).powi(2);
+        let b_dist_squared = (b.x - first.x).powi(2) + (b.y - first.y).powi(2);
+        if (angle_a - angle_b).abs() < EPSILON {
+            if a_dist_squared < b_dist_squared {
+                verts[curr] = None;
+            } else {
+                // verts[next] = None;
+                verts[next] = verts[curr];
+                verts[curr] = None;
+            }
         }
     }
     let mut verts = verts.into_iter().flatten().collect::<VecDeque<_>>();
@@ -105,17 +147,17 @@ enum Orientation {
 }
 
 impl Orientation {
-    fn signed_area_determinant((a, b, c): (Pos2, &Pos2, &Pos2)) -> Self {
-        let v = (a.x * (b.y - c.y)) + (b.x * (c.y - a.y)) + (c.x * (a.y - b.y));
-        // println!("orientation get {}", v);
-        if v < 0.0 {
-            Orientation::Clockwise
-        } else if v > 0.0 {
-            Orientation::Anticlockwise
-        } else {
-            Orientation::Collinear
-        }
-    }
+    // fn signed_area_determinant((a, b, c): (Pos2, &Pos2, &Pos2)) -> Self {
+    //     let v = (a.x * (b.y - c.y)) + (b.x * (c.y - a.y)) + (c.x * (a.y - b.y));
+    //     // println!("orientation get {}", v);
+    //     if v < 0.0 {
+    //         Orientation::Clockwise
+    //     } else if v > 0.0 {
+    //         Orientation::Anticlockwise
+    //     } else {
+    //         Orientation::Collinear
+    //     }
+    // }
 
     fn z_of_cross_product((a, b, c): (Pos2, &Pos2, &Pos2)) -> Self {
         let v = (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
