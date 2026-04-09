@@ -4,7 +4,7 @@ use crate::shroud_editor::ShroudEditor;
 
 impl ShroudEditor {
     pub fn world_mouse_pos_text(&self, ui: &mut Ui, rect: Rect) {
-        Area::new(Id::new("float_shroud_settings"))
+        Area::new(Id::new("world_mouse_pos_text"))
             .fixed_pos(pos2(rect.min.x, 0.))
             .fade_in(false)
             .default_width(500.)
