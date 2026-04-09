@@ -237,8 +237,7 @@ fn layer_group_idx_logic_for_deleted_groups_group_idx(
     });
 }
 
-// const GROUP_OUTLINE_COLOUR: Rgba = Rgba::from_gray(200.0);
-const GROUP_OUTLINE_COLOUR: Rgba = Rgba::from_rgb(1., 0., 0.);
+const GROUP_OUTLINE_COLOUR: Rgba = Rgba::from_gray(200.0);
 
 pub fn render_group_outlines(
     shroud: &[ShroudLayerContainer],
@@ -283,24 +282,7 @@ pub fn render_group_outlines(
                 verts
             })
             .collect::<Vec<_>>();
-        let mut group_verts = verts_to_convex_hull(verts, false);
-        // group_verts.iter_mut().for_each(|vert| {
-        //     *vert = world_pos_to_screen_pos(*vert, rect, pan, zoom);
-        // });
-        // let avg_vert_pos = group_verts.iter().fold(Pos2::default(), |pos, vert| {
-        //     pos2(pos.x + vert.x, pos.y + vert.y)
-        // }) / group_verts.len() as f32;
-        // group_verts.iter_mut().for_each(|vert| {
-        //     let dx = vert.x - avg_vert_pos.x;
-        //     let dy = vert.y - avg_vert_pos.y;
-        //     let angle = dy.atan2(dx);
-        //     let distance = (dx.powi(2) + dy.powi(2)).powf(0.5);
-        //     let selection_distance = distance + 5.0;
-        //     let selection_x = avg_vert_pos.x + selection_distance * angle.cos();
-        //     let selection_y = avg_vert_pos.y + selection_distance * angle.sin();
-        //     vert.x = selection_x;
-        //     vert.y = selection_y;
-        // });
+        let group_verts = verts_to_convex_hull(verts, false);
         let mut render_outline_vertices = Vec::new();
         group_verts
             .iter()
