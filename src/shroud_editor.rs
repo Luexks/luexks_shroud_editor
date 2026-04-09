@@ -33,7 +33,8 @@ pub struct ShroudEditor {
     pub shroud: Vec<ShroudLayerContainer>,
     pub shroud_interaction: ShroudInteraction,
     pub zoom: f32,
-    pub(crate) grid_size: f32,
+    pub settings_grid_size: f32,
+    pub grid_size: f32,
     grid_visible: bool,
     grid_snap_enabled: bool,
     angle_snap: f32,
@@ -78,6 +79,8 @@ pub struct ShroudEditor {
     pub is_first_frame: bool,
     pub groups: Vec<Vec<usize>>,
     pub outline_groups: bool,
+    show_right_click_shroud_add: bool,
+    right_click_shroud_screen_pos: Pos2,
 }
 
 impl Default for ShroudEditor {
@@ -91,6 +94,7 @@ impl Default for ShroudEditor {
                 selection: Vec::new(),
             },
             zoom: 1.0,
+            settings_grid_size: 1.0,
             grid_size: 1.0,
             grid_visible: true,
             grid_snap_enabled: true,
@@ -136,6 +140,8 @@ impl Default for ShroudEditor {
             is_first_frame: true,
             groups: Vec::new(),
             outline_groups: true,
+            show_right_click_shroud_add: false,
+            right_click_shroud_screen_pos: Default::default(),
         }
     }
 }
@@ -160,6 +166,8 @@ impl eframe::App for ShroudEditor {
         //     print!("C");
         // }
         self.update_dt(ctx);
+
+        self.half_grid_size_key_logic(ctx);
 
         self.fill_color_gradient_delta();
         self.left_panel(ctx);
@@ -200,6 +208,7 @@ mod delta_time;
 mod draw_grid;
 mod export_shroud;
 mod grouping;
+mod half_grid_size_key_logic;
 mod hotkey_copy_and_paste;
 mod hotkey_mirroring;
 mod hotkey_shroud_layer_deletion;
@@ -210,6 +219,7 @@ mod parse_shroud_text;
 mod parsing;
 mod render_polygon;
 mod render_shroud;
+mod right_click_shroud_add;
 mod selection_box;
 mod shape_combo_box;
 mod shroud_interaction_checks;

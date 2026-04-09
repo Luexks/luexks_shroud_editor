@@ -168,8 +168,8 @@ impl ShroudEditor {
             ui.label("Grid Visible:");
             ui.add(Checkbox::new(&mut self.grid_visible, ""));
             ui.label("Size:");
-            ui.add(DragValue::new(&mut self.grid_size).speed(0.05));
-            self.grid_size = self.grid_size.max(0.1);
+            ui.add(DragValue::new(&mut self.settings_grid_size).speed(0.05));
+            self.settings_grid_size = self.settings_grid_size.max(0.1);
             ui.label("Snap:");
             ui.add(Checkbox::new(&mut self.grid_snap_enabled, ""));
         });

@@ -21,7 +21,7 @@ impl ShroudEditor {
                     self.world_mouse_pos = self.screen_pos_to_world_pos(mouse_pos, rect);
                 }
 
-                if !Popup::is_any_open(ctx) {
+                if !Popup::is_any_open(ctx) && !self.show_right_click_shroud_add {
                     self.zoom(ui, rect);
                 }
 
@@ -61,6 +61,8 @@ impl ShroudEditor {
                 }
 
                 self.world_mouse_pos_text(ui, rect);
+
+                self.right_click_shroud_add(ui, &response);
             });
     }
 

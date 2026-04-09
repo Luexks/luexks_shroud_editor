@@ -106,26 +106,13 @@ impl ShroudEditor {
         self.shroud_interaction.selection().iter().for_each(|idx| {
             let shroud_layer = &mut self.shroud[*idx];
             let verts = &shroud_layer.vertices;
-            let (min_x, max_x, min_y, max_y) = verts.iter().fold(
-                (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
-                |(min_x, max_x, min_y, max_y), vert| {
-                    (
-                        vert.x.min(min_x),
-                        vert.x.max(max_x),
-                        vert.y.min(min_y),
-                        vert.y.max(max_y),
-                    )
-                },
-            );
+            let default_proportions_scale = self.tool_settings.default_proportions_scale;
+            let scaled_default_proportion_size =
+                get_scaled_default_proportion_size(verts, default_proportions_scale);
             let shroud_settings_target = &mut SingleSettingsTarget {
                 shroud: &mut self.shroud,
                 idx: *idx,
             };
-            let shape_size = (-min_x + max_x, -min_y + max_y);
-            let scaled_default_proportion_size = pos2(
-                shape_size.0 * self.tool_settings.default_proportions_scale,
-                shape_size.1 * self.tool_settings.default_proportions_scale,
-            );
             shroud_settings_target.get_main_layer_mut().size =
                 Some(pos2_to_do2d(&scaled_default_proportion_size));
             shroud_settings_target.on_width_changed(scaled_default_proportion_size.x);
@@ -446,4 +433,26 @@ impl ShroudEditor {
             ui.add(DragValue::new(about_y).speed(xy_speed));
         });
     }
+}
+
+pub fn get_scaled_default_proportion_size(
+    verts: &[egui::Pos2],
+    default_proportions_scale: f32,
+) -> egui::Pos2 {
+    let (min_x, max_x, min_y, max_y) = verts.iter().fold(
+        (f32::MAX, f32::MIN, f32::MAX, f32::MIN),
+        |(min_x, max_x, min_y, max_y), vert| {
+            (
+                vert.x.min(min_x),
+                vert.x.max(max_x),
+                vert.y.min(min_y),
+                vert.y.max(max_y),
+            )
+        },
+    );
+    let shape_size = (-min_x + max_x, -min_y + max_y);
+    pos2(
+        shape_size.0 * default_proportions_scale,
+        shape_size.1 * default_proportions_scale,
+    )
 }
