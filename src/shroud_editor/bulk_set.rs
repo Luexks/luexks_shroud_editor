@@ -279,6 +279,7 @@ impl ShroudLayerSettingsTarget for BulkSettingsTarget<'_> {
 impl ShroudEditor {
     pub fn bulk_set(&mut self, ui: &mut Ui) {
         ui.vertical(|ui| {
+            ui.label("Apply to entire selection:");
             egui::Frame::new()
                 .fill(SHROUD_LAYER_SETTINGS_COLOUR)
                 .inner_margin(6.0)
