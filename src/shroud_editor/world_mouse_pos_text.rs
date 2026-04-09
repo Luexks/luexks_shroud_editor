@@ -9,14 +9,18 @@ impl ShroudEditor {
             .fade_in(false)
             .default_width(500.)
             .show(ui.ctx(), |ui| {
-                Frame::new().fill(Color32::BLACK).inner_margin(2).show(ui, |ui| {
-                    ui.horizontal(|ui| {
-                        let s = format!("X: {:.3}\nY: {:.3}", self.world_mouse_pos.x, self.world_mouse_pos.y);
-                        ui.label(
-                            RichText::new(s).color(Color32::MAGENTA),
-                        );
+                Frame::new()
+                    .fill(Color32::BLACK)
+                    .inner_margin(2)
+                    .show(ui, |ui| {
+                        ui.horizontal(|ui| {
+                            let s = format!(
+                                "X: {:.3}\nY: {:.3}",
+                                self.world_mouse_pos.x, -self.world_mouse_pos.y
+                            );
+                            ui.label(RichText::new(s).color(Color32::MAGENTA));
+                        });
                     });
-                });
             });
     }
 }
