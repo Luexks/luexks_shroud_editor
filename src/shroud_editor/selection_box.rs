@@ -33,6 +33,7 @@ impl ShroudEditor {
         let selection_box = Rect::from_two_pos(selection_box_start_pos, self.world_mouse_pos);
         let original_selection = self.shroud_interaction.selection();
         let mut to_be_selected = Vec::new();
+        let mut selected_group_idxs = Vec::new();
         (0..self.shroud.len()).for_each(|i| {
             if !shift || !original_selection.contains(&i) {
                 let shroud_layer_container = &self.shroud[i];
@@ -67,14 +68,10 @@ impl ShroudEditor {
                             if !to_be_selected.contains(&i) {
                                 to_be_selected.push(i);
                             }
-                            if let Some(layer_group_idx) = self.shroud[i].group_idx_option {
-                                self.groups[layer_group_idx]
-                                    .iter()
-                                    .for_each(|group_layer_idx| {
-                                        if !to_be_selected.contains(group_layer_idx) {
-                                            to_be_selected.push(*group_layer_idx);
-                                        }
-                                    });
+                            if let Some(layer_group_idx) = self.shroud[i].group_idx_option
+                                && !selected_group_idxs.contains(&layer_group_idx)
+                            {
+                                selected_group_idxs.push(layer_group_idx);
                             }
                             break;
                         }
@@ -82,6 +79,17 @@ impl ShroudEditor {
                 }
             }
         });
+        selected_group_idxs
+            .into_iter()
+            .for_each(|selected_group_idx| {
+                let group = &self.groups[selected_group_idx];
+                to_be_selected.reserve(group.len());
+                group.iter().for_each(|group_layer_idx| {
+                    if !to_be_selected.contains(group_layer_idx) {
+                        to_be_selected.push(*group_layer_idx);
+                    }
+                });
+            });
         if shift {
             self.shroud_interaction = ShroudInteraction::Inaction {
                 selection: original_selection
