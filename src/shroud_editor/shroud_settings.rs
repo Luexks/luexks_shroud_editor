@@ -8,7 +8,7 @@ use crate::{
     rotation_edgecase::{RotationEdgecase, rotation_edgecase_logic_degrees},
     shape_container::ShapeContainer,
     shroud_editor::{
-        ShroudEditor,
+        DRAG_VALUE_MAX, DRAG_VALUE_MIN, ShroudEditor,
         add_mirror::{add_mirror, get_mirrored_shape_data},
         shape_combo_box::shroud_layer_shape_combo_box,
     },
@@ -273,7 +273,11 @@ pub fn offset_settings(
             .x
             .to_f32_mut();
         ui.label("offset={");
-        let response = ui.add(DragValue::new(x).speed(xy_speed));
+        let response = ui.add(
+            DragValue::new(x)
+                .speed(xy_speed)
+                .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+        );
         let x = *x;
         if response.changed() {
             shroud_layer_settings_target.on_x_changed(x);
@@ -289,7 +293,11 @@ pub fn offset_settings(
             .unwrap()
             .y
             .to_f32_mut();
-        let response = ui.add(DragValue::new(y).speed(xy_speed));
+        let response = ui.add(
+            DragValue::new(y)
+                .speed(xy_speed)
+                .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+        );
         let y = *y;
         if response.changed() {
             shroud_layer_settings_target.on_y_changed(y);
@@ -305,7 +313,11 @@ pub fn offset_settings(
             .unwrap()
             .z
             .to_f32_mut();
-        let response = ui.add(DragValue::new(z).speed(0.005));
+        let response = ui.add(
+            DragValue::new(z)
+                .speed(0.005)
+                .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+        );
         let z = *z;
         if response.changed() {
             shroud_layer_settings_target.on_z_changed(z);
@@ -332,7 +344,11 @@ pub fn size_settings(
             .x
             .to_f32_mut();
         ui.label("size={");
-        let response = ui.add(DragValue::new(width).speed(xy_speed));
+        let response = ui.add(
+            DragValue::new(width)
+                .speed(xy_speed)
+                .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+        );
         let width = *width;
         if response.changed() {
             shroud_layer_settings_target.on_width_changed(width);
@@ -348,7 +364,11 @@ pub fn size_settings(
             .unwrap()
             .y
             .to_f32_mut();
-        let response = ui.add(DragValue::new(height).speed(xy_speed));
+        let response = ui.add(
+            DragValue::new(height)
+                .speed(xy_speed)
+                .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+        );
         let height = *height;
         if response.changed() {
             shroud_layer_settings_target.on_height_changed(height);
@@ -431,7 +451,11 @@ pub fn taper_setting(
             .as_mut()
             .unwrap();
         ui.label("taper=");
-        let response = ui.add(DragValue::new(taper).speed(0.025));
+        let response = ui.add(
+            DragValue::new(taper)
+                .speed(0.025)
+                .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+        );
         if response.changed() {
             let taper = *taper;
             shroud_layer_settings_target.on_taper_changed(taper);
@@ -460,7 +484,11 @@ pub fn full_angle_settings(
             .as_degrees_mut()
             .get_value_mut();
         ui.label("angle=");
-        let response = ui.add(DragValue::new(angle).speed(angle_speed));
+        let response = ui.add(
+            DragValue::new(angle)
+                .speed(angle_speed)
+                .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+        );
         ui.label("*pi/180");
         *angle = rotation_edgecase_logic_degrees(rotation_edgecase_option, *angle);
         let (knob_changed, knob_drag_stopped) =

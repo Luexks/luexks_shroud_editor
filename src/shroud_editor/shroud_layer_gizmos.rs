@@ -4,7 +4,7 @@ use crate::{
     angle_gizmo::AngleGizmo,
     rotation_edgecase::RotationEdgecase,
     shroud_editor::{
-        ShroudEditor,
+        DRAG_VALUE_MAX, DRAG_VALUE_MIN, ShroudEditor,
         shroud_settings::{ShroudLayerSettingsTarget, SingleSettingsTarget},
     },
 };
@@ -137,7 +137,11 @@ impl ShroudEditor {
                     .unwrap()
                     .y
                     .to_f32_mut();
-                let response = ui.add(DragValue::new(height).speed(xy_speed));
+                let response = ui.add(
+                    DragValue::new(height)
+                        .speed(xy_speed)
+                        .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+                );
                 if response.changed() {
                     let height = *height;
                     shroud_layer_settings_target.on_height_changed(height);
@@ -181,7 +185,11 @@ impl ShroudEditor {
                     .unwrap()
                     .x
                     .to_f32_mut();
-                let response = ui.add(DragValue::new(width).speed(xy_speed));
+                let response = ui.add(
+                    DragValue::new(width)
+                        .speed(xy_speed)
+                        .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+                );
                 if response.changed() {
                     let width = *width;
                     shroud_layer_settings_target.on_width_changed(width);

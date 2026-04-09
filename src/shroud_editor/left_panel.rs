@@ -24,7 +24,7 @@ use crate::{
     restructure_vertices::restructure_vertices,
     shape_container::ShapeContainer,
     shroud_editor::{
-        FILL_COLOR_GRADIENT_TIME, ShroudEditor,
+        DRAG_VALUE_MAX, DRAG_VALUE_MIN, FILL_COLOR_GRADIENT_TIME, ShroudEditor,
         parse_shroud_text::{ShroudParseResult, parse_shroud_text},
     },
     shroud_interaction::{MovingShroudLayerInteraction, MovingShroudSelection, ShroudInteraction},
@@ -168,7 +168,11 @@ impl ShroudEditor {
             ui.label("Grid Visible:");
             ui.add(Checkbox::new(&mut self.grid_visible, ""));
             ui.label("Size:");
-            ui.add(DragValue::new(&mut self.settings_grid_size).speed(0.05));
+            ui.add(
+                DragValue::new(&mut self.settings_grid_size)
+                    .speed(0.05)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             self.settings_grid_size = self.settings_grid_size.max(0.1);
             ui.label("Snap:");
             ui.add(Checkbox::new(&mut self.grid_snap_enabled, ""));
@@ -180,7 +184,11 @@ impl ShroudEditor {
             ui.label("Angle Snap Enabled:");
             ui.add(Checkbox::new(&mut self.angle_snap_enabled, ""));
             if self.angle_snap_enabled {
-                ui.add(DragValue::new(&mut self.angle_snap).speed(2.0));
+                ui.add(
+                    DragValue::new(&mut self.angle_snap)
+                        .speed(2.0)
+                        .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+                );
                 self.angle_snap = self.angle_snap.clamp(1.0, 90.0);
             }
         });
@@ -292,9 +300,9 @@ impl ShroudEditor {
                         ));
                     } else {
                         ui.label("Offset:");
-                        ui.add(DragValue::new(&mut self.block_container.offset.x));
+                        ui.add(DragValue::new(&mut self.block_container.offset.x).range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX));
                         ui.label(",");
-                        ui.add(DragValue::new(&mut self.block_container.offset.y));
+                        ui.add(DragValue::new(&mut self.block_container.offset.y).range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX));
                     }
                 });
                 ui.label("Block offset is added to all shroud layer offsets on import and subtracted from all shroud layer offsets on export; no visual change while editing.");

@@ -1,7 +1,7 @@
 use crate::{
     pos_and_display_oriented_number_conversion::{do3d_to_pos2, pos2_to_do2d},
     shroud_editor::{
-        ShroudEditor,
+        DRAG_VALUE_MAX, DRAG_VALUE_MIN, ShroudEditor,
         shroud_settings::{ShroudLayerSettingsTarget, SingleSettingsTarget, angle_knob_settings},
     },
     shroud_interaction::ShroudInteraction,
@@ -20,6 +20,7 @@ pub struct ToolSettings {
     move_selection_by_x: f32,
     move_selection_by_y: f32,
     move_selection_by_z: f32,
+    scale_by_no_offset_scale_factor: f32,
     scale_by_scale_factor: f32,
     scale_by_about_x: f32,
     scale_by_about_y: f32,
@@ -44,6 +45,7 @@ impl Default for ToolSettings {
             move_selection_by_x: 10.0,
             move_selection_by_y: 10.0,
             move_selection_by_z: 0.0,
+            scale_by_no_offset_scale_factor: 1.0,
             scale_by_scale_factor: 1.0,
             scale_by_about_x: 0.0,
             scale_by_about_y: 0.0,
@@ -75,6 +77,8 @@ impl ShroudEditor {
                 ui.separator();
                 self.move_by_x_y_z_tool(ui);
                 ui.separator();
+                self.scale_by_no_offset(ui);
+                ui.separator();
                 self.scale_by(ui);
                 ui.separator();
                 self.scale_by_2(ui);
@@ -95,9 +99,10 @@ impl ShroudEditor {
             {
                 self.set_default_proportions();
             }
-            ui.add(DragValue::new(
-                &mut self.tool_settings.default_proportions_scale,
-            ));
+            ui.add(
+                DragValue::new(&mut self.tool_settings.default_proportions_scale)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
         });
     }
 
@@ -132,11 +137,15 @@ impl ShroudEditor {
             let about_x = &mut self.tool_settings.radial_about_x;
             let about_y = &mut self.tool_settings.radial_about_y;
             let count = &mut self.tool_settings.radial_by_count;
-            ui.add(DragValue::new(count).range(2..=360));
+            ui.add(
+                DragValue::new(count)
+                    .range(2..=360)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             ui.label("about X:");
-            ui.add(DragValue::new(about_x));
+            ui.add(DragValue::new(about_x).range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX));
             ui.label("about Y:");
-            ui.add(DragValue::new(about_y));
+            ui.add(DragValue::new(about_y).range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX));
         });
         ui.horizontal(|ui| {
             let angle = &mut self.tool_settings.radial_by_angle;
@@ -146,7 +155,11 @@ impl ShroudEditor {
             } else {
                 1.0
             };
-            ui.add(DragValue::new(angle).speed(angle_speed));
+            ui.add(
+                DragValue::new(angle)
+                    .speed(angle_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             (_, _) = angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
         });
     }
@@ -246,14 +259,18 @@ impl ShroudEditor {
                     });
             }
             let angle = &mut self.tool_settings.move_selection_by_angle;
-            ui.add(DragValue::new(distance));
+            ui.add(DragValue::new(distance).range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX));
             ui.label("at angle");
             let angle_speed = if self.angle_snap_enabled {
                 self.angle_snap
             } else {
                 1.0
             };
-            ui.add(DragValue::new(angle).speed(angle_speed));
+            ui.add(
+                DragValue::new(angle)
+                    .speed(angle_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             (_, _) = angle_knob_settings(ui, angle, self.angle_snap, self.angle_snap_enabled);
         });
     }
@@ -299,11 +316,60 @@ impl ShroudEditor {
                     });
             }
             ui.label("X:");
-            ui.add(DragValue::new(x).speed(xy_speed));
+            ui.add(
+                DragValue::new(x)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             ui.label("Y:");
-            ui.add(DragValue::new(y).speed(xy_speed));
+            ui.add(
+                DragValue::new(y)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             ui.label("Z:");
-            ui.add(DragValue::new(z).speed(0.005));
+            ui.add(
+                DragValue::new(z)
+                    .speed(0.005)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
+        });
+    }
+
+    fn scale_by_no_offset(&mut self, ui: &mut Ui) {
+        ui.horizontal(|ui| {
+            let xy_speed = self.get_xy_speed();
+            let scale_factor = &mut self.tool_settings.scale_by_no_offset_scale_factor;
+            if ui.button("Scale by (no offset)").clicked() {
+                self.add_undo_history = true;
+                self.shroud_interaction
+                    .selection()
+                    .iter()
+                    .for_each(|shroud_layer_index| {
+                        let size = self.shroud[*shroud_layer_index]
+                            .shroud_layer
+                            .size
+                            .as_ref()
+                            .unwrap();
+                        let new_size = do2d_float_from(
+                            size.x.to_f32() * *scale_factor,
+                            size.y.to_f32() * *scale_factor,
+                        );
+                        self.shroud[*shroud_layer_index].shroud_layer.size = Some(new_size);
+                        if let Some(mirror_index) =
+                            self.shroud[*shroud_layer_index].mirror_index_option
+                        {
+                            self.shroud[mirror_index].shroud_layer.size =
+                                self.shroud[*shroud_layer_index].shroud_layer.size.clone();
+                        }
+                    });
+            }
+            ui.label("scale factor:");
+            ui.add(
+                DragValue::new(scale_factor)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
         });
     }
 
@@ -360,11 +426,23 @@ impl ShroudEditor {
                     });
             }
             ui.label("scale factor:");
-            ui.add(DragValue::new(scale_factor).speed(xy_speed));
+            ui.add(
+                DragValue::new(scale_factor)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             ui.label("about X:");
-            ui.add(DragValue::new(about_x).speed(xy_speed));
+            ui.add(
+                DragValue::new(about_x)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             ui.label("Y:");
-            ui.add(DragValue::new(about_y).speed(xy_speed));
+            ui.add(
+                DragValue::new(about_y)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
         });
     }
 
@@ -422,15 +500,31 @@ impl ShroudEditor {
                     });
             }
             ui.label("X scale factor:");
-            ui.add(DragValue::new(x_scale_factor).speed(xy_speed));
+            ui.add(
+                DragValue::new(x_scale_factor)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             ui.label("Y scale factor:");
-            ui.add(DragValue::new(y_scale_factor).speed(xy_speed));
+            ui.add(
+                DragValue::new(y_scale_factor)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
         });
         ui.horizontal(|ui| {
             ui.label("about X:");
-            ui.add(DragValue::new(about_x).speed(xy_speed));
+            ui.add(
+                DragValue::new(about_x)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
             ui.label("Y:");
-            ui.add(DragValue::new(about_y).speed(xy_speed));
+            ui.add(
+                DragValue::new(about_y)
+                    .speed(xy_speed)
+                    .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+            );
         });
     }
 }

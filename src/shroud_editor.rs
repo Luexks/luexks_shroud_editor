@@ -27,6 +27,8 @@ const FILL_COLOR_GRADIENT_TIME: f32 = 4.0;
 const ZOOM_MIN: f32 = 0.001;
 const ZOOM_MAX: f32 = 10000.0;
 const MIN_GRID_LINE_DIST: f32 = 8.0;
+pub const DRAG_VALUE_MIN: f32 = f32::MIN;
+pub const DRAG_VALUE_MAX: f32 = f32::MAX;
 
 pub struct ShroudEditor {
     pub block_container: BlockContainer,

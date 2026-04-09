@@ -8,7 +8,9 @@ use egui::{
 use image::{ImageError, ImageReader};
 
 use crate::{
-    file_import_export::WhichFileDialog, invert_y::invert_y_of_pos2, shroud_editor::ShroudEditor,
+    file_import_export::WhichFileDialog,
+    invert_y::invert_y_of_pos2,
+    shroud_editor::{DRAG_VALUE_MAX, DRAG_VALUE_MIN, ShroudEditor},
 };
 
 pub struct ReferenceImage {
@@ -71,14 +73,22 @@ impl ShroudEditor {
                 ui.horizontal(|ui| {
                     let xy_speed = self.get_xy_speed();
                     ui.label("X:");
-                    ui.add(DragValue::new(&mut self.reference_image.pos.x).speed(xy_speed));
+                    ui.add(
+                        DragValue::new(&mut self.reference_image.pos.x)
+                            .speed(xy_speed)
+                            .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+                    );
                     ui.label("Y:");
-                    ui.add(DragValue::new(&mut self.reference_image.pos.y).speed(xy_speed));
+                    ui.add(
+                        DragValue::new(&mut self.reference_image.pos.y)
+                            .speed(xy_speed)
+                            .range(DRAG_VALUE_MIN..=DRAG_VALUE_MAX),
+                    );
                     ui.label("Scale:");
                     ui.add(
                         DragValue::new(&mut self.reference_image.scale)
                             .speed(0.01)
-                            .range(0.0..=f32::INFINITY),
+                            .range(0.0..=DRAG_VALUE_MAX),
                     );
                 });
                 ui.horizontal(|ui| {
