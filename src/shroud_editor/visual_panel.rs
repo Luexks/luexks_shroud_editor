@@ -25,6 +25,8 @@ impl ShroudEditor {
                     self.zoom(ui, rect);
                 }
 
+                self.drag_viewport_logic(ui, &response);
+
                 self.shroud_interaction_update(ui, ctx, &response, &rect);
 
                 self.selection_release_logic(ctx, ui);

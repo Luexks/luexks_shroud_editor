@@ -1,6 +1,6 @@
 use std::f32::consts::SQRT_2;
 
-use egui::{Context, Pos2, Rect, Ui, pos2, vec2};
+use egui::{Context, CursorIcon, Pos2, Rect, Response, Ui, pos2, vec2};
 
 use crate::{
     keybinds::is_keyboard_binding_down,
@@ -64,5 +64,14 @@ impl ShroudEditor {
         // Adjust panning to keep the world position constant under cursor
         self.pan.x += after_x - before_x;
         self.pan.y += after_y - before_y;
+    }
+
+    pub fn drag_viewport_logic(&mut self, ui: &mut Ui, response: &Response) {
+        if let ShroudInteraction::Inaction { .. } = self.shroud_interaction
+            && ui.ctx().input(|i| i.pointer.middle_down())
+        {
+            self.pan += response.drag_delta() / self.zoom;
+            ui.ctx().set_cursor_icon(CursorIcon::Grabbing);
+        }
     }
 }
