@@ -169,7 +169,7 @@ impl ShroudEditor {
         if selection.is_empty() {
             return;
         }
-        selection.iter().for_each(|layer_idx| {
+        selection.iter().sorted().rev().for_each(|layer_idx| {
             self.groups_logic_for_deleted_layer_idx(*layer_idx);
         });
         self.cull_groups();
