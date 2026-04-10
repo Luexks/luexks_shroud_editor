@@ -1,7 +1,8 @@
 use egui::{Pos2, Rect};
 
 use crate::{
-    pos_in_polygon::is_pos_in_polygon, shroud_editor::ShroudEditor,
+    pos_in_polygon::{is_pos_in_polygon, is_pos_on_perimeter},
+    shroud_editor::ShroudEditor,
     shroud_layer_container::ShroudLayerContainer,
 };
 
@@ -19,19 +20,21 @@ impl ShroudEditor {
     ) -> bool {
         if let Some(mouse_pos) = mouse_pos {
             let offset = shroud_layer_container.shroud_layer.offset.clone().unwrap();
-            is_pos_in_polygon(
-                mouse_pos,
-                self.positions_to_screen_positions(
-                    &shroud_layer_container
-                        .get_shroud_layer_vertices()
-                        .iter()
-                        .map(|vertex| {
-                            Pos2::new(vertex.x + offset.x.to_f32(), vertex.y - offset.y.to_f32())
-                        })
-                        .collect::<Vec<_>>(),
-                    rect,
-                ),
-            )
+            let polygon = self.positions_to_screen_positions(
+                &shroud_layer_container
+                    .get_shroud_layer_vertices()
+                    .iter()
+                    .map(|vertex| {
+                        Pos2::new(vertex.x + offset.x.to_f32(), vertex.y - offset.y.to_f32())
+                    })
+                    .collect::<Vec<_>>(),
+                rect,
+            );
+            if is_pos_in_polygon(mouse_pos, &polygon) {
+                true
+            } else {
+                is_pos_on_perimeter(mouse_pos, &polygon)
+            }
         } else {
             false
         }
