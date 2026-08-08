@@ -214,6 +214,7 @@ impl ShroudEditor {
         let sorted_selection = selection.into_iter().sorted().collect::<Vec<_>>();
         sorted_selection.iter().rev().for_each(|i| {
             self.shroud.remove(*i);
+            self.mirror_idx_logic_for_deleted_layer_idx(*i);
         });
         self.shroud_interaction = ShroudInteraction::Inaction {
             selection: (self.shroud.len() - new_selection_len..self.shroud.len()).collect(),
