@@ -2,6 +2,7 @@ use egui::{Color32, DragValue, Pos2, Rect, Ui, UiBuilder, pos2, vec2};
 
 use crate::{
     angle_gizmo::AngleGizmo,
+    pos_and_display_oriented_number_conversion::do3d_to_pos2_invert_y,
     rotation_edgecase::RotationEdgecase,
     shroud_editor::{
         DRAG_VALUE_MAX, DRAG_VALUE_MIN, ShroudEditor,
@@ -43,12 +44,39 @@ impl ShroudEditor {
             egui::Frame::new()
                 .fill(Color32::TRANSPARENT)
                 .show(ui, |ui| {
-                    self.angle_gizmo_body(idx, ui);
+                    self.angle_gizmo_body(idx, ui, None);
+                });
+        });
+        let angle = self.shroud[idx]
+            .shroud_layer
+            .angle
+            .as_ref()
+            .unwrap()
+            .as_radians()
+            .get_value();
+        let verts = self.shroud[idx].get_shroud_layer_vertices();
+        let mut max_dist = 0.;
+        verts.into_iter().for_each(|vert| {
+            let dx = vert.x;
+            let dy = -vert.y;
+            let vert_angle = dy.atan2(dx);
+            let dist = (vert.x * vert.x + vert.y * vert.y).sqrt() * (vert_angle - angle).cos();
+            println!("{}\t{:.5}\t{:.5}\t{:.5}", vert, dist, angle, vert_angle);
+            if dist > max_dist {
+                max_dist = dist;
+            }
+        });
+        println!("{}", max_dist);
+        ui.scope_builder(UiBuilder::new().max_rect(gizmo_rect), |ui| {
+            egui::Frame::new()
+                .fill(Color32::TRANSPARENT)
+                .show(ui, |ui| {
+                    self.angle_gizmo_body(idx, ui, Some(max_dist * self.zoom));
                 });
         });
     }
 
-    fn angle_gizmo_body(&mut self, idx: usize, ui: &mut Ui) {
+    fn angle_gizmo_body(&mut self, idx: usize, ui: &mut Ui, is_further_away: Option<f32>) {
         let rotation_edgecase_option = Into::<Option<RotationEdgecase>>::into(&self.shroud[idx]);
         let shroud_layer_settings_target = &mut SingleSettingsTarget {
             shroud: &mut self.shroud,
@@ -70,6 +98,7 @@ impl ShroudEditor {
             &mut add_undo_history,
             &mut changed,
             rotation_edgecase_option,
+            is_further_away,
         ));
         if add_undo_history {
             self.add_undo_history = true;

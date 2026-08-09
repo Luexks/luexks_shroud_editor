@@ -9,6 +9,7 @@ pub struct AngleGizmo<'a> {
     add_undo_history: &'a mut bool,
     changed: &'a mut bool,
     rotation_edgecase_option: Option<RotationEdgecase>,
+    distance_option: Option<f32>,
 }
 
 impl<'a> AngleGizmo<'a> {
@@ -19,6 +20,7 @@ impl<'a> AngleGizmo<'a> {
         add_undo_history: &'a mut bool,
         changed: &'a mut bool,
         rotation_edgecase_option: Option<RotationEdgecase>,
+        distance_option: Option<f32>,
     ) -> Self {
         AngleGizmo {
             angle,
@@ -27,6 +29,7 @@ impl<'a> AngleGizmo<'a> {
             add_undo_history,
             changed,
             rotation_edgecase_option,
+            distance_option,
         }
     }
 }
@@ -40,18 +43,25 @@ impl Widget for AngleGizmo<'_> {
         let (rect, response) = ui.allocate_exact_size(Vec2::ZERO, Sense::empty());
         let centre = rect.min;
         let painter = ui.painter();
-        painter.circle_filled(centre, 2.5, Color32::WHITE);
         let (sin, cos) =
             rotation_edgecase_logic_radians(rotation_edgecase_option, self.angle.to_radians())
                 .sin_cos();
         let mut gizmo_pos = centre;
-        gizmo_pos.x += cos * ANGLE_GIZMO_DISTANCE;
-        gizmo_pos.y -= sin * ANGLE_GIZMO_DISTANCE;
+        let distance = self
+            .distance_option
+            .map_or(ANGLE_GIZMO_DISTANCE, |distance| {
+                distance + ANGLE_GIZMO_DISTANCE
+            });
+        gizmo_pos.x += cos * distance;
+        gizmo_pos.y -= sin * distance;
         let interaction_rect = Rect::from_two_pos(
             gizmo_pos - ANGLE_GIZMO_SIZE / 2.0,
             gizmo_pos + ANGLE_GIZMO_SIZE / 2.0,
         );
-        painter.line_segment([centre, gizmo_pos], Stroke::new(1.0, Color32::WHITE));
+        if self.distance_option.is_none() {
+            painter.circle_filled(centre, 2.5, Color32::WHITE);
+            painter.line_segment([centre, gizmo_pos], Stroke::new(1.0, Color32::WHITE));
+        }
         let mut interaction = Interaction::None;
 
         ui.scope_builder(UiBuilder::new().max_rect(interaction_rect), |ui| {
