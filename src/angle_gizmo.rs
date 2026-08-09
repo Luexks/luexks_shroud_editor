@@ -9,7 +9,7 @@ pub struct AngleGizmo<'a> {
     add_undo_history: &'a mut bool,
     changed: &'a mut bool,
     rotation_edgecase_option: Option<RotationEdgecase>,
-    distance_option: Option<f32>,
+    is_further_away: bool,
 }
 
 impl<'a> AngleGizmo<'a> {
@@ -20,7 +20,7 @@ impl<'a> AngleGizmo<'a> {
         add_undo_history: &'a mut bool,
         changed: &'a mut bool,
         rotation_edgecase_option: Option<RotationEdgecase>,
-        distance_option: Option<f32>,
+        is_further_away: bool,
     ) -> Self {
         AngleGizmo {
             angle,
@@ -29,13 +29,14 @@ impl<'a> AngleGizmo<'a> {
             add_undo_history,
             changed,
             rotation_edgecase_option,
-            distance_option,
+            is_further_away,
         }
     }
 }
 
 const ANGLE_GIZMO_SIZE: Vec2 = vec2(20.0, 20.0);
-const ANGLE_GIZMO_DISTANCE: f32 = 15.0;
+const ANGLE_GIZMO_DISTANCE_SHORT: f32 = 15.0;
+const ANGLE_GIZMO_DISTANCE_LONG: f32 = 300.0;
 
 impl Widget for AngleGizmo<'_> {
     fn ui(self, ui: &mut Ui) -> Response {
@@ -47,18 +48,18 @@ impl Widget for AngleGizmo<'_> {
             rotation_edgecase_logic_radians(rotation_edgecase_option, self.angle.to_radians())
                 .sin_cos();
         let mut gizmo_pos = centre;
-        let distance = self
-            .distance_option
-            .map_or(ANGLE_GIZMO_DISTANCE, |distance| {
-                distance + ANGLE_GIZMO_DISTANCE
-            });
+        let distance = if self.is_further_away {
+            ANGLE_GIZMO_DISTANCE_LONG
+        } else {
+            ANGLE_GIZMO_DISTANCE_SHORT
+        };
         gizmo_pos.x += cos * distance;
         gizmo_pos.y -= sin * distance;
         let interaction_rect = Rect::from_two_pos(
             gizmo_pos - ANGLE_GIZMO_SIZE / 2.0,
             gizmo_pos + ANGLE_GIZMO_SIZE / 2.0,
         );
-        if self.distance_option.is_none() {
+        if !self.is_further_away {
             painter.circle_filled(centre, 2.5, Color32::WHITE);
             painter.line_segment([centre, gizmo_pos], Stroke::new(1.0, Color32::WHITE));
         }
