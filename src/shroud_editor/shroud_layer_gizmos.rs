@@ -18,21 +18,22 @@ impl ShroudEditor {
             .into_iter()
             .rev()
             .take(GIZMO_SET_LIMIT)
-            .for_each(|index| {
-                if index < self.shroud.len() {
-                    let offset = self.shroud[index].shroud_layer.offset.clone().unwrap();
-                    let gizmo_center = self
+            .for_each(|idx| {
+                if idx < self.shroud.len() {
+                    let offset = self.shroud[idx].shroud_layer.offset.clone().unwrap();
+                    let gizmo_centre = self
                         .world_pos_to_screen_pos(pos2(offset.x.to_f32(), -offset.y.to_f32()), rect);
-                    let (gizmo_pos_top_left, gizmo_pos_bottom_right) = (gizmo_center, gizmo_center);
+                    let (gizmo_pos_top_left, gizmo_pos_bottom_right) = (gizmo_centre, gizmo_centre);
                     let gizmo_size = 20.0;
-                    self.angle_gizmo(ui, gizmo_center, index);
+                    self.angle_gizmo(ui, gizmo_centre, idx);
                     self.size_gizmo(
                         ui,
                         gizmo_pos_top_left,
                         gizmo_pos_bottom_right,
                         gizmo_size,
-                        index,
+                        idx,
                     );
+                    self.bounding_box_gizmo(ui, gizmo_centre, idx, rect);
                 }
             });
     }

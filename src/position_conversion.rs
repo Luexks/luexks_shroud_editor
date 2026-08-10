@@ -1,4 +1,4 @@
-use egui::{Pos2, Rect};
+use egui::{Pos2, Rect, Vec2};
 
 use crate::shroud_editor::ShroudEditor;
 
@@ -53,4 +53,8 @@ pub fn positions_to_screen_positions(
         .iter()
         .map(|position| world_pos_to_screen_pos(*position, rect, pan, zoom))
         .collect()
+}
+
+pub fn screen_vec_to_world_pos(vec: Vec2, rect: Rect, pan: Pos2, zoom: f32) -> Pos2 {
+    screen_pos_to_world_pos(vec.to_pos2(), rect, pan, zoom)
 }
