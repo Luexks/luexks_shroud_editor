@@ -38,7 +38,7 @@ pub struct ShroudEditor {
     pub settings_grid_size: f32,
     pub grid_size: f32,
     grid_visible: bool,
-    grid_snap_enabled: bool,
+    pub grid_snap_enabled: bool,
     angle_snap: f32,
     angle_snap_enabled: bool,
     pub pan: Pos2,

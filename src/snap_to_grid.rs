@@ -6,3 +6,7 @@ pub fn snap_to_grid(grid_size: f32, old_offset: Pos2) -> Pos2 {
         (old_offset.y / grid_size).round() * grid_size,
     )
 }
+
+pub fn snap_to_grid_linear(grid_size: f32, old_offset: f32) -> f32 {
+    (old_offset / grid_size).round() * grid_size
+}

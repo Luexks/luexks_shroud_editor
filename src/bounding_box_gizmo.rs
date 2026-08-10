@@ -1,9 +1,14 @@
 use egui::{
-    Color32, CursorIcon, Key::I, Pos2, Rect, Response, Sense, Stroke, Ui, UiBuilder, Vec2, Widget, pos2, vec2,
+    Color32, CursorIcon, Key::I, Pos2, Rect, Response, Sense, Stroke, Ui, UiBuilder, Vec2, Widget,
+    pos2, vec2,
 };
 
 use crate::{
-    pos_and_display_oriented_number_conversion::{do2d_to_pos2, do3d_to_pos2}, position_conversion::{screen_pos_to_world_pos, screen_vec_to_world_pos}, rotation_edgecase::{RotationEdgecase, rotation_edgecase_logic_radians}, shroud_editor::ShroudEditor,
+    pos_and_display_oriented_number_conversion::{do2d_to_pos2, do3d_to_pos2},
+    position_conversion::{screen_pos_to_world_pos, screen_vec_to_world_pos},
+    rotation_edgecase::{RotationEdgecase, rotation_edgecase_logic_radians},
+    shroud_editor::ShroudEditor,
+    snap_to_grid::{snap_to_grid, snap_to_grid_linear},
 };
 
 impl ShroudEditor {
@@ -19,11 +24,11 @@ impl ShroudEditor {
             .get_value();
         let add_undo_history = &mut false;
         let mut changed = false;
-        let mut size = do2d_to_pos2(layer.shroud_layer.size.as_ref().unwrap()) * self.zoom;
-        let mut offset = do3d_to_pos2(layer.shroud_layer.offset.as_ref().unwrap()) * self.zoom;
+        let mut size = do2d_to_pos2(layer.shroud_layer.size.as_ref().unwrap());
+        let mut offset = do3d_to_pos2(layer.shroud_layer.offset.as_ref().unwrap());
         let zoom = self.zoom;
         let pan = self.pan;
-        let (x, y) = (size.x / 2., -size.y / 2.);
+        let (x, y) = (size.x / 2. * self.zoom, -size.y / 2. * self.zoom);
         let o = 0.;
         let (n, ne, e, se, s, sw, w, nw) = if is_square {
             let y = y * 2.;
@@ -57,14 +62,122 @@ impl ShroudEditor {
         let option_pos_sw = bounding_box_gizmo_individual(ui, sw, add_undo_history);
         let option_pos_w = bounding_box_gizmo_individual(ui, w, add_undo_history);
         let option_pos_nw = bounding_box_gizmo_individual(ui, nw, add_undo_history);
-        if is_square {
+        let old_size = size;
+        let old_offset = offset;
+        let shift = ui.ctx().input(|i| i.modifiers.shift);
+        let grid_size = self.grid_size;
+        let grid_snap_enabled = self.grid_snap_enabled;
 
-        } else {
+        if is_square {
+            let cardinal = |is_horizontal: bool,
+                            direction: bool,
+                            gizmo_pos: Pos2,
+                            mouse_pos: Pos2,
+                            radians: f32,
+                            size_component: &mut f32,
+                            offset: &mut Pos2| {
+                let is_horizontal_factor = if !is_horizontal { 1. } else { -1. };
+                let is_vertical_double_factor = if !is_horizontal { 0.5 } else { -1. };
+                let direction = if direction { 1. } else { -1. };
+                let old_size_component = if is_horizontal {
+                    old_size.x
+                } else {
+                    old_size.y
+                };
+                let delta = screen_pos_to_world_pos(mouse_pos, rect, pan, zoom)
+                    - screen_pos_to_world_pos(gizmo_pos, rect, pan, zoom);
+                let (sin, cos) = radians.sin_cos();
+                let delta_rotated =
+                    pos2(delta.x * cos - delta.y * sin, delta.x * sin + delta.y * cos);
+                let dist = if is_horizontal { delta_rotated.x } else { delta_rotated.y * is_vertical_double_factor };
+                *size_component -= dist * direction * is_horizontal_factor;
+                if shift && grid_snap_enabled {
+                    *size_component = snap_to_grid_linear(grid_size, *size_component);
+                } else {
+                    if grid_snap_enabled {
+                        *size_component = snap_to_grid_linear(grid_size, *size_component);
+                        // let snapped_dist = old_size_component - *size_component;
+                        // *offset_component -= snapped_dist / 2. * direction;
+                    } else {
+                        // *offset_component -= dist / 2. * direction;
+                    }
+                }
+            };
+
             if let Some(mouse_pos) = option_pos_n {
-                let dist = screen_vec_to_world_pos(mouse_pos - n, rect, pan, zoom).y;
-                dbg!(dist);
-                size.y += dist;
-                offset.y += dist / 2.;
+                cardinal(false, true, n, mouse_pos, angle, &mut size.y, &mut offset);
+                changed = true;
+            }
+        } else {
+            let cardinal = |is_horizontal: bool,
+                            direction: bool,
+                            gizmo_pos: Pos2,
+                            mouse_pos: Pos2,
+                            size_component: &mut f32,
+                            offset_component: &mut f32| {
+                let is_horizontal_factor = if !is_horizontal { 1. } else { -1. };
+                let direction = if direction { 1. } else { -1. };
+                let old_size_component = if is_horizontal {
+                    old_size.x
+                } else {
+                    old_size.y
+                };
+                let dist = if is_horizontal {
+                    screen_pos_to_world_pos(mouse_pos, rect, pan, zoom).x
+                        - screen_pos_to_world_pos(gizmo_pos, rect, pan, zoom).x
+                } else {
+                    screen_pos_to_world_pos(mouse_pos, rect, pan, zoom).y
+                        - screen_pos_to_world_pos(gizmo_pos, rect, pan, zoom).y
+                };
+                *size_component -= dist * direction * is_horizontal_factor;
+                if shift && grid_snap_enabled {
+                    *size_component = snap_to_grid_linear(grid_size, *size_component);
+                } else {
+                    if grid_snap_enabled {
+                        *size_component = snap_to_grid_linear(grid_size, *size_component);
+                        let snapped_dist = old_size_component - *size_component;
+                        *offset_component -= snapped_dist / 2. * direction;
+                    } else {
+                        *offset_component -= dist / 2. * direction;
+                    }
+                }
+            };
+
+            if let Some(mouse_pos) = option_pos_n {
+                cardinal(false, true, n, mouse_pos, &mut size.y, &mut offset.y);
+                changed = true;
+            }
+            if let Some(mouse_pos) = option_pos_e {
+                cardinal(true, true, e, mouse_pos, &mut size.x, &mut offset.x);
+                changed = true;
+            }
+            if let Some(mouse_pos) = option_pos_s {
+                cardinal(false, false, s, mouse_pos, &mut size.y, &mut offset.y);
+                changed = true;
+            }
+            if let Some(mouse_pos) = option_pos_w {
+                cardinal(true, false, w, mouse_pos, &mut size.x, &mut offset.x);
+                changed = true;
+            }
+
+            if let Some(mouse_pos) = option_pos_ne {
+                cardinal(false, true, ne, mouse_pos, &mut size.y, &mut offset.y);
+                cardinal(true, true, ne, mouse_pos, &mut size.x, &mut offset.x);
+                changed = true;
+            }
+            if let Some(mouse_pos) = option_pos_se {
+                cardinal(false, false, se, mouse_pos, &mut size.y, &mut offset.y);
+                cardinal(true, true, se, mouse_pos, &mut size.x, &mut offset.x);
+                changed = true;
+            }
+            if let Some(mouse_pos) = option_pos_sw {
+                cardinal(false, false, sw, mouse_pos, &mut size.y, &mut offset.y);
+                cardinal(true, false, sw, mouse_pos, &mut size.x, &mut offset.x);
+                changed = true;
+            }
+            if let Some(mouse_pos) = option_pos_nw {
+                cardinal(false, true, nw, mouse_pos, &mut size.y, &mut offset.y);
+                cardinal(true, false, nw, mouse_pos, &mut size.x, &mut offset.x);
                 changed = true;
             }
         }
@@ -78,7 +191,6 @@ impl ShroudEditor {
             *layer.shroud_layer.size.as_mut().unwrap().y.to_f32_mut() = size.y;
         }
     }
-
 }
 
 fn apply_angle(pos: Vec2, radians: f32) -> Vec2 {
