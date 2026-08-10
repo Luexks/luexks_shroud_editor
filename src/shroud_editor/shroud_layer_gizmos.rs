@@ -2,7 +2,6 @@ use egui::{Color32, DragValue, Pos2, Rect, Ui, UiBuilder, pos2, vec2};
 
 use crate::{
     angle_gizmo::AngleGizmo,
-    pos_and_display_oriented_number_conversion::{do2d_to_pos2, do3d_to_pos2_invert_y},
     rotation_edgecase::RotationEdgecase,
     shroud_editor::{
         DRAG_VALUE_MAX, DRAG_VALUE_MIN, ShroudEditor,
