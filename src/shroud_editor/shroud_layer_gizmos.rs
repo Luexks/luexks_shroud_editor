@@ -33,7 +33,7 @@ impl ShroudEditor {
                         gizmo_size,
                         idx,
                     );
-                    self.bounding_box_gizmo(ui, gizmo_centre, idx, rect);
+                    self.size_box_gizmo(ui, gizmo_centre, idx, rect);
                 }
             });
     }
