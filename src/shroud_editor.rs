@@ -229,6 +229,7 @@ mod shroud_layer_gizmos;
 mod shroud_layer_moving;
 mod shroud_layer_reordering;
 mod shroud_settings;
+mod size_box_gizmo;
 mod tools;
 mod viewport_controls;
 mod visual_panel;

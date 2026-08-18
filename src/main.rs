@@ -32,7 +32,6 @@ mod shapes_import_text_default;
 mod shroud_import_text_default;
 mod shroud_interaction;
 mod shroud_layer_container;
-mod size_box_gizmo;
 mod size_from_verts;
 mod snap_to_grid;
 mod styles;

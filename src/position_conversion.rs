@@ -1,4 +1,4 @@
-use egui::{Pos2, Rect, Vec2};
+use egui::{Pos2, Rect};
 
 use crate::shroud_editor::ShroudEditor;
 

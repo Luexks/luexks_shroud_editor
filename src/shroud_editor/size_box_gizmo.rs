@@ -8,25 +8,26 @@ use egui::{
 use crate::{
     pos_and_display_oriented_number_conversion::{do2d_to_pos2, do3d_to_pos2},
     position_conversion::screen_pos_to_world_pos,
-    shroud_editor::ShroudEditor,
+    shroud_editor::{
+        ShroudEditor,
+        shroud_settings::{ShroudLayerSettingsTarget, SingleSettingsTarget},
+    },
     snap_to_grid::snap_to_grid_linear,
 };
 
 impl ShroudEditor {
     pub fn size_box_gizmo(&mut self, ui: &mut Ui, gizmo_centre: Pos2, idx: usize, rect: Rect) {
-        let layer = &mut self.shroud[idx];
-        let is_square = layer.shape_id == "SQUARE";
-        let angle = -layer
-            .shroud_layer
-            .angle
-            .as_ref()
-            .unwrap()
-            .as_radians()
-            .get_value();
+        let shroud_layer_settings_target = &mut SingleSettingsTarget {
+            shroud: &mut self.shroud,
+            idx,
+        };
+        let is_square = shroud_layer_settings_target.get_shape_id_str() == "SQUARE";
+        let layer = shroud_layer_settings_target.get_main_layer_mut();
+        let angle = -layer.angle.as_ref().unwrap().as_radians().get_value();
         let add_undo_history = &mut false;
         let mut changed = false;
-        let mut size = do2d_to_pos2(layer.shroud_layer.size.as_ref().unwrap());
-        let mut offset = do3d_to_pos2(layer.shroud_layer.offset.as_ref().unwrap());
+        let mut size = do2d_to_pos2(layer.size.as_ref().unwrap());
+        let mut offset = do3d_to_pos2(layer.offset.as_ref().unwrap());
         let zoom = self.zoom;
         let pan = self.pan;
         let (x, y) = (size.x / 2. * self.zoom, -size.y / 2. * self.zoom);
@@ -227,10 +228,14 @@ impl ShroudEditor {
             self.add_undo_history = true;
         }
         if changed {
-            *layer.shroud_layer.offset.as_mut().unwrap().x.to_f32_mut() = offset.x;
-            *layer.shroud_layer.offset.as_mut().unwrap().y.to_f32_mut() = offset.y;
-            *layer.shroud_layer.size.as_mut().unwrap().x.to_f32_mut() = size.x;
-            *layer.shroud_layer.size.as_mut().unwrap().y.to_f32_mut() = size.y;
+            *layer.offset.as_mut().unwrap().x.to_f32_mut() = offset.x;
+            *layer.offset.as_mut().unwrap().y.to_f32_mut() = offset.y;
+            *layer.size.as_mut().unwrap().x.to_f32_mut() = size.x;
+            *layer.size.as_mut().unwrap().y.to_f32_mut() = size.y;
+            shroud_layer_settings_target.on_x_changed(offset.x);
+            shroud_layer_settings_target.on_y_changed(offset.y);
+            shroud_layer_settings_target.on_width_changed(size.x);
+            shroud_layer_settings_target.on_height_changed(size.y);
         }
     }
 }
